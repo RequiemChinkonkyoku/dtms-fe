@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import AdbIcon from "@mui/icons-material/Adb";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
+import { Link } from "react-router-dom"; // Import Link from react-router-dom
 
 function Navbar() {
   return (
@@ -16,8 +17,8 @@ function Navbar() {
           <Typography
             variant="h6"
             noWrap
-            component="a"
-            href="#"
+            component={Link}
+            to="/"
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },
@@ -30,10 +31,10 @@ function Navbar() {
           >
             DTMS
           </Typography>
-
-          {/* Push Login Button to the right */}
           <Box sx={{ flexGrow: 1 }} />
-          <Button color="inherit">Login</Button>
+          <Button component={Link} to="/login" color="inherit">
+            Login
+          </Button>
         </Toolbar>
       </Container>
     </AppBar>

@@ -1,15 +1,9 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Homepage from "./pages/Homepage";
+import { RouterProvider } from "react-router-dom";
+import { AppRoutes } from "./routes/AppRoutes";
 
 const App = () => {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-      </Routes>
-    </Router>
-  );
+  return <RouterProvider router={AppRoutes} />;
 };
 
 export default App;
