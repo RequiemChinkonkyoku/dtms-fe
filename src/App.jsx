@@ -1,14 +1,9 @@
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import theme from "./assets/styles/theme";
+import React from "react";
+import { RouterProvider } from "react-router-dom";
+import { AppRoutes } from "./routes/AppRoutes";
 
-function App() {
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {/* Your app components go here */}
-    </ThemeProvider>
-  );
-}
+const App = () => {
+  return <RouterProvider router={AppRoutes} />;
+};
 
 export default App;
