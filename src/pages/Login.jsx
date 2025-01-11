@@ -5,10 +5,12 @@ import "../assets/css/material-dashboard.min.css";
 import { useAuth } from "../contexts/AuthContext";
 import Head from "../assets/components/common/Head";
 import loginBg from "../assets/img/login.jpg";
+import "../assets/css/background-pattern.css";
 
 const Login = () => {
   return (
     <div>
+      <div className="pattern-background"></div>
       <Head />
       <body className="off-canvas-sidebar">
         <noscript>
@@ -69,18 +71,18 @@ const Login = () => {
           <div
             className="page-header login-page header-filter"
             filter-color="black"
-            style={{
-              backgroundImage: `url(${loginBg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "top center",
-            }}
+            // style={{
+            //   backgroundImage: `url(${loginBg})`,
+            //   backgroundSize: "cover",
+            //   backgroundPosition: "top center",
+            // }}
           >
             <div className="container">
               <div className="row">
                 <div className="col-lg-4 col-md-6 col-sm-8 ml-auto mr-auto">
                   <form className="form" method="" action="" autoComplete="off">
                     <div className="card card-login">
-                      <div className="card-header card-header-rose text-center">
+                      <div className="card-header card-header-warning text-center">
                         <h4 className="card-title">DTMS STAFF PORTAL</h4>
                         <div class="social-line">
                           <i class="material-icons">pets</i>
@@ -137,7 +139,7 @@ const Login = () => {
                       <div className="card-footer justify-content-center">
                         <a
                           href="#pablo"
-                          className="btn btn-rose btn-link btn-lg"
+                          className="btn btn-warning btn-link btn-lg"
                         >
                           Login
                         </a>
