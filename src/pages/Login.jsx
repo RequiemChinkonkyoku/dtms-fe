@@ -6,8 +6,30 @@ import { useAuth } from "../contexts/AuthContext";
 import Head from "../assets/components/common/Head";
 import loginBg from "../assets/img/login.jpg";
 import "../assets/css/background-pattern.css";
+import { useLoading } from "../contexts/LoadingContext";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const { loading, setLoading } = useLoading();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Your API calls here
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [setLoading]);
+
   return (
     <div>
       <div className="pattern-background"></div>
