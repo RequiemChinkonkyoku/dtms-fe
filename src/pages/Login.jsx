@@ -23,7 +23,7 @@ const Login = () => {
           <div class="container">
             <div class="navbar-wrapper">
               <a class="navbar-brand" href="#pablo">
-                LOGIN
+                DOG TRAINING MANAGEMENT SYSTEM
               </a>
             </div>
             <button
@@ -78,36 +78,16 @@ const Login = () => {
             <div className="container">
               <div className="row">
                 <div className="col-lg-4 col-md-6 col-sm-8 ml-auto mr-auto">
-                  <form className="form" method="" action="">
+                  <form className="form" method="" action="" autoComplete="off">
                     <div className="card card-login">
                       <div className="card-header card-header-rose text-center">
-                        <h4 className="card-title">Login</h4>
-                        <div className="social-line">
-                          <a
-                            href="#pablo"
-                            className="btn btn-just-icon btn-link btn-white"
-                          >
-                            <i className="fa fa-facebook-square"></i>
-                          </a>
-                          <a
-                            href="#pablo"
-                            className="btn btn-just-icon btn-link btn-white"
-                          >
-                            <i className="fa fa-twitter"></i>
-                          </a>
-                          <a
-                            href="#pablo"
-                            className="btn btn-just-icon btn-link btn-white"
-                          >
-                            <i className="fa fa-google-plus"></i>
-                          </a>
+                        <h4 className="card-title">DTMS STAFF PORTAL</h4>
+                        <div class="social-line">
+                          <i class="material-icons">pets</i>
                         </div>
                       </div>
                       <div className="card-body ">
-                        <p className="card-description text-center">
-                          Or Be Classical
-                        </p>
-                        <span className="bmd-form-group">
+                        {/* <span className="bmd-form-group">
                           <div className="input-group">
                             <div className="input-group-prepend">
                               <span className="input-group-text">
@@ -117,10 +97,10 @@ const Login = () => {
                             <input
                               type="text"
                               className="form-control"
-                              placeholder="First Name..."
+                              placeholder="Username..."
                             />
                           </div>
-                        </span>
+                        </span> */}
                         <span className="bmd-form-group">
                           <div className="input-group">
                             <div className="input-group-prepend">
@@ -132,6 +112,8 @@ const Login = () => {
                               type="email"
                               className="form-control"
                               placeholder="Email..."
+                              autoComplete="new-email"
+                              name="email"
                             />
                           </div>
                         </span>
@@ -146,6 +128,8 @@ const Login = () => {
                               type="password"
                               className="form-control"
                               placeholder="Password..."
+                              autoComplete="new-password"
+                              name="password"
                             />
                           </div>
                         </span>
@@ -155,9 +139,12 @@ const Login = () => {
                           href="#pablo"
                           className="btn btn-rose btn-link btn-lg"
                         >
-                          Lets Go
+                          Login
                         </a>
                       </div>
+                      <p className="card-description text-center">
+                        Forgot Password? <Link to={"/"}>Click here</Link>
+                      </p>
                     </div>
                   </form>
                 </div>
@@ -165,7 +152,7 @@ const Login = () => {
             </div>
             <footer className="footer">
               <div className="container">
-                <nav className="float-left">
+                {/* <nav className="float-left">
                   <ul>
                     <li>
                       <a href="https://www.creative-tim.com">Creative Tim</a>
@@ -184,15 +171,10 @@ const Login = () => {
                       </a>
                     </li>
                   </ul>
-                </nav>
+                </nav> */}
                 <div className="copyright float-right">
-                  &copy;
-                  <script>document.write(new Date().getFullYear())</script>,
-                  made with <i className="material-icons">favorite</i> by
-                  <a href="https://www.creative-tim.com" target="_blank">
-                    Creative Tim
-                  </a>{" "}
-                  for a better web.
+                  &copy; 2025, template made with{" "}
+                  <i className="material-icons">favorite</i> by Creative Tim.
                 </div>
               </div>
             </footer>
