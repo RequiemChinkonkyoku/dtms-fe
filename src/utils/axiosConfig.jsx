@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance
 const instance = axios.create({
-  baseURL: "https://localhost:7288", // Replace with your API base URL
+  baseURL: "https://localhost:7256", // Replace with your API base URL
 });
 
 // Get the token from localStorage (don't use useState here)
