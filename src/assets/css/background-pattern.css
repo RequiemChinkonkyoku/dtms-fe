@@ -1,16 +1,21 @@
-.container {
+.pattern-background {
     --color: #ffe893;
     background-color: #fcffc1;
     width: 100%;
     height: 100vh;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
 }
 
-.container::after {
+.pattern-background::after {
     content: "";
     position: absolute;
     inset: 0;
     opacity: 0.5;
+    pointer-events: none;
     background:
         radial-gradient(circle, var(--color) 15%, transparent 15%),
         radial-gradient(circle, var(--color) 15%, transparent 15%) 6px -6px,
@@ -23,7 +28,37 @@
     background-size: 50px 50px;
 }
 
-main {
-    padding: 6rem 2rem 2rem;
-    text-align: center;
+/* Override any other background colors */
+body,
+.off-canvas-sidebar {
+    background: transparent !important;
+}
+
+.page-header.login-page {
+    background: transparent !important;
+}
+
+.wrapper-full-page {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+.card-login {
+    background-color: white !important;
+    position: relative;
+    z-index: 2;
+}
+
+.card-login .card-body {
+    background-color: white !important;
+}
+
+.card-login .input-group .form-control {
+    background-color: white !important;
+}
+
+/* Ensure loader stays on top */
+.loader-overlay {
+    z-index: 9999;
 }
