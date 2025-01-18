@@ -97,7 +97,7 @@ const ForgotPassword = () => {
                             />
                           </div>
                         </span>
-                        <span className="bmd-form-group">
+                        {/* <span className="bmd-form-group">
                           <div className="input-group">
                             <div className="input-group-prepend">
                               <span className="input-group-text">
@@ -112,52 +112,22 @@ const ForgotPassword = () => {
                               name="password"
                             />
                           </div>
-                        </span>
+                        </span> */}
                       </div>
                       <div className="card-footer justify-content-center">
                         <a
                           href="#pablo"
                           className="btn btn-warning btn-link btn-lg"
                         >
-                          Login
+                          SEND
                         </a>
                       </div>
-                      <p className="card-description text-center">
-                        Forgot Password? <Link to={"/"}>Click here</Link>
-                      </p>
                     </div>
                   </form>
                 </div>
               </div>
             </div>
-            <footer className="footer">
-              <div className="container">
-                {/* <nav className="float-left">
-                  <ul>
-                    <li>
-                      <a href="https://www.creative-tim.com">Creative Tim</a>
-                    </li>
-                    <li>
-                      <a href="https://creative-tim.com/presentation">
-                        About Us
-                      </a>
-                    </li>
-                    <li>
-                      <a href="http://blog.creative-tim.com">Blog</a>
-                    </li>
-                    <li>
-                      <a href="https://www.creative-tim.com/license">
-                        Licenses
-                      </a>
-                    </li>
-                  </ul>
-                </nav> */}
-                <div className="copyright float-right">
-                  &copy; 2025, template made with{" "}
-                  <i className="material-icons">favorite</i> by Creative Tim.
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </div>
         </div>
       </body>

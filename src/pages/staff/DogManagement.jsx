@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axios from "../utils/axiosConfig";
-import "../assets/css/material-dashboard.min.css";
+import axios from "../../utils/axiosConfig";
+import "../../assets/css/material-dashboard.min.css";
 
-const DogTable = () => {
+const DogManagement = () => {
   const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -461,4 +461,4 @@ const DogTable = () => {
   );
 };
 
-export default DogTable;
+export default DogManagement;

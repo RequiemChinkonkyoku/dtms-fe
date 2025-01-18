@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "../utils/axiosConfig";
-import "../assets/css/material-dashboard.min.css";
+import axios from "../../utils/axiosConfig";
+import "../../assets/css/material-dashboard.min.css";
 
 const DogDocumentTable = () => {
   const [dogDocuments, setDogDocuments] = useState([]);

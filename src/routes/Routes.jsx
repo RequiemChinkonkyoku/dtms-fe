@@ -3,9 +3,9 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthProvider } from "../contexts/AuthContext";
 
 import Login from "../pages/Login";
-import DogTable from "../pages/DogManagement";
-import DogBreedTable from "../pages/DogBreedManagement";
-import DogDocumentTable from "../pages/DogDocumentManagement";
+import DogManagement from "../pages/staff/DogManagement";
+import DogBreedTable from "../pages/staff/DogBreedManagement";
+import DogDocumentTable from "../pages/staff/DogDocumentManagement";
 import ForgotPassword from "../pages/ForgotPassword";
 
 export const routes = createBrowserRouter([
@@ -15,7 +15,11 @@ export const routes = createBrowserRouter([
   },
   {
     path: "/forgot-password",
-    element: <ForgotPassword />,
+    element: (
+      <AuthProvider>
+        <ForgotPassword />
+      </AuthProvider>
+    ),
   },
   {
     path: "/login",
@@ -26,10 +30,10 @@ export const routes = createBrowserRouter([
     ),
   },
   {
-    path: "/DogTable",
+    path: "/dogs/management",
     element: (
       <AuthProvider>
-        <DogTable />
+        <DogManagement />
       </AuthProvider>
     ),
   },

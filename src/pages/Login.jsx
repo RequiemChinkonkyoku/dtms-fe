@@ -9,6 +9,7 @@ import "../assets/css/background-pattern.css";
 import { useLoading } from "../contexts/LoadingContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
+import Footer from "../assets/components/auth/Footer";
 
 const Login = () => {
   const { loading, setLoading } = useLoading();
@@ -122,42 +123,12 @@ const Login = () => {
                           Login
                         </a>
                       </div>
-                      {/* <p className="card-description text-center">
-                        Forgot Password? <Link to={"/"}>Click here</Link>
-                      </p> */}
                     </div>
                   </form>
                 </div>
               </div>
             </div>
-            <footer className="footer">
-              <div className="container">
-                {/* <nav className="float-left">
-                  <ul>
-                    <li>
-                      <a href="https://www.creative-tim.com">Creative Tim</a>
-                    </li>
-                    <li>
-                      <a href="https://creative-tim.com/presentation">
-                        About Us
-                      </a>
-                    </li>
-                    <li>
-                      <a href="http://blog.creative-tim.com">Blog</a>
-                    </li>
-                    <li>
-                      <a href="https://www.creative-tim.com/license">
-                        Licenses
-                      </a>
-                    </li>
-                  </ul>
-                </nav> */}
-                <div className="copyright float-right">
-                  &copy; 2025, template made with{" "}
-                  <i className="material-icons">favorite</i> by Creative Tim.
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </div>
         </div>
       </body>
