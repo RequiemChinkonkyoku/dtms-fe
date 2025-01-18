@@ -6,11 +6,16 @@ import Login from "../pages/Login";
 import DogTable from "../pages/DogManagement";
 import DogBreedTable from "../pages/DogBreedManagement";
 import DogDocumentTable from "../pages/DogDocumentManagement";
+import ForgotPassword from "../pages/ForgotPassword";
 
 export const routes = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/login" replace />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "/login",

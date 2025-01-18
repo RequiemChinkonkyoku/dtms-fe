@@ -10,7 +10,7 @@ import { useLoading } from "../contexts/LoadingContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
 
-const Login = () => {
+const ForgotPassword = () => {
   const { loading, setLoading } = useLoading();
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -122,9 +122,9 @@ const Login = () => {
                           Login
                         </a>
                       </div>
-                      {/* <p className="card-description text-center">
+                      <p className="card-description text-center">
                         Forgot Password? <Link to={"/"}>Click here</Link>
-                      </p> */}
+                      </p>
                     </div>
                   </form>
                 </div>
@@ -165,4 +165,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ForgotPassword;
