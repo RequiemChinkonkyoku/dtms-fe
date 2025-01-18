@@ -4,6 +4,8 @@ import { AuthProvider } from "../contexts/AuthContext";
 
 import Login from "../pages/Login";
 import DogTable from "../pages/DogManagement";
+import DogBreedTable from "../pages/DogBreedManagement";
+import DogDocumentTable from "../pages/DogDocumentManagement";
 
 export const routes = createBrowserRouter([
   {
@@ -23,6 +25,22 @@ export const routes = createBrowserRouter([
     element: (
       <AuthProvider>
         <DogTable />
+      </AuthProvider>
+    ),
+  },
+  {
+    path: "/DogBreedTable",
+    element: (
+      <AuthProvider>
+        <DogBreedTable />
+      </AuthProvider>
+    ),
+  },
+  {
+    path: "/DogDocumentTable",
+    element: (
+      <AuthProvider>
+        <DogDocumentTable />
       </AuthProvider>
     ),
   },

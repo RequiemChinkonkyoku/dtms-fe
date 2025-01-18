@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "../utils/axiosConfig";
 import "../assets/css/material-dashboard.min.css";
 
-const DogTable = () => {
-  const [dogs, setDogs] = useState([]);
+const DogDocumentTable = () => {
+  const [dogDocuments, setDogDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [responseMessage, setResponseMessage] = useState("");
@@ -11,31 +11,31 @@ const DogTable = () => {
   const [formData, setFormData] = useState({
     name: "",
     imageUrl: "",
-    dateOfBirth: "",
-    gender: 0,
-    customerProfileId: "",
-    dogBreedId: "",
+    description: "",
+    issuingAuthority: "",
+    issueDate: "",
+    dogId: "",
+    dogDocumentTypeId: "",
   });
   const [imgUrl, setImgUrl] = useState("");
-  const [editingDog, setEditingDog] = useState(null);
+  const [editingDocument, setEditingDocument] = useState(null);
   const [updateFormData, setUpdateFormData] = useState({
     name: "",
     imageUrl: "",
-    breed: "",
-    dateOfBirth: "",
-    gender: 0,
-    status: 1,
-    customerProfileId: "",
-    dogBreedId: "",
+    description: "",
+    status: "",
+    issuingAuthority: "",
+    issueDate: "",
+    dogId: "",
+    dogDocumentTypeId: "",
   });
-  const [dogBreeds, setDogBreeds] = useState([]);
+  const [documentTypes, setDocumentTypes] = useState([]);
 
-  // Fetch dogs when the component mounts
   useEffect(() => {
-    const fetchDogs = async () => {
+    const fetchDogDocuments = async () => {
       try {
-        const response = await axios.get("/api/dogs");
-        setDogs(response.data);
+        const response = await axios.get("/api/dogDocumentTypes");
+        setDogDocuments(response.data);
       } catch (err) {
         setError("Failed to fetch data");
       } finally {
@@ -43,21 +43,20 @@ const DogTable = () => {
       }
     };
 
-    fetchDogs();
+    fetchDogDocuments();
   }, []);
 
-  // Add useEffect to fetch dog breeds
   useEffect(() => {
-    const fetchDogBreeds = async () => {
+    const fetchDocumentTypes = async () => {
       try {
-        const response = await axios.get("/api/dogBreeds");
-        setDogBreeds(response.data);
+        const response = await axios.get("/api/dogDocumentTypes");
+        setDocumentTypes(response.data);
       } catch (err) {
-        console.error("Failed to fetch dog breeds:", err);
+        console.error("Failed to fetch document types:", err);
       }
     };
 
-    fetchDogBreeds();
+    fetchDocumentTypes();
   }, []);
 
   const handleChange = (e) => {
@@ -66,35 +65,6 @@ const DogTable = () => {
       ...formData,
       [name]: value,
     });
-    console.log("name", name);
-    console.log("value", value);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setResponseMessage("");
-    setErrorMessage("");
-
-    try {
-      const response = await axios.post("/api/dogs", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog created successfully!");
-      setDogs([...dogs, response.data]);
-      setFormData({
-        name: "",
-        imageUrl: "",
-        dateOfBirth: "",
-        gender: 0,
-        customerProfileId: "",
-        dogBreedId: "",
-      });
-      window.location.reload();
-    } catch (error) {
-      setErrorMessage("Failed to create the dog. " + error.message);
-    }
   };
 
   const handleFileUpload = async (event) => {
@@ -116,40 +86,61 @@ const DogTable = () => {
 
       const imageUrl = await response.text();
       setImgUrl(imageUrl);
-      // Update formData with the new imageUrl
       setFormData((prev) => ({
         ...prev,
         imageUrl: imageUrl,
       }));
     } catch (error) {
       console.error("Error uploading file:", error);
-      // Handle error appropriately
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setResponseMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await axios.post("/api/dogDocumentTypes", formData);
+      setResponseMessage("Dog document created successfully!");
+      setDogDocuments([...dogDocuments, response.data]);
+      setFormData({
+        name: "",
+        imageUrl: "",
+        description: "",
+        issuingAuthority: "",
+        issueDate: "",
+        dogId: "",
+        dogDocumentTypeId: "",
+      });
+      window.location.reload();
+    } catch (error) {
+      setErrorMessage("Failed to create the dog document. " + error.message);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to deactivate this dog?")) {
+    if (window.confirm("Are you sure you want to deactivate this document?")) {
       try {
-        await axios.delete(`/api/dogs/${id}`);
-        // Refresh the page to show updated status
+        await axios.delete(`/api/dogDocumentTypes/${id}`);
         window.location.reload();
       } catch (error) {
-        setErrorMessage("Failed to deactivate the dog. " + error.message);
+        setErrorMessage("Failed to deactivate the document. " + error.message);
       }
     }
   };
 
-  const handleEdit = (dog) => {
-    setEditingDog(dog);
+  const handleEdit = (document) => {
+    setEditingDocument(document);
     setUpdateFormData({
-      name: dog.name,
-      imageUrl: dog.imageUrl,
-      breed: dog.breed,
-      dateOfBirth: dog.dateOfBirth,
-      gender: dog.gender,
-      status: dog.status,
-      customerProfileId: dog.customerProfileId,
-      dogBreedId: dog.dogBreedId,
+      name: document.name,
+      imageUrl: document.imageUrl,
+      description: document.description,
+      status: document.status.toString(),
+      issuingAuthority: document.issuingAuthority,
+      issueDate: document.issueDate,
+      dogId: document.dogId,
+      dogDocumentTypeId: document.dogDocumentTypeId,
     });
   };
 
@@ -164,36 +155,30 @@ const DogTable = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`/api/dogs/${editingDog.id}`, updateFormData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog updated successfully!");
-      setEditingDog(null);
+      await axios.put(
+        `/api/dogDocumentTypes/${editingDocument.id}`,
+        updateFormData
+      );
+      setResponseMessage("Dog document updated successfully!");
+      setEditingDocument(null);
       window.location.reload();
     } catch (error) {
-      setErrorMessage("Failed to update the dog. " + error.message);
+      setErrorMessage("Failed to update the document. " + error.message);
     }
   };
 
   const handleCancelEdit = () => {
-    setEditingDog(null);
+    setEditingDocument(null);
     setUpdateFormData({
       name: "",
       imageUrl: "",
-      dateOfBirth: "",
-      gender: "",
+      description: "",
       status: "",
-      customerProfileId: "",
-      dogBreedId: "",
+      issuingAuthority: "",
+      issueDate: "",
+      dogId: "",
+      dogDocumentTypeId: "",
     });
-  };
-
-  // Add a helper function to get breed name by id
-  const getBreedNameById = (breedId) => {
-    const breed = dogBreeds.find((breed) => breed.id === breedId);
-    return breed ? breed.name : "Unknown Breed";
   };
 
   if (loading) return <p>Loading...</p>;
@@ -201,56 +186,57 @@ const DogTable = () => {
 
   return (
     <div className="container">
-      <h2>Dog List</h2>
+      <h2>Dog Documents List</h2>
       <div className="table-responsive">
         <table className="table">
           <thead className="text-primary">
             <tr>
-              <th>ID</th>
               <th>Name</th>
-              <th>Breed</th>
-              <th>Gender</th>
-              <th>Date of Birth</th>
+              <th>Description</th>
+              <th>Issuing Authority</th>
+              <th>Issue Date</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {dogs.map((dog) => (
-              <tr key={dog.id}>
-                <td>{dog.id}</td>
-                <td>{dog.name}</td>
-                <td>{getBreedNameById(dog.dogBreedId)}</td>
-                <td>{dog.gender === 1 ? "Male" : "Female"}</td>
-                <td>{dog.dateOfBirth}</td>
-                <td>
-                  {dog.status === 1 ? (
-                    <span className="badge bg-success">Active</span>
-                  ) : (
-                    <span className="badge bg-danger">Inactive</span>
-                  )}
-                </td>
-                <td>
-                  <button
-                    className="btn btn-primary me-2"
-                    onClick={() => handleEdit(dog)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDelete(dog.id)}
-                  >
-                    Deactivate
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {dogDocuments.map((doc) => {
+              console.log("Document date:", doc.issueDate);
+              return (
+                <tr key={doc.id}>
+                  <td>{doc.name}</td>
+                  <td>{doc.description}</td>
+                  <td>{doc.issuingAuthority}</td>
+                  <td>{doc.issueDate}</td>
+                  <td>
+                    {doc.status === 1 ? (
+                      <span className="badge bg-success">Active</span>
+                    ) : (
+                      <span className="badge bg-danger">Inactive</span>
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-primary me-2"
+                      onClick={() => handleEdit(doc)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDelete(doc.id)}
+                    >
+                      Deactivate
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {editingDog && (
+      {editingDocument && (
         <div
           className="modal show d-block"
           tabIndex="-1"
@@ -259,7 +245,7 @@ const DogTable = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Update Dog</h5>
+                <h5 className="modal-title">Update Dog Document</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -281,52 +267,42 @@ const DogTable = () => {
                     />
                   </div>
                   <div className="form-group mb-3">
-                    <label className="form-label">Breed</label>
-                    <select
-                      name="dogBreedId"
+                    <label className="form-label">Description</label>
+                    <textarea
+                      name="description"
                       className="form-control"
-                      value={updateFormData.dogBreedId}
-                      onChange={handleUpdateChange}
-                      required
-                    >
-                      <option value="">Select Breed</option>
-                      {dogBreeds.map((breed) => (
-                        <option key={breed.id} value={breed.id}>
-                          {breed.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group mb-3">
-                    <label className="form-label">Date of Birth</label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      className="form-control"
-                      value={updateFormData.dateOfBirth}
+                      value={updateFormData.description}
                       onChange={handleUpdateChange}
                       required
                     />
                   </div>
                   <div className="form-group mb-3">
-                    <label className="form-label">Gender</label>
-                    <select
-                      name="gender"
-                      className="form-control mt-2"
-                      value={updateFormData.gender}
+                    <label className="form-label">Issuing Authority</label>
+                    <input
+                      type="text"
+                      name="issuingAuthority"
+                      className="form-control"
+                      value={updateFormData.issuingAuthority}
                       onChange={handleUpdateChange}
                       required
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="0">Female</option>
-                      <option value="1">Male</option>
-                    </select>
+                    />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label className="form-label">Issue Date</label>
+                    <input
+                      type="date"
+                      name="issueDate"
+                      className="form-control"
+                      value={updateFormData.issueDate}
+                      onChange={handleUpdateChange}
+                      required
+                    />
                   </div>
                   <div className="form-group mb-3">
                     <label className="form-label">Status</label>
                     <select
                       name="status"
-                      className="form-control mt-2"
+                      className="form-control"
                       value={updateFormData.status}
                       onChange={handleUpdateChange}
                       required
@@ -336,26 +312,32 @@ const DogTable = () => {
                     </select>
                   </div>
                   <div className="form-group mb-3">
-                    <label className="form-label">Customer Profile ID</label>
+                    <label className="form-label">Dog ID</label>
                     <input
                       type="text"
-                      name="customerProfileId"
+                      name="dogId"
                       className="form-control"
-                      value={updateFormData.customerProfileId}
+                      value={updateFormData.dogId}
                       onChange={handleUpdateChange}
                       required
                     />
                   </div>
                   <div className="form-group mb-3">
-                    <label className="form-label">Dog Breed ID</label>
-                    <input
-                      type="text"
-                      name="dogBreedId"
+                    <label className="form-label">Document Type</label>
+                    <select
+                      name="dogDocumentTypeId"
                       className="form-control"
-                      value={updateFormData.dogBreedId}
+                      value={updateFormData.dogDocumentTypeId}
                       onChange={handleUpdateChange}
                       required
-                    />
+                    >
+                      <option value="">Select Document Type</option>
+                      {documentTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="modal-footer">
                     <button
@@ -376,9 +358,9 @@ const DogTable = () => {
         </div>
       )}
 
-      <h2>Create Dog</h2>
+      <h2>Create Dog Document</h2>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
+        <div className="form-group mb-3">
           <label>Name</label>
           <input
             type="text"
@@ -390,7 +372,7 @@ const DogTable = () => {
           />
         </div>
         <div className="mb-3">
-          <label className="form-label">Image</label>
+          <label className="form-label">Document Image</label>
           <input
             type="file"
             className="form-control"
@@ -399,57 +381,64 @@ const DogTable = () => {
           />
         </div>
         <div className="form-group mb-3">
-          <label className="form-label">Breed</label>
-          <select
-            name="dogBreedId"
-            className="form-control mt-2"
-            value={formData.dogBreedId}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Breed</option>
-            {dogBreeds.map((breed) => (
-              <option key={breed.id} value={breed.id}>
-                {breed.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Date of Birth</label>
-          <input
-            type="date"
-            name="dateOfBirth"
+          <label>Description</label>
+          <textarea
+            name="description"
             className="form-control"
-            value={formData.dateOfBirth}
+            value={formData.description}
             onChange={handleChange}
             required
           />
         </div>
         <div className="form-group mb-3">
-          <label className="form-label">Gender</label>
-          <select
-            name="gender"
-            className="form-control mt-2"
-            value={formData.gender}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Gender</option>
-            <option value="0">Female</option>
-            <option value="1">Male</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Customer Profile ID</label>
+          <label>Issuing Authority</label>
           <input
             type="text"
-            name="customerProfileId"
+            name="issuingAuthority"
             className="form-control"
-            value={formData.customerProfileId}
+            value={formData.issuingAuthority}
             onChange={handleChange}
             required
           />
+        </div>
+        <div className="form-group mb-3">
+          <label>Issue Date</label>
+          <input
+            type="date"
+            name="issueDate"
+            className="form-control"
+            value={formData.issueDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-3">
+          <label>Dog ID</label>
+          <input
+            type="text"
+            name="dogId"
+            className="form-control"
+            value={formData.dogId}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="form-group mb-3">
+          <label>Document Type</label>
+          <select
+            name="dogDocumentTypeId"
+            className="form-control"
+            value={formData.dogDocumentTypeId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Document Type</option>
+            {documentTypes.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
+            ))}
+          </select>
         </div>
         <button type="submit" className="btn btn-primary">
           Submit
@@ -461,4 +450,4 @@ const DogTable = () => {
   );
 };
 
-export default DogTable;
+export default DogDocumentTable;
