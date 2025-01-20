@@ -9,6 +9,7 @@ import "../assets/css/background-pattern.css";
 import { useLoading } from "../contexts/LoadingContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
+import Footer from "../assets/components/auth/Footer";
 
 const ForgotPassword = () => {
   const { loading, setLoading } = useLoading();

@@ -15,22 +15,52 @@ const Login = () => {
   const { loading, setLoading } = useLoading();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Your API calls here
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setLoading(false);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       // Your API calls here
+  //       await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [setLoading]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const success = await login(formData.email, formData.password);
+      if (success) {
+        setIsLoggedIn(true);
+      } else {
+        message.error("Login failed. Please check your credentials.");
       }
-    };
-
-    fetchData();
-  }, [setLoading]);
+    } catch (error) {
+      console.error("Login error:", error);
+      message.error("An error occurred during login. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -59,29 +89,21 @@ const Login = () => {
             <div className="container">
               <div className="row">
                 <div className="col-lg-4 col-md-6 col-sm-8 ml-auto mr-auto">
-                  <form className="form" method="" action="" autoComplete="off">
+                  <form
+                    className="form"
+                    method=""
+                    action=""
+                    autoComplete="off"
+                    onSubmit={handleSubmit}
+                  >
                     <div className="card card-login">
                       <div className="card-header card-header-warning text-center">
                         <h4 className="card-title">DTMS STAFF PORTAL</h4>
-                        <div class="social-line">
-                          <i class="material-icons">pets</i>
+                        <div className="social-line">
+                          <i className="material-icons">pets</i>
                         </div>
                       </div>
-                      <div className="card-body ">
-                        {/* <span className="bmd-form-group">
-                          <div className="input-group">
-                            <div className="input-group-prepend">
-                              <span className="input-group-text">
-                                <i className="material-icons">face</i>
-                              </span>
-                            </div>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Username..."
-                            />
-                          </div>
-                        </span> */}
+                      <div className="card-body">
                         <span className="bmd-form-group">
                           <div className="input-group">
                             <div className="input-group-prepend">
@@ -95,6 +117,8 @@ const Login = () => {
                               placeholder="Email..."
                               autoComplete="new-email"
                               name="email"
+                              value={formData.email}
+                              onChange={handleChange}
                             />
                           </div>
                         </span>
@@ -111,17 +135,19 @@ const Login = () => {
                               placeholder="Password..."
                               autoComplete="new-password"
                               name="password"
+                              value={formData.password}
+                              onChange={handleChange}
                             />
                           </div>
                         </span>
                       </div>
                       <div className="card-footer justify-content-center">
-                        <a
-                          href="#pablo"
+                        <button
+                          type="submit"
                           className="btn btn-warning btn-link btn-lg"
                         >
                           Login
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </form>
