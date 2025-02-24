@@ -14,28 +14,33 @@ import Footer from "../assets/components/auth/Footer";
 const Login = () => {
   const { loading, setLoading } = useLoading();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       // Your API calls here
-  //       await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
-  //     } catch (error) {
-  //       console.error("Error:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+  useEffect(() => {
+    let mounted = true;
 
-  //   fetchData();
-  // }, [setLoading]);
+    if (isLoggedIn && user) {
+      if (mounted) {
+        if (user.role === "4") {
+          navigate("/admin/dashboard");
+        } else if (user.role === "3") {
+          navigate("/staff/dashboard");
+        } else if (user.role === "2") {
+          navigate("/trainer/dashboard");
+        }
+        setIsLoggedIn(false);
+      }
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [isLoggedIn, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,16 +52,19 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const { email, password } = formData;
+    console.log("Email:", email, "Password:", password);
+
+    setLoading(true);
     try {
-      const success = await login(formData.email, formData.password);
+      const success = await login(email, password);
+      console.log("Login function returned:", success);
+
       if (success) {
         setIsLoggedIn(true);
-      } else {
-        message.error("Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      message.error("An error occurred during login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -91,8 +99,6 @@ const Login = () => {
                 <div className="col-lg-4 col-md-6 col-sm-8 ml-auto mr-auto">
                   <form
                     className="form"
-                    method=""
-                    action=""
                     autoComplete="off"
                     onSubmit={handleSubmit}
                   >

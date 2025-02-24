@@ -10,6 +10,8 @@ import DogDocumentTable from "../pages/staff/DogDocumentManagement";
 import ForgotPassword from "../pages/ForgotPassword";
 import Dashboard from "../pages/staff/Dashboard";
 import Accounts from "../pages/staff/Accounts";
+import AdminDashboard from "../pages/admin/Dashboard";
+import StaffDashboard from "../pages/staff/Dashboard";
 
 export const routes = createBrowserRouter([
   {
@@ -48,15 +50,11 @@ export const routes = createBrowserRouter([
         path: "accounts",
         element: <Accounts />,
       },
+      {
+        path: "dashboard",
+        element: <StaffDashboard />,
+      },
     ],
-  },
-  {
-    path: "/dashboard",
-    element: (
-      <AuthProvider>
-        <Dashboard />
-      </AuthProvider>
-    ),
   },
   {
     path: "/DogBreedTable",
@@ -73,5 +71,19 @@ export const routes = createBrowserRouter([
         <DogDocumentTable />
       </AuthProvider>
     ),
+  },
+  {
+    path: "/admin",
+    element: (
+      <AuthProvider>
+        <PrivateRoute />
+      </AuthProvider>
+    ),
+    children: [
+      {
+        path: "dashboard",
+        element: <AdminDashboard />,
+      },
+    ],
   },
 ]);

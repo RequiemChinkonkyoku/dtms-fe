@@ -3,11 +3,11 @@ import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
 
 import Loader from "../../assets/components/common/Loader";
-import Sidebar from "../../assets/components/staff/Sidebar";
+import Sidebar from "../../assets/components/admin/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/admin/Navbar";
 
-const StaffDashboard = () => {
+const AdminDashboard = () => {
   return (
     <>
       <Head />
@@ -28,4 +28,4 @@ const StaffDashboard = () => {
   );
 };
 
-export default StaffDashboard;
+export default AdminDashboard;

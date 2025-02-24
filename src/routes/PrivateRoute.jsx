@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const ROLES = {
+  TRAINER: "2",
   STAFF: "3",
   ADMIN: "4",
 };
@@ -11,6 +12,7 @@ const ROLES = {
 const ROUTE_ACCESS = {
   "/admin": [ROLES.ADMIN],
   "/staff": [ROLES.STAFF],
+  "/trainer": [ROLES.TRAINER],
 };
 
 const PrivateRoute = () => {
@@ -38,6 +40,8 @@ const PrivateRoute = () => {
           return "/admin/dashboard";
         case ROLES.STAFF:
           return "/staff/dashboard";
+        case ROLES.TRAINER:
+          return "/trainer/dashboard";
         default:
           return "/login";
       }
