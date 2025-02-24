@@ -13,6 +13,7 @@ import Accounts from "../pages/staff/Accounts";
 import AdminDashboard from "../pages/admin/Dashboard";
 import StaffDashboard from "../pages/staff/Dashboard";
 import TrainerDashboard from "../pages/trainer/Dashboard";
+import TrainerLessons from "../pages/trainer/Lessons";
 
 export const routes = createBrowserRouter([
   {
@@ -98,6 +99,10 @@ export const routes = createBrowserRouter([
       {
         path: "dashboard",
         element: <TrainerDashboard />,
+      },
+      {
+        path: "lessons",
+        element: <TrainerLessons />,
       },
     ],
   },
