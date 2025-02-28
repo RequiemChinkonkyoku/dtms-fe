@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
-import "../../assets/css/custom.css";
+import "../../assets/css/course-details-custom.css";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
@@ -10,8 +10,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
 
 const TrainerCoursesDetails = () => {
-  const { id } = useParams(); // Get course ID from URL
+  const { id } = useParams();
   const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [breeds, setBreeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("description");
 
@@ -31,6 +33,45 @@ const TrainerCoursesDetails = () => {
 
     fetchCourseDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (course) {
+      // Fetch lessons
+      const fetchLessons = async () => {
+        const lessonPromises = course.lessonIds.map(async (lessonId) => {
+          try {
+            const res = await axios.get(`/api/lessons/${lessonId}`);
+            return res.data.object;
+          } catch (error) {
+            console.error(`Error fetching lesson ${lessonId}:`, error);
+            return null;
+          }
+        });
+
+        const lessonData = await Promise.all(lessonPromises);
+        setLessons(lessonData.filter((lesson) => lesson !== null));
+      };
+
+      // Fetch breeds
+      const fetchBreeds = async () => {
+        const breedPromises = course.dogBreedIds.map(async (breedId) => {
+          try {
+            const res = await axios.get(`/api/dogBreeds/${breedId}`);
+            return res.data;
+          } catch (error) {
+            console.error(`Error fetching breed ${breedId}:`, error);
+            return null;
+          }
+        });
+
+        const breedData = await Promise.all(breedPromises);
+        setBreeds(breedData.filter((breed) => breed !== null));
+      };
+
+      fetchLessons();
+      fetchBreeds();
+    }
+  }, [course]);
 
   if (loading) return <Loader />;
   if (!course) return <p className="text-center">Course not found.</p>;
@@ -53,23 +94,21 @@ const TrainerCoursesDetails = () => {
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                       position: "relative",
-                      height: "400px", // Adjust as needed
+                      height: "400px",
                     }}
                   >
-                    <div className="overlay"></div> {/* Dark overlay */}
+                    <div className="overlay"></div>
                     <div className="card-header card-header-icon card-header-rose">
-                      <div className="card-icon">
-                        <i className="material-icons">assignment</i>
-                      </div>
                       <h1 className="card-title">{course.name}</h1>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="row">
+
+              <div className="row">
                 <div className="col-md-8 ml-auto mr-auto">
                   <div className="page-categories">
-                    <h3 className="title text-center">Page Subcategories</h3>
+                    <h3 className="title text-center">COURSE INFORMATION</h3>
                     <br />
                     <ul
                       className="nav nav-pills nav-pills-warning nav-pills-icons justify-content-center"
@@ -80,32 +119,23 @@ const TrainerCoursesDetails = () => {
                           className={`nav-link ${activeTab === "description" ? "active show" : ""}`}
                           onClick={() => setActiveTab("description")}
                         >
-                          <i className="material-icons">info</i> Description
+                          <i className="material-icons">info</i> Details
                         </a>
                       </li>
                       <li className="nav-item">
                         <a
-                          className={`nav-link ${activeTab === "location" ? "active show" : ""}`}
-                          onClick={() => setActiveTab("location")}
+                          className={`nav-link ${activeTab === "lessons" ? "active show" : ""}`}
+                          onClick={() => setActiveTab("lessons")}
                         >
-                          <i className="material-icons">location_on</i> Location
+                          <i className="material-icons">play_lesson</i> Lessons
                         </a>
                       </li>
                       <li className="nav-item">
                         <a
-                          className={`nav-link ${activeTab === "legal" ? "active show" : ""}`}
-                          onClick={() => setActiveTab("legal")}
+                          className={`nav-link ${activeTab === "breeds" ? "active show" : ""}`}
+                          onClick={() => setActiveTab("breeds")}
                         >
-                          <i className="material-icons">gavel</i> Legal Info
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className={`nav-link ${activeTab === "help" ? "active show" : ""}`}
-                          onClick={() => setActiveTab("help")}
-                        >
-                          <i className="material-icons">help_outline</i> Help
-                          Center
+                          <i className="material-icons">pets</i> Breeds
                         </a>
                       </li>
                     </ul>
@@ -115,71 +145,98 @@ const TrainerCoursesDetails = () => {
                         <div className="tab-pane active show">
                           <div className="card">
                             <div className="card-header">
-                              <h4 className="card-title">
-                                Description about product
-                              </h4>
-                              <p className="card-category">
-                                More information here
-                              </p>
+                              <h4 className="card-title">Course Description</h4>
                             </div>
                             <div className="card-body">
-                              Collaboratively administrate empowered markets via
-                              plug-and-play networks...
+                              {course.description}
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {activeTab === "location" && (
+                      {activeTab === "lessons" && (
                         <div className="tab-pane active show">
                           <div className="card">
-                            <div className="card-header">
-                              <h4 className="card-title">
-                                Location of the product
-                              </h4>
-                              <p className="card-category">
-                                More information here
-                              </p>
+                            <div className="card-header card-header-icon card-header-rose">
+                              <div className="card-icon">
+                                <i className="material-icons">assignment</i>
+                              </div>
+                              <h4 className="card-title">Lessons included</h4>
                             </div>
                             <div className="card-body">
-                              Efficiently unleash cross-media information
-                              without cross-media value...
+                              <div className="table-responsive">
+                                <table className="table">
+                                  <thead className="text-primary">
+                                    <tr>
+                                      <th>No.</th>
+                                      <th>Lesson Title</th>
+                                      <th>Description</th>
+                                      <th>Duration (mins)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {lessons.length > 0 ? (
+                                      lessons.map((lesson, index) => (
+                                        <tr key={lesson.id}>
+                                          <td>{index + 1}</td>
+                                          <td>{lesson.lessonTitle}</td>
+                                          <td>{lesson.description}</td>
+                                          <td>{lesson.duration || "N/A"}</td>
+                                        </tr>
+                                      ))
+                                    ) : (
+                                      <tr>
+                                        <td colSpan="4" className="text-center">
+                                          No lessons available.
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {activeTab === "legal" && (
+                      {activeTab === "breeds" && (
                         <div className="tab-pane active show">
                           <div className="card">
-                            <div className="card-header">
-                              <h4 className="card-title">
-                                Legal info of the product
-                              </h4>
-                              <p className="card-category">
-                                More information here
-                              </p>
+                            <div className="card-header card-header-icon card-header-rose">
+                              <div className="card-icon">
+                                <i className="material-icons">pets</i>
+                              </div>
+                              <h4 className="card-title">Allowed breed list</h4>
                             </div>
                             <div className="card-body">
-                              Completely synergize resource taxing relationships
-                              via premier niche markets...
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === "help" && (
-                        <div className="tab-pane active show">
-                          <div className="card">
-                            <div className="card-header">
-                              <h4 className="card-title">Help center</h4>
-                              <p className="card-category">
-                                More information here
-                              </p>
-                            </div>
-                            <div className="card-body">
-                              From the seamless transition of glass and metal to
-                              the streamlined profile...
+                              <div className="table-responsive">
+                                <table className="table">
+                                  <thead className="text-primary">
+                                    <tr>
+                                      <th>ID</th>
+                                      <th>Breed Name</th>
+                                      <th>Description</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {breeds.length > 0 ? (
+                                      breeds.map((breed, index) => (
+                                        <tr key={breed.id}>
+                                          <td>{index + 1}</td>
+                                          <td>{breed.name}</td>
+                                          <td>{breed.description}</td>
+                                        </tr>
+                                      ))
+                                    ) : (
+                                      <tr>
+                                        <td colSpan="3" className="text-center">
+                                          No breeds available.
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </div>
                         </div>

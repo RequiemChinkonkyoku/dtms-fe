@@ -21,5 +21,14 @@
 .course-card .card-header {
     position: relative;
     z-index: 2;
-    text-align: center;
+}
+
+.course-card .card-title {
+    color: white !important;
+    /* Ensures text stays white */
+    position: relative;
+    z-index: 2;
+    font-size: 6rem;
+    /* Adjust size if needed */
+    font-weight: bold;
 }
