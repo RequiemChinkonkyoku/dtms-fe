@@ -22,16 +22,93 @@ const TrainerCourses = () => {
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false); // Add this line
+  const [imgUrl, setImgUrl] = useState("");
+  const [showLessonsModal, setShowLessonsModal] = useState(false);
+  const [showBreedsModal, setShowBreedsModal] = useState(false);
+  const [selectedLessons, setSelectedLessons] = useState([]);
+  const [selectedBreeds, setSelectedBreeds] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [lessonSearchTerm, setLessonSearchTerm] = useState("");
   const [newCourse, setNewCourse] = useState({
     name: "",
     description: "",
     durationInWeeks: "",
+    daysPerWeek: "",
+    slotsPerDay: "",
+    price: "",
     minTrainers: "",
     maxTrainers: "",
-    categoryId: "", // Add this line
+    categoryId: "",
   });
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [breeds, setBreeds] = useState([]);
+  const [breedSearchTerm, setBreedSearchTerm] = useState("");
+  const [trainerId, setTrainerId] = useState(null);
+
+  useEffect(() => {
+    const fetchBreeds = async () => {
+      try {
+        const response = await axios.get("/api/dogBreeds");
+        if (response.data) {
+          setBreeds(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching breeds:", error);
+      }
+    };
+
+    fetchBreeds();
+  }, []);
+
+  const getAccountIdFromToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(window.atob(base64));
+
+      return payload.unique_name;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchTrainerProfile = async () => {
+      try {
+        const accountId = getAccountIdFromToken();
+        console.log("Account ID:", accountId);
+        if (!accountId) {
+          console.error("No account ID found in token");
+          return;
+        }
+
+        const response = await axios.get(`/api/trainerProfile/${accountId}`);
+        console.log("Trainer profile response:", response.data);
+        if (response.data) {
+          setTrainerId(response.data.id);
+        }
+      } catch (error) {
+        console.error("Error fetching trainer profile:", error);
+      }
+    };
+
+    fetchTrainerProfile();
+  }, []);
+
+  const handleBreedSelection = (breedId) => {
+    setSelectedBreeds((prev) => {
+      if (prev.includes(breedId)) {
+        return prev.filter((id) => id !== breedId);
+      } else {
+        return [...prev, breedId];
+      }
+    });
+  };
 
   // Add this useEffect to fetch categories
   useEffect(() => {
@@ -63,6 +140,23 @@ const TrainerCourses = () => {
       }
     };
     fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      try {
+        const response = await axios.get("api/lessons");
+        if (response.data.success && response.data.objectList) {
+          setLessons(response.data.objectList);
+        }
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLessons();
   }, []);
 
   // Handle search input change
@@ -102,6 +196,16 @@ const TrainerCourses = () => {
     });
   };
 
+  const handleLessonSelection = (lessonId) => {
+    setSelectedLessons((prev) => {
+      if (prev.includes(lessonId)) {
+        return prev.filter((id) => id !== lessonId);
+      } else {
+        return [...prev, lessonId];
+      }
+    });
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewCourse((prev) => ({
@@ -110,11 +214,77 @@ const TrainerCourses = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your API call here to create the course
-    console.log("New course data:", newCourse);
-    handleModalClose();
+
+    try {
+      const courseData = {
+        name: newCourse.name,
+        description: newCourse.description,
+        status: 0,
+        imageUrl: imgUrl,
+        durationInWeeks: parseInt(newCourse.durationInWeeks),
+        daysPerWeek: parseInt(newCourse.daysPerWeek),
+        slotsPerDay: parseInt(newCourse.slotsPerDay),
+        price: parseInt(newCourse.price),
+        minDogs: 1,
+        maxDogs: 5,
+        minTrainers: parseInt(newCourse.minTrainers),
+        maxTrainers: parseInt(newCourse.maxTrainers),
+        complexity: 1,
+        createdTrainerId: trainerId,
+        categoryId: newCourse.categoryId,
+        lessonIds: selectedLessons,
+        dogBreedIds: selectedBreeds,
+      };
+
+      const response = await axios.post("/api/courses", courseData);
+      if (response.data) {
+        // Refresh the courses list
+        const coursesResponse = await axios.get("/api/courses");
+        if (coursesResponse.data.success && coursesResponse.data.objectList) {
+          setCourses(coursesResponse.data.objectList);
+          setFilteredCourses(coursesResponse.data.objectList);
+        }
+
+        // Close modal and reset form
+        handleModalClose();
+        // You might want to add a success notification here
+      }
+    } catch (error) {
+      console.error("Error creating course:", error);
+      // You might want to add an error notification here
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("https://localhost:7256/api/uploadFile", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const imageUrl = await response.text();
+      setImgUrl(imageUrl);
+      // Update formData with the new imageUrl
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: imageUrl,
+      }));
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      // Handle error appropriately
+    }
   };
 
   return (
@@ -173,11 +343,25 @@ const TrainerCourses = () => {
                             style={{
                               display: "block",
                               backgroundColor: "rgba(0,0,0,0.5)",
+                              position: "fixed",
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              zIndex: 1050,
                             }}
                           >
                             <div
                               className="modal-dialog modal-lg"
-                              style={{ maxWidth: "800px" }}
+                              style={{
+                                maxWidth: "800px",
+                                margin: 0,
+                                maxHeight: "90vh",
+                                overflowY: "auto",
+                              }}
                             >
                               <div className="modal-content">
                                 <div className="modal-header">
@@ -210,12 +394,12 @@ const TrainerCourses = () => {
                                         </label>
                                         <div class="form-group bmd-form-group">
                                           <input
-                                            class="form-control"
+                                            className="form-control"
                                             type="text"
-                                            name="required"
-                                            required="true"
-                                            aria-required="true"
-                                            aria-invalid="true"
+                                            name="name"
+                                            value={newCourse.name}
+                                            onChange={handleInputChange}
+                                            required
                                           />
                                         </div>
                                       </div>
@@ -277,10 +461,10 @@ const TrainerCourses = () => {
                                           <input
                                             class="form-control"
                                             type="number"
-                                            name="required"
-                                            required="true"
-                                            aria-required="true"
-                                            aria-invalid="true"
+                                            name="durationInWeeks"
+                                            value={newCourse.durationInWeeks}
+                                            onChange={handleInputChange}
+                                            required
                                           />
                                         </div>
                                       </div>
@@ -301,10 +485,10 @@ const TrainerCourses = () => {
                                           <input
                                             class="form-control"
                                             type="number"
-                                            name="required"
-                                            required="true"
-                                            aria-required="true"
-                                            aria-invalid="true"
+                                            name="daysPerWeek"
+                                            value={newCourse.daysPerWeek}
+                                            onChange={handleInputChange}
+                                            required
                                           />
                                         </div>
                                       </div>
@@ -325,17 +509,16 @@ const TrainerCourses = () => {
                                           <input
                                             class="form-control"
                                             type="number"
-                                            name="required"
-                                            required="true"
-                                            aria-required="true"
-                                            aria-invalid="true"
+                                            name="slotsPerDay"
+                                            value={newCourse.slotsPerDay}
+                                            onChange={handleInputChange}
+                                            required
                                           />
                                         </div>
                                       </div>
                                     </div>
                                     <div class="row">
                                       <div class="col-md-12">
-                                        {" "}
                                         <label>Description </label>
                                         <div class="form-group bmd-form-group">
                                           <TextField
@@ -343,7 +526,60 @@ const TrainerCourses = () => {
                                             multiline
                                             maxRows={4}
                                             fullWidth
+                                            name="description"
+                                            value={newCourse.description}
+                                            onChange={handleInputChange}
                                             style={{ width: "100%" }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-6">
+                                        <label>
+                                          Min Trainers{" "}
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "12px",
+                                              verticalAlign: "top",
+                                            }}
+                                          >
+                                            *
+                                          </span>
+                                        </label>
+                                        <div class="form-group bmd-form-group">
+                                          <input
+                                            class="form-control"
+                                            type="number"
+                                            name="minTrainers"
+                                            value={newCourse.minTrainers}
+                                            onChange={handleInputChange}
+                                            required
+                                          />
+                                        </div>
+                                      </div>
+                                      <div class="col-md-6">
+                                        <label>
+                                          Max Trainers{" "}
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "12px",
+                                              verticalAlign: "top",
+                                            }}
+                                          >
+                                            *
+                                          </span>
+                                        </label>
+                                        <div class="form-group bmd-form-group">
+                                          <input
+                                            class="form-control"
+                                            type="number"
+                                            name="maxTrainers"
+                                            value={newCourse.maxTrainers}
+                                            onChange={handleInputChange}
+                                            required
                                           />
                                         </div>
                                       </div>
@@ -365,13 +601,30 @@ const TrainerCourses = () => {
                                         </label>
                                         <div class="form-group bmd-form-group">
                                           <input
-                                            class="form-control"
-                                            type="text"
-                                            name="required"
-                                            required="true"
-                                            aria-required="true"
-                                            aria-invalid="true"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                            style={{
+                                              width: "100%",
+                                              height: "36px",
+                                              opacity: "1",
+                                              position: "unset",
+                                              pointerEvents: "auto",
+                                              zIndex: "auto",
+                                              cursor: "pointer",
+                                            }}
                                           />
+                                          {/* {imgUrl && (
+                                            <img
+                                              src={imgUrl}
+                                              alt="Preview"
+                                              style={{
+                                                maxWidth: "100%",
+                                                maxHeight: "100px",
+                                                marginTop: "10px",
+                                              }}
+                                            />
+                                          )} */}
                                         </div>
                                       </div>{" "}
                                       <div class="col-md-6">
@@ -390,6 +643,9 @@ const TrainerCourses = () => {
                                         <div class="form-group bmd-form-group">
                                           <Input
                                             id="standard-adornment-weight"
+                                            name="price"
+                                            value={newCourse.price}
+                                            onChange={handleInputChange}
                                             endAdornment={
                                               <InputAdornment position="end">
                                                 VND
@@ -404,6 +660,301 @@ const TrainerCourses = () => {
                                           />
                                         </div>
                                       </div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-6">
+                                        <label>
+                                          Lessons{" "}
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "12px",
+                                              verticalAlign: "top",
+                                            }}
+                                          >
+                                            *
+                                          </span>
+                                        </label>
+                                        <div class="form-group bmd-form-group">
+                                          <button
+                                            type="button"
+                                            className="btn btn-outline-primary w-100"
+                                            onClick={() =>
+                                              setShowLessonsModal(true)
+                                            }
+                                          >
+                                            Select Lessons (
+                                            {selectedLessons.length} selected)
+                                          </button>
+                                        </div>
+                                        {showLessonsModal && (
+                                          <div
+                                            className="modal show"
+                                            style={{
+                                              display: "block",
+                                              backgroundColor:
+                                                "rgba(0,0,0,0.5)",
+                                            }}
+                                          >
+                                            <div className="modal-dialog">
+                                              <div className="modal-content">
+                                                <div className="modal-header">
+                                                  <h5 className="modal-title">
+                                                    Select Lessons
+                                                  </h5>
+                                                  <button
+                                                    type="button"
+                                                    className="close"
+                                                    onClick={() =>
+                                                      setShowLessonsModal(false)
+                                                    }
+                                                  >
+                                                    <span>&times;</span>
+                                                  </button>
+                                                </div>
+                                                <div className="modal-body">
+                                                  <input
+                                                    type="text"
+                                                    className="form-control mb-3"
+                                                    placeholder="Search lessons..."
+                                                    value={lessonSearchTerm}
+                                                    onChange={(e) =>
+                                                      setLessonSearchTerm(
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                  />
+                                                  <div
+                                                    style={{
+                                                      maxHeight: "400px",
+                                                      overflowY: "auto",
+                                                    }}
+                                                  >
+                                                    {lessons
+                                                      .filter((lesson) =>
+                                                        lesson.lessonTitle
+                                                          .toLowerCase()
+                                                          .includes(
+                                                            lessonSearchTerm.toLowerCase()
+                                                          )
+                                                      )
+                                                      .map((lesson) => (
+                                                        <div
+                                                          key={lesson.id}
+                                                          className="form-check"
+                                                          style={{
+                                                            padding: "12px",
+                                                            borderBottom:
+                                                              "1px solid #e0e0e0",
+                                                            backgroundColor:
+                                                              selectedLessons.includes(
+                                                                lesson.id
+                                                              )
+                                                                ? "#e3f2fd"
+                                                                : "transparent",
+                                                            transition:
+                                                              "background-color 0.2s ease",
+                                                            marginBottom: "4px",
+                                                            borderRadius: "4px",
+                                                          }}
+                                                        >
+                                                          <input
+                                                            type="checkbox"
+                                                            className="form-check-input"
+                                                            checked={selectedLessons.includes(
+                                                              lesson.id
+                                                            )}
+                                                            onChange={() =>
+                                                              handleLessonSelection(
+                                                                lesson.id
+                                                              )
+                                                            }
+                                                            id={`lesson-${lesson.id}`}
+                                                          />
+                                                          <label
+                                                            className="form-check-label"
+                                                            htmlFor={`lesson-${lesson.id}`}
+                                                            style={{
+                                                              cursor: "pointer",
+                                                              marginLeft:
+                                                                "10px",
+                                                              fontWeight:
+                                                                selectedLessons.includes(
+                                                                  lesson.id
+                                                                )
+                                                                  ? "500"
+                                                                  : "normal",
+                                                            }}
+                                                          >
+                                                            {lesson.lessonTitle}
+                                                          </label>
+                                                        </div>
+                                                      ))}
+                                                  </div>
+                                                </div>
+                                                <div className="modal-footer">
+                                                  <button
+                                                    type="button"
+                                                    className="btn btn-primary"
+                                                    onClick={() =>
+                                                      setShowLessonsModal(false)
+                                                    }
+                                                  >
+                                                    Done (
+                                                    {selectedLessons.length}{" "}
+                                                    selected)
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div class="col-md-6">
+                                        <label>
+                                          Dog Breeds{" "}
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "12px",
+                                              verticalAlign: "top",
+                                            }}
+                                          >
+                                            *
+                                          </span>
+                                        </label>
+                                        <div class="form-group bmd-form-group">
+                                          <button
+                                            type="button"
+                                            className="btn btn-outline-primary w-100"
+                                            onClick={() =>
+                                              setShowBreedsModal(true)
+                                            }
+                                          >
+                                            Select Dog Breeds (
+                                            {selectedBreeds.length} selected)
+                                          </button>
+                                        </div>
+                                      </div>
+                                      {showBreedsModal && (
+                                        <div
+                                          className="modal show"
+                                          style={{
+                                            display: "block",
+                                            backgroundColor: "rgba(0,0,0,0.5)",
+                                          }}
+                                        >
+                                          <div className="modal-dialog">
+                                            <div className="modal-content">
+                                              <div className="modal-header">
+                                                <h5 className="modal-title">
+                                                  Select Dog Breeds
+                                                </h5>
+                                                <button
+                                                  type="button"
+                                                  className="close"
+                                                  onClick={() =>
+                                                    setShowBreedsModal(false)
+                                                  }
+                                                >
+                                                  <span>&times;</span>
+                                                </button>
+                                              </div>
+                                              <div className="modal-body">
+                                                <input
+                                                  type="text"
+                                                  className="form-control mb-3"
+                                                  placeholder="Search breeds..."
+                                                  value={breedSearchTerm}
+                                                  onChange={(e) =>
+                                                    setBreedSearchTerm(
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                />
+                                                <div
+                                                  style={{
+                                                    maxHeight: "400px",
+                                                    overflowY: "auto",
+                                                  }}
+                                                >
+                                                  {breeds
+                                                    .filter((breed) =>
+                                                      breed.name
+                                                        .toLowerCase()
+                                                        .includes(
+                                                          breedSearchTerm.toLowerCase()
+                                                        )
+                                                    )
+                                                    .map((breed) => (
+                                                      <div
+                                                        key={breed.id}
+                                                        className="form-check"
+                                                        style={{
+                                                          padding: "12px",
+                                                          borderBottom:
+                                                            "1px solid #e0e0e0",
+                                                          backgroundColor:
+                                                            selectedBreeds.includes(
+                                                              breed.id
+                                                            )
+                                                              ? "#e3f2fd"
+                                                              : "transparent",
+                                                          transition:
+                                                            "background-color 0.2s ease",
+                                                          marginBottom: "4px",
+                                                          borderRadius: "4px",
+                                                        }}
+                                                      >
+                                                        <input
+                                                          type="checkbox"
+                                                          className="form-check-input"
+                                                          checked={selectedBreeds.includes(
+                                                            breed.id
+                                                          )}
+                                                          onChange={() =>
+                                                            handleBreedSelection(
+                                                              breed.id
+                                                            )
+                                                          }
+                                                          id={`breed-${breed.id}`}
+                                                        />
+                                                        <label
+                                                          className="form-check-label"
+                                                          htmlFor={`breed-${breed.id}`}
+                                                          style={{
+                                                            cursor: "pointer",
+                                                            marginLeft: "10px",
+                                                            fontWeight:
+                                                              selectedBreeds.includes(
+                                                                breed.id
+                                                              )
+                                                                ? "500"
+                                                                : "normal",
+                                                          }}
+                                                        >
+                                                          {breed.name}
+                                                        </label>
+                                                      </div>
+                                                    ))}
+                                                </div>
+                                              </div>
+                                              <div className="modal-footer">
+                                                <button
+                                                  type="button"
+                                                  className="btn btn-primary"
+                                                  onClick={() =>
+                                                    setShowBreedsModal(false)
+                                                  }
+                                                >
+                                                  Done ({selectedBreeds.length}{" "}
+                                                  selected)
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <div className="modal-footer">
