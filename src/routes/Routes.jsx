@@ -16,6 +16,7 @@ import TrainerDashboard from "../pages/trainer/Dashboard";
 import TrainerLessons from "../pages/trainer/Lessons";
 import TrainerCourses from "../pages/trainer/Courses";
 import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
+import Blogs from "../pages/staff/Blogs";
 
 export const routes = createBrowserRouter([
   {
@@ -57,6 +58,10 @@ export const routes = createBrowserRouter([
       {
         path: "dashboard",
         element: <StaffDashboard />,
+      },
+      {
+        path: "blogs",
+        element: <Blogs />,
       },
     ],
   },
