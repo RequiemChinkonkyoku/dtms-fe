@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
           const decodedToken = jwtDecode(token);
           if (decodedToken.exp * 1000 > Date.now()) {
             setUser(decodedToken);
+            console.log(decodedToken);
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
           } else {
             await logout(); // Use the logout function to clean up
@@ -33,14 +34,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(
-        `/Auth/Login?email=${email}&password=${password}`
-      );
+      const response = await axios.post("/api/accounts/login", {
+        email,
+        password,
+      });
       const { token } = response.data;
       localStorage.setItem("token", token);
+
       const decodedToken = jwtDecode(token);
       setUser(decodedToken);
+
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      console.log("Login Successful:", decodedToken); // Debugging
       return true;
     } catch (error) {
       console.error("Login failed:", error);

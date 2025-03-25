@@ -3,18 +3,16 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const ROLES = {
-  CUSTOMER: "1",
-  STAFF: "2",
-  MANAGER: "3",
+  TRAINER: "2",
+  STAFF: "3",
   ADMIN: "4",
 };
 
 // Define route access configurations
 const ROUTE_ACCESS = {
   "/admin": [ROLES.ADMIN],
-  "/customer": [ROLES.CUSTOMER],
   "/staff": [ROLES.STAFF],
-  "/manager": [ROLES.MANAGER],
+  "/trainer": [ROLES.TRAINER],
 };
 
 const PrivateRoute = () => {
@@ -40,12 +38,10 @@ const PrivateRoute = () => {
       switch (user.role) {
         case ROLES.ADMIN:
           return "/admin/dashboard";
-        case ROLES.CUSTOMER:
-          return "/customer/dashboard";
         case ROLES.STAFF:
           return "/staff/dashboard";
-        case ROLES.MANAGER:
-          return "/manager/dashboard";
+        case ROLES.TRAINER:
+          return "/trainer/dashboard";
         default:
           return "/login";
       }
