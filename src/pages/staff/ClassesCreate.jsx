@@ -22,6 +22,8 @@ const StaffClassesCreate = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [selectedSlots, setSelectedSlots] = useState([]);
 
   useEffect(() => {
     fetchCourses();
@@ -37,6 +39,19 @@ const StaffClassesCreate = () => {
       console.error("Error fetching courses:", error);
     }
   };
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await axios.get("/api/schedules");
+      setSchedules(response.data);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
 
   // Add new state at the top with other states
   const [categoryName, setCategoryName] = useState("");
@@ -324,6 +339,64 @@ const StaffClassesCreate = () => {
                               sx={{ width: "100%" }}
                             />
                           </LocalizationProvider>
+                        </div>
+                        <div className="table-responsive mt-4">
+                          <table className="table table-bordered">
+                            <thead>
+                              <tr>
+                                <th>Time</th>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                                <th>Sunday</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {schedules.map((schedule) => (
+                                <tr key={schedule.id}>
+                                  <td>
+                                    {schedule.startTime} - {schedule.endTime}
+                                  </td>
+                                  {[...Array(7)].map((_, dayIndex) => (
+                                    <td key={dayIndex}>
+                                      <button
+                                        className="btn btn-outline-primary btn-sm"
+                                        onClick={() => {
+                                          const slotKey = `${dayIndex}-${schedule.id}`;
+                                          setSelectedSlots((prev) =>
+                                            prev.includes(slotKey)
+                                              ? prev.filter(
+                                                  (slot) => slot !== slotKey
+                                                )
+                                              : [...prev, slotKey]
+                                          );
+                                        }}
+                                        style={{
+                                          width: "100%",
+                                          backgroundColor:
+                                            selectedSlots.includes(
+                                              `${dayIndex}-${schedule.id}`
+                                            )
+                                              ? "#9c27b0"
+                                              : "transparent",
+                                          color: selectedSlots.includes(
+                                            `${dayIndex}-${schedule.id}`
+                                          )
+                                            ? "white"
+                                            : "#9c27b0",
+                                        }}
+                                      >
+                                        Select
+                                      </button>
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     </div>
