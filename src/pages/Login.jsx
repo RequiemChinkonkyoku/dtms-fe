@@ -21,25 +21,24 @@ const Login = () => {
     password: "",
   });
 
-  useEffect(() => {
-    let mounted = true;
+  const ROLE_GROUPS = {
+    ADMIN: "Admin",
+    STAFF: ["Staff_Employee", "Staff_Manager"],
+    TRAINER: ["Trainer_Member", "Trainer_Lead"],
+  };
 
+  useEffect(() => {
     if (isLoggedIn && user) {
-      if (mounted) {
-        if (user.role === "4") {
-          navigate("/admin/dashboard");
-        } else if (user.role === "3") {
-          navigate("/staff/dashboard");
-        } else if (user.role === "2") {
-          navigate("/trainer/dashboard");
-        }
-        setIsLoggedIn(false);
+      if (user?.role === ROLE_GROUPS.ADMIN) {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (ROLE_GROUPS.STAFF.includes(user?.role)) {
+        navigate("/staff/dashboard", { replace: true });
+      } else if (ROLE_GROUPS.TRAINER.includes(user?.role)) {
+        navigate("/trainer/dashboard", { replace: true });
+      } else {
+        navigate("/", { replace: true }); // Fallback route
       }
     }
-
-    return () => {
-      mounted = false;
-    };
   }, [isLoggedIn, user, navigate]);
 
   const handleChange = (e) => {

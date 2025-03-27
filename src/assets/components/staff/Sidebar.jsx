@@ -55,6 +55,14 @@ const Sidebar = () => {
               </Link>
             </li>
             <li
+              className={`nav-item ${location.pathname === "/staff/classes" ? "active" : ""}`}
+            >
+              <Link className="nav-link" to="/staff/classes">
+                <i className="material-icons">school</i>
+                <p>Classes</p>
+              </Link>
+            </li>
+            <li
               className={`nav-item ${location.pathname === "/staff/blogs" ? "active" : ""}`}
             >
               <Link className="nav-link" to="/staff/blogs">

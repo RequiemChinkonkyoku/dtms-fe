@@ -2,17 +2,17 @@ import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-const ROLES = {
-  TRAINER: "2",
-  STAFF: "3",
-  ADMIN: "4",
+const ROLE_GROUPS = {
+  ADMIN: ["Admin"],
+  STAFF: ["Staff_Employee", "Staff_Manager"],
+  TRAINER: ["Trainer_Member", "Trainer_Lead"],
 };
 
 // Define route access configurations
 const ROUTE_ACCESS = {
-  "/admin": [ROLES.ADMIN],
-  "/staff": [ROLES.STAFF],
-  "/trainer": [ROLES.TRAINER],
+  "/admin": ROLE_GROUPS.ADMIN,
+  "/staff": ROLE_GROUPS.STAFF,
+  "/trainer": ROLE_GROUPS.TRAINER,
 };
 
 const PrivateRoute = () => {
@@ -27,24 +27,21 @@ const PrivateRoute = () => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  // Extract role from the JWT token
+  const userRole = user.role; // Ensure this comes from JWT decoding
+
   // Get the base path from the current location
   const basePath = "/" + location.pathname.split("/")[1];
 
-  // Check if user has access to this route
+  // Check if the user's role is allowed for the route
   const allowedRoles = ROUTE_ACCESS[basePath];
-  if (!allowedRoles?.includes(user.role)) {
+  if (!allowedRoles?.includes(userRole)) {
     // Redirect to appropriate dashboard based on user role
     const redirectPath = (() => {
-      switch (user.role) {
-        case ROLES.ADMIN:
-          return "/admin/dashboard";
-        case ROLES.STAFF:
-          return "/staff/dashboard";
-        case ROLES.TRAINER:
-          return "/trainer/dashboard";
-        default:
-          return "/login";
-      }
+      if (ROLE_GROUPS.ADMIN.includes(userRole)) return "/admin/dashboard";
+      if (ROLE_GROUPS.STAFF.includes(userRole)) return "/staff/dashboard";
+      if (ROLE_GROUPS.TRAINER.includes(userRole)) return "/trainer/dashboard";
+      return "/login";
     })();
 
     return <Navigate to={redirectPath} replace />;
