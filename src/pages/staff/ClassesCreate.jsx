@@ -25,9 +25,22 @@ const StaffClassesCreate = () => {
   const [schedules, setSchedules] = useState([]);
   const [selectedSlots, setSelectedSlots] = useState([]);
 
+  const [isScheduleEnabled, setIsScheduleEnabled] = useState(false);
+  const [isTrainerEnabled, setIsTrainerEnabled] = useState(false);
+
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  // Add this useEffect to handle schedule card unlock
+  useEffect(() => {
+    setIsScheduleEnabled(!!selectedCourse);
+  }, [selectedCourse]);
+
+  // Add this useEffect to handle trainer card unlock
+  useEffect(() => {
+    setIsTrainerEnabled(!!startDate && selectedSlots.length > 0);
+  }, [startDate, selectedSlots]);
 
   const fetchCourses = async () => {
     try {
@@ -318,13 +331,27 @@ const StaffClassesCreate = () => {
                   </div>
 
                   <div className="col-md-12">
-                    <div className="card">
+                    <div className="card" style={{ position: "relative" }}>
                       <div className="card-header card-header-rose">
                         <h4 className="card-title">Class Schedule</h4>
                         <p className="card-category">
                           Select class dates and times
                         </p>
                       </div>
+                      {!isScheduleEnabled && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "rgba(200, 200, 200, 0.6)",
+                            zIndex: 10,
+                            cursor: "not-allowed",
+                          }}
+                        />
+                      )}
                       <div className="card-body">
                         {/* Calendar will go here */}
                       </div>
@@ -341,17 +368,25 @@ const StaffClassesCreate = () => {
                           </LocalizationProvider>
                         </div>
                         <div className="table-responsive mt-4">
+                          <div className="d-flex justify-content-end mb-3">
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() => setSelectedSlots([])}
+                            >
+                              Clear All Selections
+                            </button>
+                          </div>
                           <table className="table table-bordered">
                             <thead>
                               <tr>
-                                <th>Time</th>
-                                <th>Monday</th>
-                                <th>Tuesday</th>
-                                <th>Wednesday</th>
-                                <th>Thursday</th>
-                                <th>Friday</th>
-                                <th>Saturday</th>
-                                <th>Sunday</th>
+                                <th style={{ width: "15%" }}>Time</th>
+                                <th style={{ width: "12%" }}>Sunday</th>
+                                <th style={{ width: "12%" }}>Monday</th>
+                                <th style={{ width: "12%" }}>Tuesday</th>
+                                <th style={{ width: "12%" }}>Wednesday</th>
+                                <th style={{ width: "12%" }}>Thursday</th>
+                                <th style={{ width: "12%" }}>Friday</th>
+                                <th style={{ width: "12%" }}>Saturday</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -360,39 +395,41 @@ const StaffClassesCreate = () => {
                                   <td>
                                     {schedule.startTime} - {schedule.endTime}
                                   </td>
-                                  {[...Array(7)].map((_, dayIndex) => (
-                                    <td key={dayIndex}>
-                                      <button
-                                        className="btn btn-outline-primary btn-sm"
-                                        onClick={() => {
-                                          const slotKey = `${dayIndex}-${schedule.id}`;
-                                          setSelectedSlots((prev) =>
-                                            prev.includes(slotKey)
-                                              ? prev.filter(
-                                                  (slot) => slot !== slotKey
-                                                )
-                                              : [...prev, slotKey]
-                                          );
-                                        }}
-                                        style={{
-                                          width: "100%",
-                                          backgroundColor:
-                                            selectedSlots.includes(
-                                              `${dayIndex}-${schedule.id}`
-                                            )
-                                              ? "#9c27b0"
+                                  {[...Array(7)].map((_, index) => {
+                                    const dayIndex =
+                                      index === 0 ? 6 : index - 1;
+                                    const slotKey = `${dayIndex}-${schedule.id}`;
+                                    const isSelected =
+                                      selectedSlots.includes(slotKey);
+                                    return (
+                                      <td key={index}>
+                                        <button
+                                          className="btn btn-outline-info btn-sm"
+                                          onClick={() => {
+                                            setSelectedSlots((prev) =>
+                                              prev.includes(slotKey)
+                                                ? prev.filter(
+                                                    (slot) => slot !== slotKey
+                                                  )
+                                                : [...prev, slotKey]
+                                            );
+                                          }}
+                                          style={{
+                                            width: "100%",
+                                            minWidth: "80px",
+                                            backgroundColor: isSelected
+                                              ? "#26c6da"
                                               : "transparent",
-                                          color: selectedSlots.includes(
-                                            `${dayIndex}-${schedule.id}`
-                                          )
-                                            ? "white"
-                                            : "#9c27b0",
-                                        }}
-                                      >
-                                        Select
-                                      </button>
-                                    </td>
-                                  ))}
+                                            color: isSelected
+                                              ? "white"
+                                              : "black",
+                                          }}
+                                        >
+                                          {isSelected ? "Selected" : "Select"}
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
                                 </tr>
                               ))}
                             </tbody>
@@ -403,15 +440,55 @@ const StaffClassesCreate = () => {
                   </div>
 
                   <div className="col-md-12">
-                    <div className="card">
+                    <div className="card" style={{ position: "relative" }}>
                       <div className="card-header card-header-warning">
                         <h4 className="card-title">Available Trainers</h4>
                         <p className="card-category">
                           Trainers matching schedule
                         </p>
                       </div>
+                      {!isTrainerEnabled && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "rgba(200, 200, 200, 0.6)",
+                            zIndex: 10,
+                            cursor: "not-allowed",
+                          }}
+                        />
+                      )}
                       <div className="card-body">
                         {/* Trainer list will go here */}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-md-12">
+                    <div className="card" style={{ position: "relative" }}>
+                      <div className="card-header card-header-success">
+                        <h4 className="card-title">Class Details Summary</h4>
+                        <p className="card-category">
+                          Review and confirm class creation
+                        </p>
+                      </div>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: "rgba(200, 200, 200, 0.6)",
+                          zIndex: 10,
+                          cursor: "not-allowed",
+                        }}
+                      />
+                      <div className="card-body">
+                        {/* Summary details will go here */}
                       </div>
                     </div>
                   </div>
