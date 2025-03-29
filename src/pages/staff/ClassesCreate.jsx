@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import "../../assets/css/material-dashboard.min.css";
 
 import Loader from "../../assets/components/common/Loader";
@@ -17,6 +19,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
 const StaffClassesCreate = () => {
+  const navigate = useNavigate();
   const [className, setClassName] = useState("");
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -189,14 +192,29 @@ const StaffClassesCreate = () => {
 
       const response = await axios.post("/api/class", requestBody);
       if (response.data.success) {
-        alert("Class created successfully!");
-        // Optionally: Redirect to class list or clear form
+        await Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Class has been created successfully.",
+          confirmButtonColor: "#4caf50",
+        });
+        navigate("/staff/classes");
       } else {
-        alert("Failed to create class: " + response.data.message);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: response.data.message || "Failed to create class",
+          confirmButtonColor: "#f44336",
+        });
       }
     } catch (error) {
       console.error("Error creating class:", error);
-      alert("Error creating class. Please try again.");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An unexpected error occurred. Please try again.",
+        confirmButtonColor: "#f44336",
+      });
     }
   };
 
@@ -627,7 +645,11 @@ const StaffClassesCreate = () => {
                                   <strong>Class Name</strong>
                                 </td>
                                 <td className="col-md-9">
-                                  {className || "Not set"}
+                                  {className || (
+                                    <span style={{ color: "red" }}>
+                                      Not set !
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                               <tr>
@@ -635,7 +657,11 @@ const StaffClassesCreate = () => {
                                   <strong>Course</strong>
                                 </td>
                                 <td>
-                                  {selectedCourse?.name || "Not selected"}
+                                  {selectedCourse?.name || (
+                                    <span style={{ color: "red" }}>
+                                      Not selected !
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                               <tr>
@@ -643,9 +669,13 @@ const StaffClassesCreate = () => {
                                   <strong>Start Date</strong>
                                 </td>
                                 <td>
-                                  {startDate
-                                    ? dayjs(startDate).format("MMMM D, YYYY")
-                                    : "Not selected"}
+                                  {startDate ? (
+                                    dayjs(startDate).format("MMMM D, YYYY")
+                                  ) : (
+                                    <span style={{ color: "red" }}>
+                                      Not selected !
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                               <tr>
@@ -653,44 +683,46 @@ const StaffClassesCreate = () => {
                                   <strong>Time Slots</strong>
                                 </td>
                                 <td>
-                                  {selectedSlots.length > 0
-                                    ? selectedSlots
-                                        .sort((a, b) => {
-                                          const [dayA] = a.split("-");
-                                          const [dayB] = b.split("-");
-                                          return (
-                                            parseInt(dayA) - parseInt(dayB)
-                                          );
-                                        })
-                                        .reduce((acc, slot) => {
-                                          const [dayIndex, scheduleId] =
-                                            slot.split("-");
-                                          const schedule = schedules.find(
-                                            (s) =>
-                                              s.id.toString() ===
-                                              scheduleId.toString()
-                                          );
-                                          const days = [
-                                            "Sunday",
-                                            "Monday",
-                                            "Tuesday",
-                                            "Wednesday",
-                                            "Thursday",
-                                            "Friday",
-                                            "Saturday",
+                                  {selectedSlots.length > 0 ? (
+                                    selectedSlots
+                                      .sort((a, b) => {
+                                        const [dayA] = a.split("-");
+                                        const [dayB] = b.split("-");
+                                        return parseInt(dayA) - parseInt(dayB);
+                                      })
+                                      .reduce((acc, slot) => {
+                                        const [dayIndex, scheduleId] =
+                                          slot.split("-");
+                                        const schedule = schedules.find(
+                                          (s) =>
+                                            s.id.toString() ===
+                                            scheduleId.toString()
+                                        );
+                                        const days = [
+                                          "Sunday",
+                                          "Monday",
+                                          "Tuesday",
+                                          "Wednesday",
+                                          "Thursday",
+                                          "Friday",
+                                          "Saturday",
+                                        ];
+                                        const dayName =
+                                          days[
+                                            dayIndex === "6"
+                                              ? 0
+                                              : parseInt(dayIndex) + 1
                                           ];
-                                          const dayName =
-                                            days[
-                                              dayIndex === "6"
-                                                ? 0
-                                                : parseInt(dayIndex) + 1
-                                            ];
-                                          const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
-                                          return acc
-                                            ? `${acc}, ${timeSlot}`
-                                            : timeSlot;
-                                        }, "")
-                                    : "No slots selected"}
+                                        const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
+                                        return acc
+                                          ? `${acc}, ${timeSlot}`
+                                          : timeSlot;
+                                      }, "")
+                                  ) : (
+                                    <span style={{ color: "red" }}>
+                                      No slots selected !
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                               <tr>
@@ -698,16 +730,18 @@ const StaffClassesCreate = () => {
                                   <strong>Selected Trainers</strong>
                                 </td>
                                 <td>
-                                  {selectedTrainerIds.length > 0
-                                    ? availableTrainers
-                                        .filter((trainer) =>
-                                          selectedTrainerIds.includes(
-                                            trainer.id
-                                          )
-                                        )
-                                        .map((trainer) => trainer.name)
-                                        .join(", ")
-                                    : "None selected"}
+                                  {selectedTrainerIds.length > 0 ? (
+                                    availableTrainers
+                                      .filter((trainer) =>
+                                        selectedTrainerIds.includes(trainer.id)
+                                      )
+                                      .map((trainer) => trainer.name)
+                                      .join(", ")
+                                  ) : (
+                                    <span style={{ color: "red" }}>
+                                      None selected !
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                             </tbody>

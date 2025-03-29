@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import { Link } from "react-router-dom";
 import "../../assets/css/material-dashboard.min.css";
+import { useLoading } from "../../contexts/LoadingContext";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -32,7 +33,7 @@ const StaffClasses = () => {
   const [order, setOrder] = useState("asc");
   const [filterText, setFilterText] = useState("");
   const [classes, setClasses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { loading, setLoading } = useLoading();
   const [classDetails, setClassDetails] = useState({});
   const [counts, setCounts] = useState({
     total: 0,
@@ -77,6 +78,7 @@ const StaffClasses = () => {
 
   const fetchClasses = async () => {
     setLoading(true);
+    const startTime = Date.now();
     try {
       const response = await axios.get("/api/class");
       if (response.data.success) {
@@ -94,9 +96,14 @@ const StaffClasses = () => {
         setCounts({ total, inactive, active, ongoing, closed, completed });
 
         // Fetch details for each class
-        classesData.forEach((classItem) => {
-          fetchClassDetails(classItem.id);
-        });
+        await Promise.all(
+          classesData.map((classItem) => fetchClassDetails(classItem.id))
+        );
+
+        // Only apply minimum time after all operations are complete
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 2000 - elapsedTime);
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -333,94 +340,101 @@ const StaffClasses = () => {
                         <h4 class="card-title">Classes</h4>
                       </div>
                       <div className="card-body">
-                        <div className="table-responsive">
+                        {loading ? (
                           <div
                             style={{
-                              padding: "16px",
                               display: "flex",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
                               alignItems: "center",
+                              minHeight: "300px",
                             }}
                           >
-                            <TextField
-                              label="Search by name..."
-                              variant="outlined"
-                              size="small"
-                              value={filterText}
-                              onChange={(e) => setFilterText(e.target.value)}
-                            />
-                            <Link to="/staff/classes/create">
-                              <button className="btn btn-info">
-                                <i className="material-icons">add</i> Create
-                                Class
-                              </button>
-                            </Link>
+                            <Loader />
                           </div>
-                          <table className="table">
-                            <thead>
-                              <tr>
-                                <th className="text-center">#</th>
-                                <th>
-                                  <TableSortLabel
-                                    active={orderBy === "name"}
-                                    direction={
-                                      orderBy === "name" ? order : "asc"
-                                    }
-                                    onClick={() => handleSort("name")}
-                                  >
-                                    Class Name
-                                  </TableSortLabel>
-                                </th>
-                                <th>
-                                  <TableSortLabel
-                                    active={orderBy === "courseName"}
-                                    direction={
-                                      orderBy === "courseName" ? order : "asc"
-                                    }
-                                    onClick={() => handleSort("courseName")}
-                                  >
-                                    Course
-                                  </TableSortLabel>
-                                </th>
-                                <th>
-                                  <TableSortLabel
-                                    active={orderBy === "enrolledDogCount"}
-                                    direction={
-                                      orderBy === "enrolledDogCount"
-                                        ? order
-                                        : "asc"
-                                    }
-                                    onClick={() =>
-                                      handleSort("enrolledDogCount")
-                                    }
-                                  >
-                                    Enrolled Dogs
-                                  </TableSortLabel>
-                                </th>
-                                <th>
-                                  <TableSortLabel
-                                    active={orderBy === "startingDate"}
-                                    direction={
-                                      orderBy === "startingDate" ? order : "asc"
-                                    }
-                                    onClick={() => handleSort("startingDate")}
-                                  >
-                                    Start Date
-                                  </TableSortLabel>
-                                </th>
-                                <th>Status</th>
-                                <th className="text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {loading ? (
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <TextField
+                                label="Search by name..."
+                                variant="outlined"
+                                size="small"
+                                value={filterText}
+                                onChange={(e) => setFilterText(e.target.value)}
+                              />
+                              <Link to="/staff/classes/create">
+                                <button className="btn btn-info">
+                                  <i className="material-icons">add</i> Create
+                                  Class
+                                </button>
+                              </Link>
+                            </div>
+                            <table className="table">
+                              <thead>
                                 <tr>
-                                  <td colSpan="7" className="text-center">
-                                    <Loader />
-                                  </td>
+                                  <th className="text-center">#</th>
+                                  <th>
+                                    <TableSortLabel
+                                      active={orderBy === "name"}
+                                      direction={
+                                        orderBy === "name" ? order : "asc"
+                                      }
+                                      onClick={() => handleSort("name")}
+                                    >
+                                      Class Name
+                                    </TableSortLabel>
+                                  </th>
+                                  <th>
+                                    <TableSortLabel
+                                      active={orderBy === "courseName"}
+                                      direction={
+                                        orderBy === "courseName" ? order : "asc"
+                                      }
+                                      onClick={() => handleSort("courseName")}
+                                    >
+                                      Course
+                                    </TableSortLabel>
+                                  </th>
+                                  <th>
+                                    <TableSortLabel
+                                      active={orderBy === "enrolledDogCount"}
+                                      direction={
+                                        orderBy === "enrolledDogCount"
+                                          ? order
+                                          : "asc"
+                                      }
+                                      onClick={() =>
+                                        handleSort("enrolledDogCount")
+                                      }
+                                    >
+                                      Enrolled Dogs
+                                    </TableSortLabel>
+                                  </th>
+                                  <th>
+                                    <TableSortLabel
+                                      active={orderBy === "startingDate"}
+                                      direction={
+                                        orderBy === "startingDate"
+                                          ? order
+                                          : "asc"
+                                      }
+                                      onClick={() => handleSort("startingDate")}
+                                    >
+                                      Start Date
+                                    </TableSortLabel>
+                                  </th>
+                                  <th>Status</th>
+                                  <th className="text-right">Actions</th>
                                 </tr>
-                              ) : (
-                                paginatedData.map((row, index) => (
+                              </thead>
+                              <tbody>
+                                {paginatedData.map((row, index) => (
                                   <React.Fragment key={row.id}>
                                     <tr>
                                       <td className="text-center">
@@ -489,20 +503,20 @@ const StaffClasses = () => {
                                       </tr>
                                     )}
                                   </React.Fragment>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                          <TablePagination
-                            component="div"
-                            count={filteredData.length}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            rowsPerPage={rowsPerPage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            rowsPerPageOptions={[5, 10, 25]}
-                          />
-                        </div>
+                                ))}
+                              </tbody>
+                            </table>
+                            <TablePagination
+                              component="div"
+                              count={filteredData.length}
+                              page={page}
+                              onPageChange={handleChangePage}
+                              rowsPerPage={rowsPerPage}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                              rowsPerPageOptions={[5, 10, 25]}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -517,42 +531,76 @@ const StaffClasses = () => {
                         <h4 className="card-title">Class Schedule</h4>
                       </div>
                       <div className="card-body">
-                        <FullCalendar
-                          plugins={[
-                            dayGridPlugin,
-                            timeGridPlugin,
-                            interactionPlugin,
-                          ]}
-                          initialView="dayGridMonth"
-                          headerToolbar={{
-                            left: "prev,next today",
-                            center: "title",
-                            right: "dayGridMonth,timeGridWeek",
-                          }}
-                          events={Object.values(classDetails).flatMap(
-                            (classItem) =>
-                              (classItem.classSlots || []).map((slot) => ({
-                                title: classItem.name,
-                                start: slot.slotDate,
-                                backgroundColor:
-                                  CLASS_STATUS[
-                                    classItem.status
-                                  ]?.color?.replace("badge-", "") || "#999",
-                                extendedProps: {
-                                  course: classItem.courseName,
-                                  status: CLASS_STATUS[classItem.status]?.label,
-                                },
-                              }))
-                          )}
-                          eventContent={(eventInfo) => (
-                            <div>
-                              <b>{eventInfo.event.title}</b>
-                              <div>{eventInfo.event.extendedProps.course}</div>
-                            </div>
-                          )}
-                          height="auto"
-                          aspectRatio={2}
-                        />
+                        {loading ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              minHeight: "300px",
+                            }}
+                          >
+                            <Loader />
+                          </div>
+                        ) : (
+                          <FullCalendar
+                            plugins={[
+                              dayGridPlugin,
+                              timeGridPlugin,
+                              interactionPlugin,
+                            ]}
+                            initialView="dayGridMonth"
+                            headerToolbar={{
+                              left: "prev,next today",
+                              center: "title",
+                              right: "dayGridMonth,timeGridWeek",
+                            }}
+                            slotMinTime="08:00:00"
+                            slotMaxTime="18:00:00"
+                            events={Object.values(classDetails).flatMap(
+                              (classItem) =>
+                                (classItem.classSlots || []).map((slot) => ({
+                                  title: classItem.name,
+                                  start: `${slot.slotDate}T${slot.startTime}`,
+                                  end: `${slot.slotDate}T${slot.endTime}`,
+                                  backgroundColor:
+                                    CLASS_STATUS[
+                                      classItem.status
+                                    ]?.color?.replace("badge-", "") || "#999",
+                                  extendedProps: {
+                                    course: classItem.courseName,
+                                    status:
+                                      CLASS_STATUS[classItem.status]?.label,
+                                    startTime: slot.startTime,
+                                    endTime: slot.endTime,
+                                  },
+                                }))
+                            )}
+                            eventContent={(eventInfo) => (
+                              <div>
+                                <b>{eventInfo.event.title}</b>
+                                <div>
+                                  {eventInfo.event.extendedProps.course}
+                                </div>
+                                <small>
+                                  {eventInfo.event.extendedProps.startTime?.substring(
+                                    0,
+                                    5
+                                  )}
+                                  -
+                                  {eventInfo.event.extendedProps.endTime?.substring(
+                                    0,
+                                    5
+                                  )}
+                                </small>
+                              </div>
+                            )}
+                            eventOverlap={false}
+                            slotEventOverlap={false}
+                            height="auto"
+                            aspectRatio={2}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
