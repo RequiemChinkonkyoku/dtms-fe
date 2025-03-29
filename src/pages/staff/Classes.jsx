@@ -12,71 +12,55 @@ import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { TablePagination, TableSortLabel, TextField } from "@mui/material";
 
+// Add this constant at the top of the file, after imports
+const CLASS_STATUS = {
+  0: { label: "Inactive", color: "badge-secondary" },
+  1: { label: "Active", color: "badge-warning" },
+  2: { label: "Ongoing", color: "badge-info" },
+  3: { label: "Closed", color: "badge-danger" },
+  4: { label: "Completed", color: "badge-success" },
+};
+
 const StaffClasses = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [orderBy, setOrderBy] = useState("name");
   const [order, setOrder] = useState("asc");
   const [filterText, setFilterText] = useState("");
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const data = [
-    {
-      id: 1,
-      name: "Andrew Mike",
-      position: "Developer",
-      since: "2013",
-      salary: "€ 99,225",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      position: "Designer",
-      since: "2015",
-      salary: "€ 89,241",
-    },
-    {
-      id: 3,
-      name: "Alex Smith",
-      position: "Team Lead",
-      since: "2012",
-      salary: "€ 125,500",
-    },
-    {
-      id: 4,
-      name: "Emma Wilson",
-      position: "Developer",
-      since: "2018",
-      salary: "€ 85,000",
-    },
-    {
-      id: 5,
-      name: "Michael Brown",
-      position: "Project Manager",
-      since: "2014",
-      salary: "€ 115,750",
-    },
-    {
-      id: 6,
-      name: "Sarah Davis",
-      position: "UX Designer",
-      since: "2017",
-      salary: "€ 92,300",
-    },
-    {
-      id: 7,
-      name: "James Johnson",
-      position: "Developer",
-      since: "2016",
-      salary: "€ 95,800",
-    },
-    {
-      id: 8,
-      name: "Lisa Anderson",
-      position: "QA Engineer",
-      since: "2019",
-      salary: "€ 78,500",
-    },
-  ];
+  const [expandedRows, setExpandedRows] = useState(new Set());
+
+  const toggleRowExpansion = (rowId) => {
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(rowId)) {
+        newSet.delete(rowId);
+      } else {
+        newSet.add(rowId);
+      }
+      return newSet;
+    });
+  };
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/api/class");
+      if (response.data.success) {
+        setClasses(response.data.objectList || []);
+      }
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -95,10 +79,11 @@ const StaffClasses = () => {
   };
 
   // Filter and sort data
-  const filteredData = data
+  // Update filtered data to use classes array
+  const filteredData = classes
     .filter((row) =>
       Object.values(row).some((value) =>
-        value.toString().toLowerCase().includes(filterText.toLowerCase())
+        value?.toString().toLowerCase().includes(filterText.toLowerCase())
       )
     )
     .sort((a, b) => {
@@ -130,9 +115,9 @@ const StaffClasses = () => {
                     <div class="card">
                       <div class="card-header card-header-rose card-header-icon">
                         <div class="card-icon">
-                          <i class="material-icons">assignment</i>
+                          <i class="material-icons">topic</i>
                         </div>
-                        <h4 class="card-title">Simple Table</h4>
+                        <h4 class="card-title">Classes</h4>
                       </div>
                       <div className="card-body">
                         <div className="table-responsive">
@@ -145,7 +130,7 @@ const StaffClasses = () => {
                             }}
                           >
                             <TextField
-                              label="Search"
+                              label="Search by name..."
                               variant="outlined"
                               size="small"
                               value={filterText}
@@ -170,68 +155,126 @@ const StaffClasses = () => {
                                     }
                                     onClick={() => handleSort("name")}
                                   >
-                                    Name
+                                    Class Name
                                   </TableSortLabel>
                                 </th>
                                 <th>
                                   <TableSortLabel
-                                    active={orderBy === "position"}
+                                    active={orderBy === "courseName"}
                                     direction={
-                                      orderBy === "position" ? order : "asc"
+                                      orderBy === "courseName" ? order : "asc"
                                     }
-                                    onClick={() => handleSort("position")}
+                                    onClick={() => handleSort("courseName")}
                                   >
-                                    Job Position
+                                    Course
                                   </TableSortLabel>
                                 </th>
                                 <th>
                                   <TableSortLabel
-                                    active={orderBy === "since"}
+                                    active={orderBy === "enrolledDogCount"}
                                     direction={
-                                      orderBy === "since" ? order : "asc"
+                                      orderBy === "enrolledDogCount"
+                                        ? order
+                                        : "asc"
                                     }
-                                    onClick={() => handleSort("since")}
+                                    onClick={() =>
+                                      handleSort("enrolledDogCount")
+                                    }
                                   >
-                                    Since
+                                    Enrolled Dogs
                                   </TableSortLabel>
                                 </th>
-                                <th className="text-right">
+                                <th>
                                   <TableSortLabel
-                                    active={orderBy === "salary"}
+                                    active={orderBy === "startingDate"}
                                     direction={
-                                      orderBy === "salary" ? order : "asc"
+                                      orderBy === "startingDate" ? order : "asc"
                                     }
-                                    onClick={() => handleSort("salary")}
+                                    onClick={() => handleSort("startingDate")}
                                   >
-                                    Salary
+                                    Start Date
                                   </TableSortLabel>
                                 </th>
+                                <th>Status</th>
                                 <th className="text-right">Actions</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {paginatedData.map((row) => (
-                                <tr key={row.id}>
-                                  <td className="text-center">{row.id}</td>
-                                  <td>{row.name}</td>
-                                  <td>{row.position}</td>
-                                  <td>{row.since}</td>
-                                  <td className="text-right">{row.salary}</td>
-                                  <td className="td-actions text-right">
-                                    <button
-                                      type="button"
-                                      rel="tooltip"
-                                      className="btn btn-info"
-                                      data-original-title=""
-                                      title=""
-                                    >
-                                      <i className="material-icons">
-                                        more_vert
-                                      </i>
-                                    </button>
+                              {loading ? (
+                                <tr>
+                                  <td colSpan="7" className="text-center">
+                                    <Loader />
                                   </td>
                                 </tr>
-                              ))}
+                              ) : (
+                                paginatedData.map((row, index) => (
+                                  <React.Fragment key={row.id}>
+                                    <tr>
+                                      <td className="text-center">
+                                        {page * rowsPerPage + index + 1}
+                                      </td>
+                                      <td>{row.name}</td>
+                                      <td>{row.courseName}</td>
+                                      <td>{row.enrolledDogCount}</td>
+                                      <td>
+                                        {new Date(
+                                          row.startingDate
+                                        ).toLocaleDateString()}
+                                      </td>
+                                      <td>
+                                        <span
+                                          className={`badge ${CLASS_STATUS[row.status]?.color || "badge-secondary"}`}
+                                        >
+                                          {CLASS_STATUS[row.status]?.label ||
+                                            "Unknown"}
+                                        </span>
+                                      </td>
+                                      <td className="td-actions text-right">
+                                        <button
+                                          type="button"
+                                          className="btn btn-primary btn-sm"
+                                          onClick={() =>
+                                            toggleRowExpansion(row.id)
+                                          }
+                                        >
+                                          <i
+                                            className="material-icons"
+                                            style={{
+                                              transition: "transform 0.3s",
+                                            }}
+                                          >
+                                            {expandedRows.has(row.id)
+                                              ? "keyboard_arrow_up"
+                                              : "keyboard_arrow_down"}
+                                          </i>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          rel="tooltip"
+                                          className="btn btn-info btn-sm"
+                                          style={{ marginLeft: "8px" }}
+                                        >
+                                          <i className="material-icons">
+                                            more_vert
+                                          </i>
+                                        </button>
+                                      </td>
+                                    </tr>
+                                    {expandedRows.has(row.id) && (
+                                      <tr>
+                                        <td colSpan="7">
+                                          <div style={{ padding: "20px" }}>
+                                            {/* Content will go here */}
+                                            <p>
+                                              Expanded content for {row.name}
+                                            </p>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </React.Fragment>
+                                ))
+                              )}
                             </tbody>
                           </table>
                           <TablePagination
