@@ -474,8 +474,8 @@ const StaffClassesCreate = () => {
                                     {schedule.startTime} - {schedule.endTime}
                                   </td>
                                   {[...Array(7)].map((_, index) => {
-                                    const dayIndex =
-                                      index === 0 ? 6 : index - 1;
+                                    // Fix: directly use index as dayIndex (0 = Sunday, 6 = Saturday)
+                                    const dayIndex = index;
                                     const slotKey = `${dayIndex}-${schedule.id}`;
                                     const isSelected =
                                       selectedSlots.includes(slotKey);
