@@ -11,6 +11,10 @@ import Navbar from "../../assets/components/staff/Navbar";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { TablePagination, TableSortLabel, TextField } from "@mui/material";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 // Add this constant at the top of the file, after imports
 const CLASS_STATUS = {
@@ -29,6 +33,15 @@ const StaffClasses = () => {
   const [filterText, setFilterText] = useState("");
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [classDetails, setClassDetails] = useState({});
+  const [counts, setCounts] = useState({
+    total: 0,
+    inactive: 0,
+    active: 0,
+    ongoing: 0,
+    closed: 0,
+    completed: 0,
+  });
 
   const [expandedRows, setExpandedRows] = useState(new Set());
 
@@ -44,6 +57,20 @@ const StaffClasses = () => {
     });
   };
 
+  const fetchClassDetails = async (classId) => {
+    try {
+      const response = await axios.get(`/api/class/${classId}`);
+      if (response.data.success) {
+        setClassDetails((prev) => ({
+          ...prev,
+          [classId]: response.data.object,
+        }));
+      }
+    } catch (error) {
+      console.error(`Error fetching details for class ${classId}:`, error);
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
   }, []);
@@ -53,7 +80,23 @@ const StaffClasses = () => {
     try {
       const response = await axios.get("/api/class");
       if (response.data.success) {
-        setClasses(response.data.objectList || []);
+        const classesData = response.data.objectList || [];
+        setClasses(classesData);
+
+        // Calculate counts
+        const total = classesData.length;
+        const inactive = classesData.filter((c) => c.status === 0).length;
+        const active = classesData.filter((c) => c.status === 1).length;
+        const ongoing = classesData.filter((c) => c.status === 2).length;
+        const closed = classesData.filter((c) => c.status === 3).length;
+        const completed = classesData.filter((c) => c.status === 4).length;
+
+        setCounts({ total, inactive, active, ongoing, closed, completed });
+
+        // Fetch details for each class
+        classesData.forEach((classItem) => {
+          fetchClassDetails(classItem.id);
+        });
       }
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -110,6 +153,176 @@ const StaffClasses = () => {
             <Navbar />
             <div class="content">
               <div class="container-fluid">
+                <div className="row">
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-primary card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            class
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Total Classes</p>
+                        <h3 className="card-title mb-2">{counts.total}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-secondary card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            block
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Inactive</p>
+                        <h3 className="card-title mb-2">{counts.inactive}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-warning card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            pending
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Active</p>
+                        <h3 className="card-title mb-2">{counts.active}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-info card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            play_circle
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Ongoing</p>
+                        <h3 className="card-title mb-2">{counts.ongoing}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-danger card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            cancel
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Closed</p>
+                        <h3 className="card-title mb-2">{counts.closed}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6 col-sm-6">
+                    <div className="card card-stats">
+                      <div className="card-header card-header-success card-header-icon py-2">
+                        <div
+                          className="card-icon"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            marginTop: "-20px",
+                          }}
+                        >
+                          <i
+                            className="material-icons"
+                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                          >
+                            check_circle
+                          </i>
+                        </div>
+                        <p className="card-category mb-0">Completed</p>
+                        <h3 className="card-title mb-2">{counts.completed}</h3>
+                      </div>
+                      <div className="card-footer py-2">
+                        <div className="stats">
+                          <i className="material-icons">update</i> Just Updated
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card">
@@ -248,23 +461,26 @@ const StaffClasses = () => {
                                               : "keyboard_arrow_down"}
                                           </i>
                                         </button>
-                                        <button
-                                          type="button"
-                                          rel="tooltip"
-                                          className="btn btn-info btn-sm"
-                                          style={{ marginLeft: "8px" }}
+                                        <Link
+                                          to={`/staff/classes/details/${row.id}`}
                                         >
-                                          <i className="material-icons">
-                                            more_vert
-                                          </i>
-                                        </button>
+                                          <button
+                                            type="button"
+                                            rel="tooltip"
+                                            className="btn btn-info btn-sm"
+                                            style={{ marginLeft: "8px" }}
+                                          >
+                                            <i className="material-icons">
+                                              more_vert
+                                            </i>
+                                          </button>
+                                        </Link>
                                       </td>
                                     </tr>
                                     {expandedRows.has(row.id) && (
                                       <tr>
                                         <td colSpan="7">
                                           <div style={{ padding: "20px" }}>
-                                            {/* Content will go here */}
                                             <p>
                                               Expanded content for {row.name}
                                             </p>
@@ -287,6 +503,56 @@ const StaffClasses = () => {
                             rowsPerPageOptions={[5, 10, 25]}
                           />
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div className="card mt-4">
+                      <div className="card-header card-header-info card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">calendar_today</i>
+                        </div>
+                        <h4 className="card-title">Class Schedule</h4>
+                      </div>
+                      <div className="card-body">
+                        <FullCalendar
+                          plugins={[
+                            dayGridPlugin,
+                            timeGridPlugin,
+                            interactionPlugin,
+                          ]}
+                          initialView="dayGridMonth"
+                          headerToolbar={{
+                            left: "prev,next today",
+                            center: "title",
+                            right: "dayGridMonth,timeGridWeek",
+                          }}
+                          events={Object.values(classDetails).flatMap(
+                            (classItem) =>
+                              (classItem.classSlots || []).map((slot) => ({
+                                title: classItem.name,
+                                start: slot.slotDate,
+                                backgroundColor:
+                                  CLASS_STATUS[
+                                    classItem.status
+                                  ]?.color?.replace("badge-", "") || "#999",
+                                extendedProps: {
+                                  course: classItem.courseName,
+                                  status: CLASS_STATUS[classItem.status]?.label,
+                                },
+                              }))
+                          )}
+                          eventContent={(eventInfo) => (
+                            <div>
+                              <b>{eventInfo.event.title}</b>
+                              <div>{eventInfo.event.extendedProps.course}</div>
+                            </div>
+                          )}
+                          height="auto"
+                          aspectRatio={2}
+                        />
                       </div>
                     </div>
                   </div>
