@@ -24,13 +24,52 @@ const StaffClassesCreate = () => {
   const [startDate, setStartDate] = useState(null);
   const [schedules, setSchedules] = useState([]);
   const [selectedSlots, setSelectedSlots] = useState([]);
+  const [formattedSlots, setFormattedSlots] = useState([]);
 
   const [isScheduleEnabled, setIsScheduleEnabled] = useState(false);
   const [isTrainerEnabled, setIsTrainerEnabled] = useState(false);
 
+  const [availableTrainers, setAvailableTrainers] = useState([]);
+  const [selectedTrainerIds, setSelectedTrainerIds] = useState([]);
+
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (startDate && selectedSlots.length > 0) {
+      fetchAvailableTrainers();
+    }
+  }, [startDate, formattedSlots]);
+
+  const fetchAvailableTrainers = async () => {
+    if (!startDate || !selectedCourse || formattedSlots.length === 0) {
+      setAvailableTrainers([]);
+      return;
+    }
+
+    try {
+      const requestBody = {
+        startingDate: dayjs(startDate).format("YYYY-MM-DD"),
+        durationInWeeks: selectedCourse.durationInWeeks,
+        slotData: formattedSlots,
+      };
+
+      const response = await axios.post(
+        "/api/accounts/trainers/availability",
+        requestBody
+      );
+      if (response.data) {
+        // Removed .success check since the response is a direct array
+        setAvailableTrainers(response.data);
+        setSelectedTrainerIds([]);
+      }
+    } catch (error) {
+      console.error("Error fetching available trainers:", error);
+      setAvailableTrainers([]);
+      setSelectedTrainerIds([]);
+    }
+  };
 
   // Add this useEffect to handle schedule card unlock
   useEffect(() => {
@@ -116,6 +155,8 @@ const StaffClassesCreate = () => {
   const fetchCourseDetails = async (courseId) => {
     try {
       setLoading(true);
+      setSelectedSlots([]); // Clear selected slots
+      setSelectedTrainerIds([]); // Clear selected trainers
       const response = await axios.get(`/api/courses/${courseId}`);
       if (response.data.success) {
         setSelectedCourse(response.data.object);
@@ -133,6 +174,29 @@ const StaffClassesCreate = () => {
       console.error("Error fetching course details:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateClass = async () => {
+    try {
+      const requestBody = {
+        name: className,
+        startingDate: dayjs(startDate).format("YYYY-MM-DD"),
+        courseId: selectedCourse?.id,
+        trainerIds: selectedTrainerIds,
+        slotDatas: formattedSlots,
+      };
+
+      const response = await axios.post("/api/class", requestBody);
+      if (response.data.success) {
+        alert("Class created successfully!");
+        // Optionally: Redirect to class list or clear form
+      } else {
+        alert("Failed to create class: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Error creating class:", error);
+      alert("Error creating class. Please try again.");
     }
   };
 
@@ -249,7 +313,7 @@ const StaffClassesCreate = () => {
                                   <td>
                                     <strong>Price</strong>
                                   </td>
-                                  <td>${selectedCourse.price}</td>
+                                  <td>{selectedCourse.price} VND</td>
                                 </tr>
                                 <tr>
                                   <td>
@@ -316,10 +380,21 @@ const StaffClassesCreate = () => {
                                     <strong>Dog Breeds</strong>
                                   </td>
                                   <td colSpan="3">
-                                    {selectedCourse.dogBreedIds?.length > 0 &&
-                                    dogBreedNames.length > 0
-                                      ? dogBreedNames.join(", ")
-                                      : "None"}
+                                    {dogBreedNames.map((breed, index) => (
+                                      <span
+                                        key={index}
+                                        className="badge badge-pill badge-info"
+                                        style={{
+                                          fontSize: "12px",
+                                          padding: "6px 10px",
+                                          margin: "0 3px 3px 0",
+                                          display: "inline-block",
+                                        }}
+                                      >
+                                        {breed}
+                                      </span>
+                                    ))}
+                                    {!dogBreedNames.length && "None"}
                                   </td>
                                 </tr>
                               </tbody>
@@ -361,7 +436,10 @@ const StaffClassesCreate = () => {
                             <DatePicker
                               label="Start Date"
                               value={startDate}
-                              onChange={(newValue) => setStartDate(newValue)}
+                              onChange={(newValue) => {
+                                setStartDate(newValue);
+                                setSelectedTrainerIds([]); // Clear trainers when date changes
+                              }}
                               minDate={dayjs()}
                               sx={{ width: "100%" }}
                             />
@@ -406,6 +484,33 @@ const StaffClassesCreate = () => {
                                         <button
                                           className="btn btn-outline-info btn-sm"
                                           onClick={() => {
+                                            setSelectedTrainerIds([]); // Clear trainers when slots change
+                                            const newSlot = {
+                                              dayOfWeek: parseInt(dayIndex),
+                                              scheduleId: schedule.id,
+                                            };
+
+                                            setFormattedSlots((prev) => {
+                                              const exists = prev.some(
+                                                (slot) =>
+                                                  slot.dayOfWeek ===
+                                                    newSlot.dayOfWeek &&
+                                                  slot.scheduleId ===
+                                                    newSlot.scheduleId
+                                              );
+
+                                              if (exists) {
+                                                return prev.filter(
+                                                  (slot) =>
+                                                    slot.dayOfWeek !==
+                                                      newSlot.dayOfWeek ||
+                                                    slot.scheduleId !==
+                                                      newSlot.scheduleId
+                                                );
+                                              }
+                                              return [...prev, newSlot];
+                                            });
+
                                             setSelectedSlots((prev) =>
                                               prev.includes(slotKey)
                                                 ? prev.filter(
@@ -462,7 +567,44 @@ const StaffClassesCreate = () => {
                         />
                       )}
                       <div className="card-body">
-                        {/* Trainer list will go here */}
+                        <div className="d-flex justify-content-end mb-3">
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => setSelectedTrainerIds([])}
+                          >
+                            Clear All Selections
+                          </button>
+                        </div>
+                        <div className="row">
+                          {availableTrainers.map((trainer) => (
+                            <div className="col-md-6" key={trainer.id}>
+                              <div className="form-check">
+                                <label className="form-check-label">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    checked={selectedTrainerIds.includes(
+                                      trainer.id
+                                    )}
+                                    onChange={(e) => {
+                                      setSelectedTrainerIds((prev) =>
+                                        e.target.checked
+                                          ? [...prev, trainer.id]
+                                          : prev.filter(
+                                              (id) => id !== trainer.id
+                                            )
+                                      );
+                                    }}
+                                  />
+                                  {trainer.name}
+                                  <span className="form-check-sign">
+                                    <span className="check"></span>
+                                  </span>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -475,20 +617,117 @@ const StaffClassesCreate = () => {
                           Review and confirm class creation
                         </p>
                       </div>
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          backgroundColor: "rgba(200, 200, 200, 0.6)",
-                          zIndex: 10,
-                          cursor: "not-allowed",
-                        }}
-                      />
+
                       <div className="card-body">
-                        {/* Summary details will go here */}
+                        <div className="table-responsive">
+                          <table className="table">
+                            <tbody>
+                              <tr>
+                                <td className="col-md-3">
+                                  <strong>Class Name</strong>
+                                </td>
+                                <td className="col-md-9">
+                                  {className || "Not set"}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <strong>Course</strong>
+                                </td>
+                                <td>
+                                  {selectedCourse?.name || "Not selected"}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <strong>Start Date</strong>
+                                </td>
+                                <td>
+                                  {startDate
+                                    ? dayjs(startDate).format("MMMM D, YYYY")
+                                    : "Not selected"}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <strong>Time Slots</strong>
+                                </td>
+                                <td>
+                                  {selectedSlots.length > 0
+                                    ? selectedSlots
+                                        .sort((a, b) => {
+                                          const [dayA] = a.split("-");
+                                          const [dayB] = b.split("-");
+                                          return (
+                                            parseInt(dayA) - parseInt(dayB)
+                                          );
+                                        })
+                                        .reduce((acc, slot) => {
+                                          const [dayIndex, scheduleId] =
+                                            slot.split("-");
+                                          const schedule = schedules.find(
+                                            (s) =>
+                                              s.id.toString() ===
+                                              scheduleId.toString()
+                                          );
+                                          const days = [
+                                            "Sunday",
+                                            "Monday",
+                                            "Tuesday",
+                                            "Wednesday",
+                                            "Thursday",
+                                            "Friday",
+                                            "Saturday",
+                                          ];
+                                          const dayName =
+                                            days[
+                                              dayIndex === "6"
+                                                ? 0
+                                                : parseInt(dayIndex) + 1
+                                            ];
+                                          const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
+                                          return acc
+                                            ? `${acc}, ${timeSlot}`
+                                            : timeSlot;
+                                        }, "")
+                                    : "No slots selected"}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <strong>Selected Trainers</strong>
+                                </td>
+                                <td>
+                                  {selectedTrainerIds.length > 0
+                                    ? availableTrainers
+                                        .filter((trainer) =>
+                                          selectedTrainerIds.includes(
+                                            trainer.id
+                                          )
+                                        )
+                                        .map((trainer) => trainer.name)
+                                        .join(", ")
+                                    : "None selected"}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="text-right mt-3">
+                          <button
+                            className="btn btn-success"
+                            onClick={handleCreateClass}
+                            disabled={
+                              !className ||
+                              !selectedCourse ||
+                              !startDate ||
+                              selectedSlots.length === 0 ||
+                              selectedTrainerIds.length === 0
+                            }
+                          >
+                            Create Class
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
