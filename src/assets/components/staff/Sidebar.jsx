@@ -26,7 +26,7 @@ const Sidebar = () => {
               <div className="collapse show">
                 <ul className="nav">
                   <li
-                    className={`nav-item ${location.pathname === "/dashboard" ? "active" : ""}`}
+                    className={`nav-item ${location.pathname === "/staff/dashboard" ? "active" : ""}`}
                   >
                     <Link className="nav-link" to="/staff/dashboard">
                       <i className="material-icons">dashboard</i>

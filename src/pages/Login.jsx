@@ -12,7 +12,7 @@ import Navbar from "../assets/components/auth/Navbar";
 import Footer from "../assets/components/auth/Footer";
 
 const Login = () => {
-  const { loading, setLoading } = useLoading();
+  const [loading, setLoading] = useState();
   const navigate = useNavigate();
   const { user, login } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
