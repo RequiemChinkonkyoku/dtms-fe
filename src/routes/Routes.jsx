@@ -19,6 +19,7 @@ import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
 import Blogs from "../pages/staff/Blogs";
 import StaffClasses from "../pages/staff/Classes";
 import StaffClassesCreate from "../pages/staff/ClassesCreate";
+import StaffClassesDetails from "../pages/staff/ClassesDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -72,6 +73,10 @@ export const routes = createBrowserRouter([
       {
         path: "classes/create",
         element: <StaffClassesCreate />,
+      },
+      {
+        path: "classes/details/:id",
+        element: <StaffClassesDetails />,
       },
     ],
   },
