@@ -74,6 +74,74 @@ const StaffClassesCreate = () => {
     }
   };
 
+  const validateSlotSelection = (currentSlots) => {
+    if (!selectedCourse) return true;
+
+    // Group slots by day
+    const slotsByDay = currentSlots.reduce((acc, slot) => {
+      const [day] = slot.split("-");
+      acc[day] = (acc[day] || 0) + 1;
+      return acc;
+    }, {});
+
+    const selectedDays = Object.keys(slotsByDay).length;
+    const totalSelectedSlots = currentSlots.length;
+    const requiredTotalSlots =
+      selectedCourse.daysPerWeek * selectedCourse.slotsPerDay;
+
+    // Only validate if we've selected all required slots or trying to select more than allowed
+    if (
+      totalSelectedSlots >= requiredTotalSlots ||
+      selectedDays > selectedCourse.daysPerWeek
+    ) {
+      // Check number of days
+      if (selectedDays !== selectedCourse.daysPerWeek) {
+        Swal.fire({
+          icon: "warning",
+          title: "Invalid Selection",
+          text: `This course requires exactly ${selectedCourse.daysPerWeek} day(s) per week. You've selected ${selectedDays} days.`,
+          confirmButtonColor: "#f44336",
+        });
+        return false;
+      }
+
+      // Check slots per day
+      const invalidDays = Object.entries(slotsByDay).filter(
+        ([_, count]) => count !== selectedCourse.slotsPerDay
+      );
+
+      if (invalidDays.length > 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Invalid Selection",
+          text: `Each selected day must have exactly ${selectedCourse.slotsPerDay} slot(s). Please adjust your selection.`,
+          confirmButtonColor: "#f44336",
+        });
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const isSlotSelectionComplete = () => {
+    if (!selectedCourse || selectedSlots.length === 0) return false;
+
+    const slotsByDay = selectedSlots.reduce((acc, slot) => {
+      const [day] = slot.split("-");
+      acc[day] = (acc[day] || 0) + 1;
+      return acc;
+    }, {});
+
+    const selectedDays = Object.keys(slotsByDay).length;
+    return (
+      selectedDays === selectedCourse.daysPerWeek &&
+      Object.values(slotsByDay).every(
+        (count) => count === selectedCourse.slotsPerDay
+      )
+    );
+  };
+
   // Add this useEffect to handle schedule card unlock
   useEffect(() => {
     setIsScheduleEnabled(!!selectedCourse);
@@ -346,7 +414,7 @@ const StaffClassesCreate = () => {
                                   </td>
                                   <td>
                                     {selectedCourse.minTrainers} -{" "}
-                                    {selectedCourse.maxTrainers}
+                                    {selectedCourse.maxTrainers} persons
                                   </td>
                                 </tr>
                                 <tr>
@@ -458,10 +526,16 @@ const StaffClassesCreate = () => {
                                 setStartDate(newValue);
                                 setSelectedTrainerIds([]); // Clear trainers when date changes
                               }}
-                              minDate={dayjs()}
+                              minDate={dayjs().add(1, "month")}
                               sx={{ width: "100%" }}
                             />
                           </LocalizationProvider>
+                          <small
+                            className="text-danger"
+                            style={{ marginTop: "8px", display: "block" }}
+                          >
+                            * The start date must be at least 1 month from now
+                          </small>
                         </div>
                         <div className="table-responsive mt-4">
                           <div className="d-flex justify-content-end mb-3">
@@ -508,34 +582,41 @@ const StaffClassesCreate = () => {
                                               scheduleId: schedule.id,
                                             };
 
-                                            setFormattedSlots((prev) => {
-                                              const exists = prev.some(
-                                                (slot) =>
-                                                  slot.dayOfWeek ===
-                                                    newSlot.dayOfWeek &&
-                                                  slot.scheduleId ===
-                                                    newSlot.scheduleId
-                                              );
-
-                                              if (exists) {
-                                                return prev.filter(
-                                                  (slot) =>
-                                                    slot.dayOfWeek !==
-                                                      newSlot.dayOfWeek ||
-                                                    slot.scheduleId !==
-                                                      newSlot.scheduleId
-                                                );
-                                              }
-                                              return [...prev, newSlot];
-                                            });
-
-                                            setSelectedSlots((prev) =>
-                                              prev.includes(slotKey)
-                                                ? prev.filter(
+                                            const updatedSlots =
+                                              selectedSlots.includes(slotKey)
+                                                ? selectedSlots.filter(
                                                     (slot) => slot !== slotKey
                                                   )
-                                                : [...prev, slotKey]
-                                            );
+                                                : [...selectedSlots, slotKey];
+
+                                            if (
+                                              validateSlotSelection(
+                                                updatedSlots
+                                              )
+                                            ) {
+                                              setFormattedSlots((prev) => {
+                                                const exists = prev.some(
+                                                  (slot) =>
+                                                    slot.dayOfWeek ===
+                                                      newSlot.dayOfWeek &&
+                                                    slot.scheduleId ===
+                                                      newSlot.scheduleId
+                                                );
+
+                                                if (exists) {
+                                                  return prev.filter(
+                                                    (slot) =>
+                                                      slot.dayOfWeek !==
+                                                        newSlot.dayOfWeek ||
+                                                      slot.scheduleId !==
+                                                        newSlot.scheduleId
+                                                  );
+                                                }
+                                                return [...prev, newSlot];
+                                              });
+
+                                              setSelectedSlots(updatedSlots);
+                                            }
                                           }}
                                           style={{
                                             width: "100%",
@@ -557,6 +638,17 @@ const StaffClassesCreate = () => {
                               ))}
                             </tbody>
                           </table>
+                          {selectedCourse && (
+                            <small
+                              className="text-info"
+                              style={{ display: "block", marginTop: "10px" }}
+                            >
+                              * This course requires{" "}
+                              {selectedCourse.daysPerWeek} day(s) per week and{" "}
+                              {selectedCourse.slotsPerDay} slot(s) per selected
+                              day
+                            </small>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -684,40 +776,50 @@ const StaffClassesCreate = () => {
                                 </td>
                                 <td>
                                   {selectedSlots.length > 0 ? (
-                                    selectedSlots
-                                      .sort((a, b) => {
-                                        const [dayA] = a.split("-");
-                                        const [dayB] = b.split("-");
-                                        return parseInt(dayA) - parseInt(dayB);
-                                      })
-                                      .reduce((acc, slot) => {
-                                        const [dayIndex, scheduleId] =
-                                          slot.split("-");
-                                        const schedule = schedules.find(
-                                          (s) =>
-                                            s.id.toString() ===
-                                            scheduleId.toString()
-                                        );
-                                        const days = [
-                                          "Sunday",
-                                          "Monday",
-                                          "Tuesday",
-                                          "Wednesday",
-                                          "Thursday",
-                                          "Friday",
-                                          "Saturday",
-                                        ];
-                                        const dayName =
-                                          days[
-                                            dayIndex === "6"
-                                              ? 0
-                                              : parseInt(dayIndex) + 1
+                                    <span
+                                      style={{
+                                        color: !isSlotSelectionComplete()
+                                          ? "#ffc107"
+                                          : "inherit",
+                                      }}
+                                    >
+                                      {selectedSlots
+                                        .sort((a, b) => {
+                                          const [dayA] = a.split("-");
+                                          const [dayB] = b.split("-");
+                                          return (
+                                            parseInt(dayA) - parseInt(dayB)
+                                          );
+                                        })
+                                        .reduce((acc, slot) => {
+                                          const [dayIndex, scheduleId] =
+                                            slot.split("-");
+                                          const schedule = schedules.find(
+                                            (s) =>
+                                              s.id.toString() ===
+                                              scheduleId.toString()
+                                          );
+                                          const days = [
+                                            "Sunday",
+                                            "Monday",
+                                            "Tuesday",
+                                            "Wednesday",
+                                            "Thursday",
+                                            "Friday",
+                                            "Saturday",
                                           ];
-                                        const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
-                                        return acc
-                                          ? `${acc}, ${timeSlot}`
-                                          : timeSlot;
-                                      }, "")
+                                          const dayName =
+                                            days[
+                                              dayIndex === "6"
+                                                ? 0
+                                                : parseInt(dayIndex) + 1
+                                            ];
+                                          const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
+                                          return acc
+                                            ? `${acc}, ${timeSlot}`
+                                            : timeSlot;
+                                        }, "")}
+                                    </span>
                                   ) : (
                                     <span style={{ color: "red" }}>
                                       No slots selected !
@@ -756,6 +858,7 @@ const StaffClassesCreate = () => {
                               !selectedCourse ||
                               !startDate ||
                               selectedSlots.length === 0 ||
+                              !isSlotSelectionComplete() ||
                               selectedTrainerIds.length === 0
                             }
                           >
