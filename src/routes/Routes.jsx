@@ -4,11 +4,9 @@ import { AuthProvider } from "../contexts/AuthContext";
 import PrivateRoute from "./PrivateRoute";
 
 import Login from "../pages/Login";
-import DogManagement from "../pages/staff/DogManagement";
 import DogBreedTable from "../pages/staff/DogBreedManagement";
 import DogDocumentTable from "../pages/staff/DogDocumentManagement";
 import ForgotPassword from "../pages/ForgotPassword";
-import Dashboard from "../pages/staff/Dashboard";
 import Accounts from "../pages/staff/Accounts";
 import AdminDashboard from "../pages/admin/Dashboard";
 import StaffDashboard from "../pages/staff/Dashboard";
@@ -20,6 +18,7 @@ import Blogs from "../pages/staff/Blogs";
 import StaffClasses from "../pages/staff/Classes";
 import StaffClassesCreate from "../pages/staff/ClassesCreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
+import StaffDogs from "../pages/staff/Dogs";
 
 export const routes = createBrowserRouter([
   {
@@ -51,8 +50,8 @@ export const routes = createBrowserRouter([
     ),
     children: [
       {
-        path: "dogs-management",
-        element: <DogManagement />,
+        path: "dogs",
+        element: <StaffDogs />,
       },
       {
         path: "accounts",
