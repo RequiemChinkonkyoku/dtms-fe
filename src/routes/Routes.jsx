@@ -19,6 +19,8 @@ import StaffClasses from "../pages/staff/Classes";
 import StaffClassesCreate from "../pages/staff/ClassesCreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
 import StaffDogs from "../pages/staff/Dogs";
+import StaffAccountsCustomerDetails from "../pages/staff/AccountsCustomerDetails";
+import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -76,6 +78,14 @@ export const routes = createBrowserRouter([
       {
         path: "classes/details/:id",
         element: <StaffClassesDetails />,
+      },
+      {
+        path: "accounts/customer/details/:id",
+        element: <StaffAccountsCustomerDetails />,
+      },
+      {
+        path: "accounts/trainer/details/:id",
+        element: <StaffAccountsTrainerDetails />,
       },
     ],
   },
