@@ -15,12 +15,12 @@ import TrainerLessons from "../pages/trainer/Lessons";
 import TrainerCourses from "../pages/trainer/Courses";
 import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
 import Blogs from "../pages/staff/Blogs";
-import StaffClasses from "../pages/staff/Classes";
 import StaffClassesCreate from "../pages/staff/ClassesCreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
 import StaffDogs from "../pages/staff/Dogs";
 import StaffAccountsCustomerDetails from "../pages/staff/AccountsCustomerDetails";
 import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
+import StaffClasses from "../pages/staff/Classes";
 
 export const routes = createBrowserRouter([
   {
