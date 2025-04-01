@@ -15,12 +15,13 @@ import TrainerLessons from "../pages/trainer/Lessons";
 import TrainerCourses from "../pages/trainer/Courses";
 import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
 import Blogs from "../pages/staff/Blogs";
-import StaffClassesCreate from "../pages/staff/ClassesCreate";
+import StaffClassesCreate from "../pages/staff/classescreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
 import StaffDogs from "../pages/staff/Dogs";
 import StaffAccountsCustomerDetails from "../pages/staff/AccountsCustomerDetails";
 import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
 import StaffClasses from "../pages/staff/Classes";
+import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
 
 export const routes = createBrowserRouter([
   {
@@ -138,6 +139,10 @@ export const routes = createBrowserRouter([
       {
         path: "courses",
         element: <TrainerCourses />,
+      },
+      {
+        path: "courses/create",
+        element: <TrainerCoursesCreate />,
       },
       {
         path: "courses/details/:id",

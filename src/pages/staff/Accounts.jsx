@@ -195,10 +195,6 @@ const Accounts = () => {
     }
   };
 
-  // if (loading) {
-  //   return <Loader />;
-  // }
-
   return (
     <>
       <Head />
