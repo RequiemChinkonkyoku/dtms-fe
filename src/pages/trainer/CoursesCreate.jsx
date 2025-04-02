@@ -339,7 +339,8 @@ const TrainerCoursesCreate = () => {
                   <div class="col-md-9">
                     <div class="card">
                       <div class="card-header card-header-primary">
-                        <h4 class="card-title">Course Information</h4>
+                        <h4 class="card-title">Create a new course</h4>
+                        <p class="card-category">Enter the basic information</p>
                       </div>
                       <div class="card-body">
                         <div class="row">
