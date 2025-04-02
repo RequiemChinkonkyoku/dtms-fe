@@ -102,7 +102,7 @@ const Login = () => {
                     onSubmit={handleSubmit}
                   >
                     <div className="card card-login">
-                      <div className="card-header card-header-warning text-center">
+                      <div className="card-header card-header-info text-center">
                         <h4 className="card-title">DTMS STAFF PORTAL</h4>
                         <div className="social-line">
                           <i className="material-icons">pets</i>
@@ -149,7 +149,7 @@ const Login = () => {
                       <div className="card-footer justify-content-center">
                         <button
                           type="submit"
-                          className="btn btn-warning btn-link btn-lg"
+                          className="btn btn-info btn-link btn-lg"
                         >
                           Login
                         </button>

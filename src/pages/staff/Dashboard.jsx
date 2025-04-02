@@ -5,7 +5,7 @@ import "../../assets/css/material-dashboard.min.css";
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/staff/navbar";
 
 const StaffDashboard = () => {
   const [counts, setCounts] = useState({
@@ -57,6 +57,7 @@ const StaffDashboard = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div className="wrapper">
           <Sidebar />
           <div className="main-panel ps-container ps-theme-default">

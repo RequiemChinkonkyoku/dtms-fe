@@ -7,7 +7,7 @@ import { useLoading } from "../../contexts/LoadingContext";
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/staff/navbar";
 
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
@@ -154,6 +154,7 @@ const StaffClasses = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div class="wrapper">
           <Sidebar />
           <div class="main-panel ps-container ps-theme-default">

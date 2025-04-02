@@ -4,7 +4,7 @@ import "../../assets/css/material-dashboard.min.css";
 import Loader from "../../assets/components/common/Loader";
 import Head from "../../assets/components/common/Head";
 import Sidebar from "../../assets/components/staff/Sidebar";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/staff/navbar";
 import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
 
@@ -272,6 +272,7 @@ const StaffDogs = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div class="wrapper">
           <Sidebar />
           <div class="main-panel ps-container ps-theme-default">

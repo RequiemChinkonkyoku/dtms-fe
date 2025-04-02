@@ -199,6 +199,7 @@ const Accounts = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div className="wrapper">
           <Sidebar />
           <div className="main-panel ps-container ps-theme-default">

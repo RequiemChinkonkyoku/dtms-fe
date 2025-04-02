@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext"; // Adjust the import path as needed
+import axios from "../../../utils/axiosConfig";
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [accountInfo, setAccountInfo] = useState(null);
   const location = useLocation();
 
   const handleLogout = async (e) => {
@@ -18,6 +20,21 @@ const Navbar = () => {
       console.error("Logout failed:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      try {
+        const response = await axios.get(`/api/accounts/${user.unique_name}`);
+        setAccountInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching account info:", error);
+      }
+    };
+
+    if (user?.unique_name) {
+      fetchAccountInfo();
+    }
+  }, [user]);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -78,7 +95,7 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-transparent navbar-absolute">
       <div className="container-fluid">
-        <div className="navbar-wrapper">
+        <div className="navbar-wrapper d-flex align-items-center">
           <div className="navbar-minimize">
             {/* Commented out minimize button */}
           </div>
@@ -100,13 +117,12 @@ const Navbar = () => {
           <span className="navbar-toggler-icon icon-bar" />
         </button>
         <div className="collapse navbar-collapse justify-content-end">
+          {accountInfo && (
+            <span className="ml-3 text-dark">
+              Welcome back, {accountInfo.username}
+            </span>
+          )}
           <ul className="navbar-nav">
-            {/* <li className="nav-item">
-              <a className="nav-link" href="#pablo">
-                <i className="material-icons">dashboard</i>
-                <p className="d-lg-none d-md-block">Stats</p>
-              </a>
-            </li> */}
             <li className="nav-item dropdown">
               <a
                 aria-expanded={isProfileOpen}

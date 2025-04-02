@@ -12,6 +12,7 @@ const TrainerDashboard = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div class="wrapper">
           <Sidebar />
           <div class="main-panel ps-container ps-theme-default">
