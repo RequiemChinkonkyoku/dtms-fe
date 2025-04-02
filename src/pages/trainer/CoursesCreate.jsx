@@ -7,6 +7,7 @@ import StarIcon from "@mui/icons-material/Star";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
+import { useAuth } from "../../contexts/AuthContext";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
@@ -22,6 +23,10 @@ import TextField from "@mui/material/TextField";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TablePagination from "@mui/material/TablePagination";
 import { useNavigate } from "react-router-dom";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
 
 const TrainerCoursesCreate = () => {
   const { loading, setLoading } = useLoading();
@@ -41,6 +46,7 @@ const TrainerCoursesCreate = () => {
     whiteSpace: "nowrap",
     width: 1,
   });
+  const [categories, setCategories] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [selectedLessons, setSelectedLessons] = useState([]);
   const [lessonPage, setLessonPage] = useState(0);
@@ -62,11 +68,96 @@ const TrainerCoursesCreate = () => {
   const [prereqOrderBy, setPrereqOrderBy] = useState("name");
   const [prereqOrder, setPrereqOrder] = useState("asc");
   const [prereqSearchTerm, setPrereqSearchTerm] = useState("");
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    durationInWeeks: 1,
+    daysPerWeek: 1,
+    slotsPerDay: 1,
+    price: 0,
+    minTrainers: 1,
+    maxTrainers: 1,
+    complexity: 1,
+    categoryId: "", // Add this line
     lessons: [],
     breeds: [],
     prerequisites: [],
   });
+  const [courseImage, setCourseImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      let imageUrl = "";
+      if (courseImage) {
+        const formData = new FormData();
+        formData.append("file", courseImage);
+        const uploadResponse = await axios.post("/api/uploadFile", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        imageUrl = uploadResponse.data;
+      }
+
+      const courseData = {
+        ...formData,
+        status: 0,
+        imageUrl,
+        minDogs: 1,
+        maxDogs: 5,
+        createdTrainerId: user.unique_name,
+        lessonIds: selectedLessons,
+        dogBreedIds: selectedBreeds,
+      };
+
+      const courseResponse = await axios.post("/api/courses", courseData);
+      if (courseResponse.data.success) {
+        // After course is created, add prerequisites
+        const courseId = courseResponse.data.object.id; // Adjust based on your API response structure
+
+        // Create prerequisites one by one
+        for (const prerequisiteCourseId of selectedPrereqs) {
+          await axios.post("/api/prerequisites", {
+            courseId: courseId,
+            prerequisiteCourseId: prerequisiteCourseId,
+          });
+        }
+
+        // Handle success (e.g., show notification, redirect)
+        console.log("Course and prerequisites created successfully");
+        // You might want to redirect here
+        // navigate('/trainer/courses');
+      }
+    } catch (error) {
+      console.error("Error creating course:", error);
+      // Handle error (e.g., show error message)
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("/api/categories");
+        if (response.data.success && response.data.objectList) {
+          setCategories(response.data.objectList);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleSelectPrereq = (prereqId) => {
     setSelectedPrereqs((prev) =>
@@ -75,6 +166,25 @@ const TrainerCoursesCreate = () => {
         : [...prev, prereqId]
     );
   };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setCourseImage(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  // Clean up preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   useEffect(() => {
     const fetchPrerequisites = async () => {
@@ -233,12 +343,50 @@ const TrainerCoursesCreate = () => {
                       </div>
                       <div class="card-body">
                         <div class="row">
-                          <div class="col-md-12">
+                          <div class="col-md-8">
                             <div class="form-group">
                               <label class="bmd-label-floating">
                                 Course Name
                               </label>
-                              <input type="text" class="form-control" />
+                              <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label class="bmd-label-floating">Category</label>
+                              <FormControl
+                                sx={{ mt: 0.3 }}
+                                fullWidth
+                                variant="standard"
+                              >
+                                <Select
+                                  labelId="category-select-label"
+                                  id="category-select"
+                                  name="categoryId"
+                                  value={formData.categoryId}
+                                  label="Category"
+                                  onChange={handleInputChange}
+                                  class="form-control"
+                                >
+                                  <MenuItem value="">
+                                    <em>None</em>
+                                  </MenuItem>
+                                  {categories.map((category) => (
+                                    <MenuItem
+                                      key={category.id}
+                                      value={category.id}
+                                    >
+                                      {category.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
                             </div>
                           </div>
                         </div>
@@ -275,9 +423,11 @@ const TrainerCoursesCreate = () => {
                         <div class="form-group">
                           <label>Description</label>
                           <textarea
+                            name="description"
                             class="form-control"
                             rows="5"
-                            placeholder="Enter course description..."
+                            value={formData.description}
+                            onChange={handleInputChange}
                           ></textarea>
                         </div>
                         <div class="row mt-4">
@@ -286,8 +436,11 @@ const TrainerCoursesCreate = () => {
                               <label>Duration (weeks)</label>
                               <input
                                 type="number"
+                                name="durationInWeeks"
                                 class="form-control"
                                 min="1"
+                                value={formData.durationInWeeks}
+                                onChange={handleInputChange}
                               />
                             </div>
                           </div>
@@ -296,9 +449,12 @@ const TrainerCoursesCreate = () => {
                               <label>Days per Week</label>
                               <input
                                 type="number"
+                                name="daysPerWeek"
                                 class="form-control"
                                 min="1"
                                 max="7"
+                                value={formData.daysPerWeek}
+                                onChange={handleInputChange}
                               />
                             </div>
                           </div>
@@ -307,8 +463,12 @@ const TrainerCoursesCreate = () => {
                               <label>Slots per Day</label>
                               <input
                                 type="number"
+                                name="slotsPerDay"
                                 class="form-control"
                                 min="1"
+                                max="4"
+                                value={formData.slotsPerDay}
+                                onChange={handleInputChange}
                               />
                             </div>
                           </div>
@@ -319,8 +479,11 @@ const TrainerCoursesCreate = () => {
                               <label>Min Trainers</label>
                               <input
                                 type="number"
+                                name="minTrainers"
                                 class="form-control"
                                 min="1"
+                                value={formData.minTrainers}
+                                onChange={handleInputChange}
                               />
                             </div>
                           </div>
@@ -329,8 +492,11 @@ const TrainerCoursesCreate = () => {
                               <label>Max Trainers</label>
                               <input
                                 type="number"
+                                name="maxTrainers"
                                 class="form-control"
                                 min="1"
+                                value={formData.maxTrainers}
+                                onChange={handleInputChange}
                               />
                             </div>
                           </div>
@@ -351,6 +517,10 @@ const TrainerCoursesCreate = () => {
                                   max={5}
                                   onChange={(event, newValue) => {
                                     setComplexity(newValue);
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      complexity: newValue,
+                                    }));
                                   }}
                                   onChangeActive={(event, newHover) => {
                                     setComplexityHover(newHover);
@@ -396,25 +566,61 @@ const TrainerCoursesCreate = () => {
                             <div class="form-group">
                               <label>Course Image</label>
                               <div>
-                                <Button
-                                  component="label"
-                                  variant="contained"
-                                  tabIndex={-1}
-                                  startIcon={<CloudUploadIcon />}
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    marginBottom: "16px",
+                                  }}
                                 >
-                                  Upload Files
-                                  <VisuallyHiddenInput
-                                    type="file"
-                                    onChange={(event) =>
-                                      console.log(event.target.files)
-                                    }
-                                    multiple
-                                  />
-                                </Button>
+                                  <Button
+                                    component="label"
+                                    variant="contained"
+                                    tabIndex={-1}
+                                    startIcon={<CloudUploadIcon />}
+                                  >
+                                    Upload Image
+                                    <VisuallyHiddenInput
+                                      type="file"
+                                      onChange={handleImageUpload}
+                                      accept="image/*"
+                                    />
+                                  </Button>
+                                  {courseImage && (
+                                    <span className="text-muted">
+                                      {courseImage.name}
+                                    </span>
+                                  )}
+                                </div>
+                                {imagePreview && (
+                                  <div>
+                                    <img
+                                      src={imagePreview}
+                                      alt="Course preview"
+                                      style={{
+                                        maxWidth: "200px",
+                                        maxHeight: "200px",
+                                        objectFit: "contain",
+                                      }}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                    <div class="row mt-3">
+                      <div class="col-12 text-right">
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          onClick={handleSubmit}
+                        >
+                          <i class="material-icons">save</i> Create Course
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -451,6 +657,49 @@ const TrainerCoursesCreate = () => {
                           {selectedPrereqs.length > 0 &&
                             ` (${selectedPrereqs.length} chosen)`}
                         </button>
+                      </div>
+                    </div>
+                    <br />
+                    <div class="card mt-4">
+                      <div class="card-header card-header-primary">
+                        <h4 class="card-title">Prerequisite Courses</h4>
+                      </div>
+                      <div class="card-body">
+                        <button
+                          type="button"
+                          class="btn btn-primary btn-block"
+                          onClick={() => setOpenPrereqModal(true)}
+                        >
+                          <i class="material-icons">library_books</i> Add
+                          Courses
+                          {selectedPrereqs.length > 0 &&
+                            ` (${selectedPrereqs.length} chosen)`}
+                        </button>
+                      </div>
+                    </div>
+                    <br />
+                    <div class="card mt-4">
+                      <div class="card-header card-header-primary">
+                        <h4 class="card-title">Course Price</h4>
+                      </div>
+                      <div class="card-body">
+                        <div class="form-group">
+                          <label>Price (VND)</label>
+                          <div class="input-group">
+                            <input
+                              type="number"
+                              name="price"
+                              class="form-control"
+                              min="0"
+                              step="1000"
+                              value={formData.price}
+                              onChange={handleInputChange}
+                            />
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">VND</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
