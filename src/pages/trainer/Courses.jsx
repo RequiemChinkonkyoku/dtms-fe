@@ -238,6 +238,11 @@ const TrainerCourses = () => {
                                           className="btn btn-info btn-sm"
                                           data-original-title="View Details"
                                           title="View Details"
+                                          onClick={() =>
+                                            navigate(
+                                              `/trainer/courses/details/${course.id}`
+                                            )
+                                          }
                                         >
                                           <i className="material-icons">
                                             more_vert

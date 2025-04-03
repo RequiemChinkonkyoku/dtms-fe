@@ -478,6 +478,16 @@ const StaffClassesCreate = () => {
                                           display: "inline-block",
                                         }}
                                       >
+                                        <i
+                                          class="material-icons"
+                                          style={{
+                                            fontSize: "12px",
+                                            margin: "1px 3px 3px 0",
+                                            display: "inline-block",
+                                          }}
+                                        >
+                                          pets
+                                        </i>
                                         {breed}
                                       </span>
                                     ))}
