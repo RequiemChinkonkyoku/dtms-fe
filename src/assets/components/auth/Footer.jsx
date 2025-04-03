@@ -22,8 +22,8 @@ const Footer = () => {
           </ul>
         </nav> */}
         <div className="copyright float-right">
-          &copy; {new Date().getFullYear()}, template made with{" "}
-          <i className="material-icons">favorite</i> by Creative Tim.
+          &copy; {new Date().getFullYear()}, desgined with{" "}
+          <i className="material-icons">favorite</i> by Requiem鎮魂曲.
         </div>
       </div>
     </footer>

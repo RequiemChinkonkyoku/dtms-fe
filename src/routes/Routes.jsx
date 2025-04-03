@@ -4,11 +4,9 @@ import { AuthProvider } from "../contexts/AuthContext";
 import PrivateRoute from "./PrivateRoute";
 
 import Login from "../pages/Login";
-import DogManagement from "../pages/staff/DogManagement";
 import DogBreedTable from "../pages/staff/DogBreedManagement";
 import DogDocumentTable from "../pages/staff/DogDocumentManagement";
 import ForgotPassword from "../pages/ForgotPassword";
-import Dashboard from "../pages/staff/Dashboard";
 import Accounts from "../pages/staff/Accounts";
 import AdminDashboard from "../pages/admin/Dashboard";
 import StaffDashboard from "../pages/staff/Dashboard";
@@ -17,9 +15,13 @@ import TrainerLessons from "../pages/trainer/Lessons";
 import TrainerCourses from "../pages/trainer/Courses";
 import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
 import Blogs from "../pages/staff/Blogs";
-import StaffClasses from "../pages/staff/Classes";
-import StaffClassesCreate from "../pages/staff/ClassesCreate";
+import StaffClassesCreate from "../pages/staff/classescreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
+import StaffDogs from "../pages/staff/Dogs";
+import StaffAccountsCustomerDetails from "../pages/staff/AccountsCustomerDetails";
+import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
+import StaffClasses from "../pages/staff/Classes";
+import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
 
 export const routes = createBrowserRouter([
   {
@@ -51,8 +53,8 @@ export const routes = createBrowserRouter([
     ),
     children: [
       {
-        path: "dogs-management",
-        element: <DogManagement />,
+        path: "dogs",
+        element: <StaffDogs />,
       },
       {
         path: "accounts",
@@ -77,6 +79,14 @@ export const routes = createBrowserRouter([
       {
         path: "classes/details/:id",
         element: <StaffClassesDetails />,
+      },
+      {
+        path: "accounts/customer/details/:id",
+        element: <StaffAccountsCustomerDetails />,
+      },
+      {
+        path: "accounts/trainer/details/:id",
+        element: <StaffAccountsTrainerDetails />,
       },
     ],
   },
@@ -129,6 +139,10 @@ export const routes = createBrowserRouter([
       {
         path: "courses",
         element: <TrainerCourses />,
+      },
+      {
+        path: "courses/create",
+        element: <TrainerCoursesCreate />,
       },
       {
         path: "courses/details/:id",

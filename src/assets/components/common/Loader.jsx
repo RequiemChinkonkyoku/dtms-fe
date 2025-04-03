@@ -14,11 +14,11 @@ const Loader = () => {
         <div className="loader">
           <p>loading</p>
           <div className="words-loader">
-            <span className="word-loader">buttons</span>
-            <span className="word-loader">forms</span>
-            <span className="word-loader">switches</span>
-            <span className="word-loader">cards</span>
-            <span className="word-loader">buttons</span>
+            <span className="word-loader text-warning">buttons</span>
+            <span className="word-loader text-primary">forms</span>
+            <span className="word-loader text-info">switches</span>
+            <span className="word-loader text-rose">cards</span>
+            <span className="word-loader text-danger">buttons</span>
           </div>
         </div>
       </div>

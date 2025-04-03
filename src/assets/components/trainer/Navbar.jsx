@@ -1,12 +1,15 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext"; // Adjust the import path as needed
+import axios from "../../../utils/axiosConfig";
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [accountInfo, setAccountInfo] = useState(null);
+  const location = useLocation();
 
   const handleLogout = async (e) => {
     e.preventDefault(); // Prevent the default anchor behavior
@@ -17,6 +20,21 @@ const Navbar = () => {
       console.error("Logout failed:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      try {
+        const response = await axios.get(`/api/accounts/${user.unique_name}`);
+        setAccountInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching account info:", error);
+      }
+    };
+
+    if (user?.unique_name) {
+      fetchAccountInfo();
+    }
+  }, [user]);
 
   const toggleProfileDropdown = (e) => {
     e.preventDefault(); // Prevent default anchor behavior
@@ -55,6 +73,11 @@ const Navbar = () => {
           <span className="navbar-toggler-icon icon-bar" />
         </button>
         <div className="collapse navbar-collapse justify-content-end">
+          {accountInfo && (
+            <span className="ml-3 text-dark">
+              Welcome back, {accountInfo.username}
+            </span>
+          )}
           <ul className="navbar-nav">
             {/* <li className="nav-item">
               <a className="nav-link" href="#pablo">

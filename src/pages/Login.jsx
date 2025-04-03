@@ -10,6 +10,7 @@ import { useLoading } from "../contexts/LoadingContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
 import Footer from "../assets/components/auth/Footer";
+import LoaderLogin from "../assets/components/auth/LoaderLogin";
 
 const Login = () => {
   const [loading, setLoading] = useState();
@@ -20,6 +21,7 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [buttonState, setButtonState] = useState("initial");
 
   const ROLE_GROUPS = {
     ADMIN: "Admin",
@@ -52,18 +54,28 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
-    console.log("Email:", email, "Password:", password);
 
     setLoading(true);
+    setButtonState("authenticating");
     try {
       const success = await login(email, password);
-      console.log("Login function returned:", success);
 
       if (success) {
+        setButtonState("authorizing");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setButtonState("authorized");
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setIsLoggedIn(true);
+      } else {
+        setButtonState("error");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setButtonState("initial");
       }
     } catch (error) {
       console.error("Login error:", error);
+      setButtonState("error");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setButtonState("initial");
     } finally {
       setLoading(false);
     }
@@ -102,7 +114,7 @@ const Login = () => {
                     onSubmit={handleSubmit}
                   >
                     <div className="card card-login">
-                      <div className="card-header card-header-warning text-center">
+                      <div className="card-header card-header-info text-center">
                         <h4 className="card-title">DTMS STAFF PORTAL</h4>
                         <div className="social-line">
                           <i className="material-icons">pets</i>
@@ -149,9 +161,50 @@ const Login = () => {
                       <div className="card-footer justify-content-center">
                         <button
                           type="submit"
-                          className="btn btn-warning btn-link btn-lg"
+                          className="btn btn-info btn-link btn-lg"
+                          disabled={buttonState !== "initial"}
                         >
-                          Login
+                          {buttonState === "initial" && (
+                            <span className="font-weight-bold">Login</span>
+                          )}
+                          {buttonState === "authenticating" && (
+                            <div className="d-flex align-items-center font-weight-bold">
+                              Authenticating...
+                              <div
+                                style={{
+                                  marginLeft: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <LoaderLogin />
+                              </div>
+                            </div>
+                          )}
+                          {buttonState === "authorizing" && (
+                            <div className="d-flex align-items-center font-weight-bold">
+                              Authorizing...
+                              <div
+                                style={{
+                                  marginLeft: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <LoaderLogin />
+                              </div>
+                            </div>
+                          )}
+                          {buttonState === "authorized" && (
+                            <span className="text-success font-weight-bold">
+                              Authorized!
+                            </span>
+                          )}
+                          {buttonState === "error" && (
+                            <span className="text-danger font-weight-bold">
+                              Wrong credentials
+                            </span>
+                          )}
                         </button>
                       </div>
                     </div>

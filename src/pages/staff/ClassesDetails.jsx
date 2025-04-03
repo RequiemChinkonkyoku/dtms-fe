@@ -10,7 +10,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/staff/navbar";
 
 const CLASS_STATUS = {
   0: { label: "Inactive", color: "badge-secondary" },
@@ -52,6 +52,7 @@ const StaffClassesDetails = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div className="wrapper">
           <Sidebar />
           <div className="main-panel ps-container ps-theme-default">

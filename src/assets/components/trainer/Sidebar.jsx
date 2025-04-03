@@ -1,6 +1,7 @@
 // import axios from "axios";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import sidebarBg from "../../../assets/img/sidebar.jpg";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -11,7 +12,11 @@ const Sidebar = () => {
         className="sidebar"
         data-background-color="black"
         data-color="orange"
-        data-image="../assets/img/sidebar-1.jpg"
+        style={{
+          backgroundImage: `url(${sidebarBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
         <div className="logo">
           <a className="simple-text logo-mini">P</a>
