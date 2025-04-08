@@ -339,7 +339,7 @@ const TrainerCoursesCreate = () => {
                 <div class="row">
                   <div class="col-md-9">
                     <div class="card">
-                      <div class="card-header card-header-primary">
+                      <div class="card-header card-header-info">
                         <h4 class="card-title">Create a new course</h4>
                         <p class="card-category">Enter the basic information</p>
                       </div>
@@ -640,24 +640,6 @@ const TrainerCoursesCreate = () => {
                           <i class="material-icons">pets</i> Add Breeds
                           {selectedBreeds.length > 0 &&
                             ` (${selectedBreeds.length} chosen)`}
-                        </button>
-                      </div>
-                    </div>
-                    <br />
-                    <div class="card mt-4">
-                      <div class="card-header card-header-primary">
-                        <h4 class="card-title">Prerequisite Courses</h4>
-                      </div>
-                      <div class="card-body">
-                        <button
-                          type="button"
-                          class="btn btn-primary btn-block"
-                          onClick={() => setOpenPrereqModal(true)}
-                        >
-                          <i class="material-icons">library_books</i> Add
-                          Courses
-                          {selectedPrereqs.length > 0 &&
-                            ` (${selectedPrereqs.length} chosen)`}
                         </button>
                       </div>
                     </div>
