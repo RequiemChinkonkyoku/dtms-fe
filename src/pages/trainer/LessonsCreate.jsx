@@ -33,7 +33,7 @@ const TrainerLessonsCreate = () => {
     duration: "",
     objective: "",
     skillId: "",
-    equipmentIds: [],
+    lessonEquipmentDTOs: [], // Changed from equipmentIds
   });
   const [openSkillModal, setOpenSkillModal] = useState(false);
   const [openEquipmentModal, setOpenEquipmentModal] = useState(false);
@@ -94,6 +94,29 @@ const TrainerLessonsCreate = () => {
     }));
   };
 
+  const handleEquipmentSelection = (equipmentId) => {
+    setFormData((prev) => ({
+      ...prev,
+      lessonEquipmentDTOs: prev.lessonEquipmentDTOs.some(
+        (dto) => dto.equipmentId === equipmentId
+      )
+        ? prev.lessonEquipmentDTOs.filter(
+            (dto) => dto.equipmentId !== equipmentId
+          )
+        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }],
+    }));
+  };
+
+  // Update the "Select All" handler
+  const handleSelectAllEquipments = (allSelected) => {
+    setFormData((prev) => ({
+      ...prev,
+      lessonEquipmentDTOs: allSelected
+        ? []
+        : equipmentList.map((eq) => ({ equipmentId: eq.id, quantity: 1 })),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -114,7 +137,7 @@ const TrainerLessonsCreate = () => {
         duration: "",
         objective: "",
         skillId: "",
-        equipmentIds: [],
+        lessonEquipmentDTOs: [], // Changed from equipmentIds
       });
     } catch (error) {
       console.error("Failed to create lesson. " + error.message);
@@ -442,22 +465,21 @@ const TrainerLessonsCreate = () => {
                         checked={
                           equipmentList.length > 0 &&
                           equipmentList.every((eq) =>
-                            formData.equipmentIds.includes(eq.id)
+                            formData.lessonEquipmentDTOs.some(
+                              (dto) => dto.equipmentId === eq.id
+                            )
                           )
                         }
-                        onChange={() => {
-                          const allSelected =
+                        onChange={() =>
+                          handleSelectAllEquipments(
                             equipmentList.length > 0 &&
-                            equipmentList.every((eq) =>
-                              formData.equipmentIds.includes(eq.id)
-                            );
-                          setFormData((prev) => ({
-                            ...prev,
-                            equipmentIds: allSelected
-                              ? []
-                              : equipmentList.map((eq) => eq.id),
-                          }));
-                        }}
+                              equipmentList.every((eq) =>
+                                formData.lessonEquipmentDTOs.some(
+                                  (dto) => dto.equipmentId === eq.id
+                                )
+                              )
+                          )
+                        }
                       />
                     </th>
                     <th>Name</th>
@@ -481,21 +503,12 @@ const TrainerLessonsCreate = () => {
                         <td>
                           <input
                             type="checkbox"
-                            checked={formData.equipmentIds.includes(
-                              equipment.id
+                            checked={formData.lessonEquipmentDTOs.some(
+                              (dto) => dto.equipmentId === equipment.id
                             )}
-                            onChange={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                equipmentIds: prev.equipmentIds.includes(
-                                  equipment.id
-                                )
-                                  ? prev.equipmentIds.filter(
-                                      (id) => id !== equipment.id
-                                    )
-                                  : [...prev.equipmentIds, equipment.id],
-                              }));
-                            }}
+                            onChange={() =>
+                              handleEquipmentSelection(equipment.id)
+                            }
                           />
                         </td>
                         <td>{equipment.name}</td>
@@ -503,21 +516,14 @@ const TrainerLessonsCreate = () => {
                           <button
                             type="button"
                             className="btn btn-info btn-sm"
-                            onClick={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                equipmentIds: prev.equipmentIds.includes(
-                                  equipment.id
-                                )
-                                  ? prev.equipmentIds.filter(
-                                      (id) => id !== equipment.id
-                                    )
-                                  : [...prev.equipmentIds, equipment.id],
-                              }));
-                            }}
+                            onClick={() =>
+                              handleEquipmentSelection(equipment.id)
+                            }
                           >
                             <i className="material-icons">
-                              {formData.equipmentIds.includes(equipment.id)
+                              {formData.lessonEquipmentDTOs.some(
+                                (dto) => dto.equipmentId === equipment.id
+                              )
                                 ? "remove"
                                 : "add"}
                             </i>

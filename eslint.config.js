@@ -1,11 +1,22 @@
+import { defineConfig } from "eslint/config";
 import globals from "globals";
-import pluginJs from "@eslint/js";
 import pluginReact from "eslint-plugin-react";
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
+export default defineConfig([
   { files: ["**/*.{js,mjs,cjs,jsx}"] },
-  { languageOptions: { globals: globals.browser } },
-  pluginJs.configs.recommended,
+  {
+    files: ["**/*.{js,mjs,cjs,jsx}"],
+    languageOptions: { globals: globals.browser },
+  },
   pluginReact.configs.flat.recommended,
-];
+  {
+    files: ["**/*.js", "**/*.jsx"],
+    plugins: {
+      import: importPlugin,
+    },
+    rules: {
+      "import/no-unresolved": "error",
+      "import/no-case-sensitive": "error", // this is what you're looking for
+    },
+  },
+]);

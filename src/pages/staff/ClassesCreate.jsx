@@ -7,7 +7,7 @@ import "../../assets/css/material-dashboard.min.css";
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/navbar";
+import Navbar from "../../assets/components/staff/Navbar";
 import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
