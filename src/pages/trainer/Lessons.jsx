@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { useNavigate } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
@@ -13,37 +14,15 @@ import Select from "@mui/material/Select";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { TablePagination, TableSortLabel, TextField } from "@mui/material";
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
 const TrainerLessons = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [orderBy, setOrderBy] = useState("lessonTitle");
   const [order, setOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [equipmentList, setEquipmentList] = useState([]);
-  const [skills, setSkills] = useState([]);
   const [lessons, setLessons] = useState([]);
   const { loading, setLoading } = useLoading();
-  const [formData, setFormData] = useState({
-    lessonTitle: "",
-    description: "",
-    note: "",
-    environment: "",
-    duration: "",
-    objective: "",
-    skillId: "",
-    equipmentIds: [],
-  });
   const [skillDetails, setSkillDetails] = useState({});
 
   // Add this function after your other useEffect hooks
@@ -109,70 +88,6 @@ const TrainerLessons = () => {
       )
       .sort(comparator);
   }, [lessons, order, orderBy, searchTerm]);
-
-  useEffect(() => {
-    const fetchEquipments = async () => {
-      try {
-        const response = await axios.get("/api/equipments");
-        if (response.data.success && response.data.objectList) {
-          setEquipmentList(response.data.objectList);
-        }
-      } catch (error) {
-        console.error("Error fetching equipments:", error);
-      }
-    };
-    fetchEquipments();
-  }, []);
-
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await axios.get("/api/skills");
-        if (response.data.success && response.data.objectList) {
-          setSkills(response.data.objectList);
-        }
-      } catch (error) {
-        console.error("Error fetching skills:", error);
-      }
-    };
-    fetchSkills();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: name === "equipmentIds" ? [...value] : value, // Spread the value array
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post("/api/lessons", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      window.location.reload();
-      setResponseMessage("Lesson created successfully!");
-      setLessons([...lessons, response.data]);
-      setFormData({
-        lessonTitle: "",
-        description: "",
-        note: "",
-        environment: "",
-        duration: "",
-        objective: "",
-        skillId: "",
-        equipmentIds: [],
-      });
-    } catch (error) {
-      console.error("Failed to create lesson. " + error.message);
-    }
-  };
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -246,7 +161,12 @@ const TrainerLessons = () => {
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            <button className="btn btn-warning">
+                            <button
+                              className="btn btn-warning"
+                              onClick={() =>
+                                navigate("/trainer/lessons/create")
+                              }
+                            >
                               <i className="material-icons">add</i> Create
                               Lesson
                             </button>
@@ -332,221 +252,6 @@ const TrainerLessons = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12">
-                    <form onSubmit={handleSubmit}>
-                      <div class="card ">
-                        <div class="card-header card-header-warning card-header-text">
-                          <div class="card-text">
-                            <h4 class="card-title">Create a new lesson</h4>
-                          </div>
-                        </div>
-                        <div class="card-body ">
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Lesson Title
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="lessonTitle"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.lessonTitle}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Description
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="description"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.description}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">Note</label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="note"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.note}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Environment
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="environment"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.environment}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Duration
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="number"
-                                  name="duration"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.duration}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required, number</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Objective
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="objective"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.objective}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div className="row">
-                            <label className="col-sm-2 col-form-label">
-                              Skill
-                            </label>
-                            <div className="col-sm-7">
-                              <div className="form-group bmd-form-group">
-                                <Select
-                                  name="skillId" // This is important for handleChange
-                                  value={formData.skillId}
-                                  onChange={handleChange}
-                                  displayEmpty
-                                  size="small"
-                                  style={{ height: "36px", width: "100%" }}
-                                >
-                                  <MenuItem value="">
-                                    <em>None</em>
-                                  </MenuItem>
-                                  {skills.map((skill) => (
-                                    <MenuItem key={skill.id} value={skill.id}>
-                                      {skill.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </div>
-                            </div>
-                            <label className="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div className="row">
-                            <label className="col-sm-2 col-form-label">
-                              Equipments
-                            </label>
-                            <div className="col-sm-7">
-                              <div className="form-group bmd-form-group">
-                                <Select
-                                  multiple
-                                  name="equipmentIds"
-                                  value={formData.equipmentIds} // Ensure this is always an array
-                                  onChange={handleChange}
-                                  MenuProps={MenuProps}
-                                  size="small"
-                                  style={{ height: "36px", width: "100%" }}
-                                  renderValue={(selected) =>
-                                    equipmentList
-                                      .filter((eq) => selected.includes(eq.id))
-                                      .map((eq) => eq.name)
-                                      .join(", ")
-                                  } // Display selected values properly
-                                >
-                                  {equipmentList.length === 0 ? (
-                                    <MenuItem disabled>
-                                      No Equipment Available
-                                    </MenuItem>
-                                  ) : (
-                                    equipmentList.map((equipment) => (
-                                      <MenuItem
-                                        key={equipment.id}
-                                        value={equipment.id}
-                                      >
-                                        {equipment.name}
-                                      </MenuItem>
-                                    ))
-                                  )}
-                                </Select>
-                              </div>
-                            </div>
-                            <label className="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                        </div>
-                        <div class="card-footer ml-auto mr-auto">
-                          <button type="submit" class="btn btn-warning">
-                            CONFIRM
-                          </button>
-                        </div>
-                      </div>
-                    </form>
                   </div>
                 </div>
               </div>

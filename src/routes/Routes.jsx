@@ -13,7 +13,7 @@ import StaffDashboard from "../pages/staff/Dashboard";
 import TrainerDashboard from "../pages/trainer/Dashboard";
 import TrainerLessons from "../pages/trainer/Lessons";
 import TrainerCourses from "../pages/trainer/Courses";
-import TrainerCoursesDetails from "../pages/trainer/CoursesDetails";
+import TrainerCoursesDetails from "../pages/trainer/coursesdetails";
 import Blogs from "../pages/staff/Blogs";
 import StaffClassesCreate from "../pages/staff/classescreate";
 import StaffClassesDetails from "../pages/staff/ClassesDetails";
@@ -22,6 +22,7 @@ import StaffAccountsCustomerDetails from "../pages/staff/AccountsCustomerDetails
 import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
 import StaffClasses from "../pages/staff/Classes";
 import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
+import TrainerLessonsCreate from "../pages/trainer/LessonsCreate";
 
 export const routes = createBrowserRouter([
   {
@@ -135,6 +136,10 @@ export const routes = createBrowserRouter([
       {
         path: "lessons",
         element: <TrainerLessons />,
+      },
+      {
+        path: "lessons/create",
+        element: <TrainerLessonsCreate />,
       },
       {
         path: "courses",
