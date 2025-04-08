@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Create an Axios instance
 const instance = axios.create({
-  baseURL: "https://localhost:7256", // Replace with your API base URL
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
 });
 
 // Get the token from localStorage (don't use useState here)
