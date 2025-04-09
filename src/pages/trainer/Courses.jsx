@@ -16,9 +16,13 @@ const TrainerCourses = () => {
   const { loading, setLoading } = useLoading();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [orderBy, setOrderBy] = useState("name");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("createdTime");
+  const [order, setOrder] = useState("desc");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -72,6 +76,11 @@ const TrainerCourses = () => {
 
   const sortedCourses = React.useMemo(() => {
     const comparator = (a, b) => {
+      if (orderBy === "createdTime") {
+        const dateA = new Date(a[orderBy]).getTime();
+        const dateB = new Date(b[orderBy]).getTime();
+        return order === "asc" ? dateA - dateB : dateB - dateA;
+      }
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -177,8 +186,8 @@ const TrainerCourses = () => {
                                     ["daysPerWeek", "Days/Week"],
                                     ["slotsPerDay", "Slots/Day"],
                                     ["complexity", "Complexity"],
-                                    ["trainers", "Trainers"],
                                     ["status", "Status"],
+                                    ["createdTime", "Created Date"],
                                   ].map(([key, label]) => (
                                     <th key={key}>
                                       <TableSortLabel
@@ -223,7 +232,6 @@ const TrainerCourses = () => {
                                           </i>
                                         ))}
                                       </td>
-                                      <td>{`${course.minTrainers} - ${course.maxTrainers}`}</td>
                                       <td
                                         className={getStatusClass(
                                           course.status
@@ -231,6 +239,7 @@ const TrainerCourses = () => {
                                       >
                                         {getStatusText(course.status)}
                                       </td>
+                                      <td>{formatDate(course.createdTime)}</td>
                                       <td className="td-actions text-right">
                                         <button
                                           type="button"

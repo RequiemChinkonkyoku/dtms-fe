@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
@@ -22,13 +23,13 @@ import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TablePagination from "@mui/material/TablePagination";
-import { useNavigate } from "react-router-dom";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 
 const TrainerCoursesCreate = () => {
+  const navigate = useNavigate();
   const { loading, setLoading } = useLoading();
   const [complexity, setComplexity] = useState(1);
   const [complexityHover, setComplexityHover] = useState(-1);
@@ -122,10 +123,8 @@ const TrainerCoursesCreate = () => {
 
       const courseResponse = await axios.post("/api/courses", courseData);
       if (courseResponse.data.success) {
-        // After course is created, add prerequisites
-        const courseId = courseResponse.data.object.id; // Adjust based on your API response structure
-
-        // Create prerequisites one by one
+        // Create prerequisites
+        const courseId = courseResponse.data.object.id;
         for (const prerequisiteCourseId of selectedPrereqs) {
           await axios.post("/api/prerequisites", {
             courseId: courseId,
@@ -133,14 +132,23 @@ const TrainerCoursesCreate = () => {
           });
         }
 
-        // Handle success (e.g., show notification, redirect)
-        console.log("Course and prerequisites created successfully");
-        // You might want to redirect here
-        // navigate('/trainer/courses');
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Course created successfully",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          navigate("/trainer/courses");
+        });
       }
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to create course: " + error.message,
+      });
       console.error("Error creating course:", error);
-      // Handle error (e.g., show error message)
     }
   };
 
@@ -564,6 +572,27 @@ const TrainerCoursesCreate = () => {
                           </div>
                         </div>
                         <div class="row mt-4">
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Price (VND)</label>
+                              <div class="input-group">
+                                <input
+                                  type="number"
+                                  name="price"
+                                  class="form-control"
+                                  min="0"
+                                  step="1000"
+                                  value={formData.price}
+                                  onChange={handleInputChange}
+                                />
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text">VND</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mt-4">
                           <div class="col-md-12">
                             <div class="form-group">
                               <label>Course Image</label>
@@ -662,30 +691,6 @@ const TrainerCoursesCreate = () => {
                       </div>
                     </div>
                     <br />
-                    <div class="card mt-4">
-                      <div class="card-header card-header-primary">
-                        <h4 class="card-title">Course Price</h4>
-                      </div>
-                      <div class="card-body">
-                        <div class="form-group">
-                          <label>Price (VND)</label>
-                          <div class="input-group">
-                            <input
-                              type="number"
-                              name="price"
-                              class="form-control"
-                              min="0"
-                              step="1000"
-                              value={formData.price}
-                              onChange={handleInputChange}
-                            />
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">VND</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -715,13 +720,43 @@ const TrainerCoursesCreate = () => {
                     gap: "16px",
                   }}
                 >
-                  <TextField
-                    label="Search lesson..."
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <TextField
+                      label="Search lesson..."
+                      variant="outlined"
+                      size="small"
+                      value={lessonSearchTerm}
+                      onChange={(e) => setLessonSearchTerm(e.target.value)}
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() =>
+                        window.open("/trainer/lessons/create", "_blank")
+                      }
+                    >
+                      <i className="material-icons">add</i> Create New Lesson
+                    </Button>
+                  </div>
+                  <Button
                     variant="outlined"
-                    size="small"
-                    value={lessonSearchTerm}
-                    onChange={(e) => setLessonSearchTerm(e.target.value)}
-                  />
+                    color="primary"
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        const response = await axios.get("api/lessons");
+                        if (response.data.success && response.data.objectList) {
+                          setLessons(response.data.objectList);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching lessons:", error);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    <i className="material-icons">refresh</i> Refresh
+                  </Button>
                 </div>
                 <table className="table table-hover">
                   <thead>
@@ -850,7 +885,6 @@ const TrainerCoursesCreate = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
         <Dialog
           open={openBreedModal}
           onClose={() => setOpenBreedModal(false)}
@@ -1021,13 +1055,43 @@ const TrainerCoursesCreate = () => {
                     gap: "16px",
                   }}
                 >
-                  <TextField
-                    label="Search prerequisite..."
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <TextField
+                      label="Search prerequisite..."
+                      variant="outlined"
+                      size="small"
+                      value={prereqSearchTerm}
+                      onChange={(e) => setPrereqSearchTerm(e.target.value)}
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() =>
+                        window.open("/trainer/courses/create", "_blank")
+                      }
+                    >
+                      <i className="material-icons">add</i> Create New Course
+                    </Button>
+                  </div>
+                  <Button
                     variant="outlined"
-                    size="small"
-                    value={prereqSearchTerm}
-                    onChange={(e) => setPrereqSearchTerm(e.target.value)}
-                  />
+                    color="primary"
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        const response = await axios.get("api/courses");
+                        if (response.data.success && response.data.objectList) {
+                          setPrerequisites(response.data.objectList);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching prerequisites:", error);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    <i className="material-icons">refresh</i> Refresh
+                  </Button>
                 </div>
                 <table className="table table-hover">
                   <thead>

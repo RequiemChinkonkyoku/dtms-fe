@@ -60,8 +60,8 @@ const StaffDogs = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
-  const [orderBy, setOrderBy] = useState("name");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("registrationTime");
+  const [order, setOrder] = useState("desc");
   const [openRows, setOpenRows] = useState({});
 
   const handleChangePage = (event, newPage) => {
@@ -71,6 +71,13 @@ const StaffDogs = () => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const [datePart] = dateString.split(" ");
+    const [day, month, year] = datePart.split("/");
+    return new Date(`${year}-${month}-${day}`).toLocaleDateString();
   };
 
   const handleSort = (property) => {
@@ -86,9 +93,19 @@ const StaffDogs = () => {
     }));
   };
 
-  // Add sorting function
   const sortedDogs = React.useMemo(() => {
     const comparator = (a, b) => {
+      if (orderBy === "registrationTime") {
+        const [datePartA] = a[orderBy].split(" ");
+        const [dayA, monthA, yearA] = datePartA.split("/");
+        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+
+        const [datePartB] = b[orderBy].split(" ");
+        const [dayB, monthB, yearB] = datePartB.split("/");
+        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+
+        return order === "asc" ? dateA - dateB : dateB - dateA;
+      }
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -259,6 +276,32 @@ const StaffDogs = () => {
     });
   };
 
+  const getStatusText = (status) => {
+    switch (status) {
+      case -1:
+        return "Disabled";
+      case 0:
+        return "Inactive";
+      case 1:
+        return "Active";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case -1:
+        return "text-danger";
+      case 0:
+        return "text-warning";
+      case 1:
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
   // Add a helper function to get breed name by id
   const getBreedNameById = (breedId) => {
     const breed = dogBreeds.find((breed) => breed.id === breedId);
@@ -280,162 +323,162 @@ const StaffDogs = () => {
             <div class="content">
               <div class="container-fluid">
                 <div class="row">
-                  <div className="card">
-                    <div className="card-header card-header-rose card-header-icon">
-                      <div className="card-icon">
-                        <i className="material-icons">pets</i>
-                      </div>
-                      <h4 className="card-title">Dogs List</h4>
-                    </div>
-                    <div className="card-body">
-                      {loading ? (
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            minHeight: "300px",
-                          }}
-                        >
-                          <Loader />
+                  <div className="col-md-12">
+                    <div className="card">
+                      <div className="card-header card-header-rose card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">pets</i>
                         </div>
-                      ) : (
-                        <div className="table-responsive">
+                        <h4 className="card-title">Dogs List</h4>
+                      </div>
+                      <div className="card-body">
+                        {loading ? (
                           <div
                             style={{
-                              padding: "16px",
                               display: "flex",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
                               alignItems: "center",
+                              minHeight: "300px",
                             }}
                           >
-                            <TextField
-                              label="Search by name..."
-                              variant="outlined"
-                              size="small"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <button className="btn btn-info">
-                              <i className="material-icons">add</i> Create Dog
-                            </button>
+                            <Loader />
                           </div>
-                          <TableContainer>
-                            <Table className="table">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell className="text-center">
-                                    #
-                                  </TableCell>
-                                  {[
-                                    ["name", "Name"],
-                                    ["dateOfBirth", "Date of Birth"],
-                                    ["gender", "Gender"],
-                                    ["status", "Status"],
-                                    ["registrationTime", "Registered Date"],
-                                    ["dogBreedName", "Breed"],
-                                    ["actions", "Actions"],
-                                  ].map(([key, label]) => (
-                                    <TableCell key={key}>
-                                      <TableSortLabel
-                                        active={orderBy === key}
-                                        direction={
-                                          orderBy === key ? order : "asc"
-                                        }
-                                        onClick={() => handleSort(key)}
-                                      >
-                                        {label}
-                                      </TableSortLabel>
-                                    </TableCell>
-                                  ))}
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {loading ? (
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <TextField
+                                label="Search by name..."
+                                variant="outlined"
+                                size="small"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                              />
+                              <button className="btn btn-info">
+                                <i className="material-icons">add</i> Create Dog
+                              </button>
+                            </div>
+                            <TableContainer>
+                              <Table className="table">
+                                <TableHead>
                                   <TableRow>
-                                    <TableCell colSpan={7} align="center">
-                                      <Loader />
+                                    <TableCell className="text-center">
+                                      #
                                     </TableCell>
+                                    {[
+                                      ["name", "Name"],
+                                      ["dateOfBirth", "Date of Birth"],
+                                      ["gender", "Gender"],
+                                      ["dogBreedName", "Breed"],
+                                      ["status", "Status"],
+                                      ["registrationTime", "Registration Date"],
+                                    ].map(([key, label]) => (
+                                      <TableCell key={key}>
+                                        <TableSortLabel
+                                          active={orderBy === key}
+                                          direction={
+                                            orderBy === key ? order : "asc"
+                                          }
+                                          onClick={() => handleSort(key)}
+                                        >
+                                          {label}
+                                        </TableSortLabel>
+                                      </TableCell>
+                                    ))}
+                                    <th className="text-right">Actions</th>
                                   </TableRow>
-                                ) : (
-                                  sortedDogs
-                                    .slice(
-                                      page * rowsPerPage,
-                                      page * rowsPerPage + rowsPerPage
-                                    )
-                                    .map((dog, index) => (
-                                      <tr key={dog.id}>
-                                        <td className="text-center">
-                                          {page * rowsPerPage + index + 1}
-                                        </td>
-                                        <td>{dog.name}</td>
-                                        <td>{dog.dateOfBirth}</td>
-                                        <td>
-                                          {dog.gender === 0 ? "Male" : "Female"}
-                                        </td>
-                                        <td className="text-center">
-                                          <span
-                                            className={`badge ${dog.status === 1 ? "bg-success" : "bg-danger"}`}
+                                </TableHead>
+                                <TableBody>
+                                  {loading ? (
+                                    <TableRow>
+                                      <TableCell colSpan={7} align="center">
+                                        <Loader />
+                                      </TableCell>
+                                    </TableRow>
+                                  ) : (
+                                    sortedDogs
+                                      .slice(
+                                        page * rowsPerPage,
+                                        page * rowsPerPage + rowsPerPage
+                                      )
+                                      .map((dog, index) => (
+                                        <tr key={dog.id}>
+                                          <td className="text-center">
+                                            {page * rowsPerPage + index + 1}
+                                          </td>
+                                          <td>{dog.name}</td>
+                                          <td>{dog.dateOfBirth}</td>
+                                          <td>
+                                            {dog.gender === 0
+                                              ? "Male"
+                                              : "Female"}
+                                          </td>
+                                          <td>{dog.dogBreedName}</td>
+                                          <td
+                                            className={getStatusClass(
+                                              dog.status
+                                            )}
                                           >
-                                            {dog.status === 1
-                                              ? "Active"
-                                              : "Inactive"}
-                                          </span>
-                                        </td>
-                                        <td>
-                                          {new Date(
-                                            dog.registrationTime
-                                          ).toLocaleDateString()}
-                                        </td>
-                                        <td>{dog.dogBreedName}</td>
-                                        <td className="td-actions text-right">
-                                          <button
-                                            type="button"
-                                            className="btn btn-primary btn-sm"
-                                            onClick={() =>
-                                              handleRowClick(dog.id)
-                                            }
-                                          >
-                                            <i
-                                              className="material-icons"
-                                              style={{
-                                                transition: "transform 0.3s",
-                                              }}
+                                            {getStatusText(dog.status)}
+                                          </td>
+                                          <td>
+                                            {formatDate(dog.registrationTime)}
+                                          </td>
+                                          <td className="td-actions text-right">
+                                            <button
+                                              type="button"
+                                              className="btn btn-primary btn-sm"
+                                              onClick={() =>
+                                                handleRowClick(dog.id)
+                                              }
                                             >
-                                              {openRows[dog.id]
-                                                ? "keyboard_arrow_up"
-                                                : "keyboard_arrow_down"}
-                                            </i>
-                                          </button>
-                                          <button
-                                            type="button"
-                                            rel="tooltip"
-                                            className="btn btn-info btn-sm"
-                                            style={{ marginLeft: "8px" }}
-                                            onClick={() => handleEdit(dog)}
-                                          >
-                                            <i className="material-icons">
-                                              more_vert
-                                            </i>
-                                          </button>
-                                        </td>
-                                      </tr>
-                                    ))
-                                )}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                          <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
-                            count={sortedDogs.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                          />
-                        </div>
-                      )}
+                                              <i
+                                                className="material-icons"
+                                                style={{
+                                                  transition: "transform 0.3s",
+                                                }}
+                                              >
+                                                {openRows[dog.id]
+                                                  ? "keyboard_arrow_up"
+                                                  : "keyboard_arrow_down"}
+                                              </i>
+                                            </button>
+                                            <button
+                                              type="button"
+                                              rel="tooltip"
+                                              className="btn btn-info btn-sm"
+                                              style={{ marginLeft: "8px" }}
+                                              onClick={() => handleEdit(dog)}
+                                            >
+                                              <i className="material-icons">
+                                                more_vert
+                                              </i>
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      ))
+                                  )}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                            <TablePagination
+                              rowsPerPageOptions={[5, 10, 25]}
+                              component="div"
+                              count={sortedDogs.length}
+                              rowsPerPage={rowsPerPage}
+                              page={page}
+                              onPageChange={handleChangePage}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

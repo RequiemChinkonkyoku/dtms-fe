@@ -17,6 +17,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 
 const StaffClassesCreate = () => {
   const navigate = useNavigate();
@@ -34,6 +35,30 @@ const StaffClassesCreate = () => {
 
   const [availableTrainers, setAvailableTrainers] = useState([]);
   const [selectedTrainerIds, setSelectedTrainerIds] = useState([]);
+
+  const [trueStartDate, setTrueStartDate] = useState(null);
+
+  const calculateTrueStartDate = (selectedDate, slots) => {
+    if (!selectedDate || slots.length === 0) {
+      setTrueStartDate(null);
+      return;
+    }
+
+    const selectedDayIndices = [
+      ...new Set(slots.map((slot) => parseInt(slot.split("-")[0]))),
+    ];
+    if (selectedDayIndices.length === 0) return;
+
+    const firstClassDay = Math.min(...selectedDayIndices);
+    const pickedDate = dayjs(selectedDate);
+    const pickedDayIndex = pickedDate.day();
+
+    let daysToAdd = firstClassDay - pickedDayIndex;
+    if (daysToAdd < 0) daysToAdd += 7; // Only add 7 if the selected day is before the picked day
+    if (daysToAdd === 0) daysToAdd = 0; // If it's the same day, don't add any days
+
+    setTrueStartDate(pickedDate.add(daysToAdd, "day"));
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -193,35 +218,6 @@ const StaffClassesCreate = () => {
     }
   };
 
-  const fetchLessonNames = async (lessonIds) => {
-    try {
-      const names = await Promise.all(
-        lessonIds.map(async (id) => {
-          const response = await axios.get(`/api/lessons/${id}`);
-          return response.data.success ? response.data.object.lessonTitle : id;
-        })
-      );
-      setLessonTitle(names);
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-    }
-  };
-
-  const fetchDogBreedNames = async (breedIds) => {
-    try {
-      const names = await Promise.all(
-        breedIds.map(async (id) => {
-          const response = await axios.get(`/api/dogBreeds/${id}`);
-          return response.data.name;
-        })
-      );
-      console.log("Dog breed names fetched:", names);
-      setDogBreedNames(names);
-    } catch (error) {
-      console.error("Error fetching dog breeds:", error);
-    }
-  };
-
   // Modify fetchCourseDetails to include category fetch
   const fetchCourseDetails = async (courseId) => {
     try {
@@ -231,15 +227,13 @@ const StaffClassesCreate = () => {
       const response = await axios.get(`/api/courses/${courseId}`);
       if (response.data.success) {
         setSelectedCourse(response.data.object);
-        if (response.data.object.categoryId) {
-          await fetchCategoryName(response.data.object.categoryId);
-        }
-        if (response.data.object.lessonIds?.length > 0) {
-          await fetchLessonNames(response.data.object.lessonIds);
-        }
-        if (response.data.object.dogBreedIds?.length > 0) {
-          await fetchDogBreedNames(response.data.object.dogBreedIds);
-        }
+        setCategoryName(response.data.object.categoryName);
+        setLessonTitle(
+          response.data.object.courseLessons.map((lesson) => lesson.name)
+        );
+        setDogBreedNames(
+          response.data.object.courseDogBreeds.map((breed) => breed.name)
+        );
       }
     } catch (error) {
       console.error("Error fetching course details:", error);
@@ -252,7 +246,7 @@ const StaffClassesCreate = () => {
     try {
       const requestBody = {
         name: className,
-        startingDate: dayjs(startDate).format("YYYY-MM-DD"),
+        startingDate: trueStartDate.format("YYYY-MM-DD"), // Use trueStartDate instead
         courseId: selectedCourse?.id,
         trainerIds: selectedTrainerIds,
         slotDatas: formattedSlots,
@@ -528,25 +522,50 @@ const StaffClassesCreate = () => {
                         {/* Calendar will go here */}
                       </div>
                       <div className="card-body">
-                        <div style={{ width: "50%" }}>
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                              label="Start Date"
-                              value={startDate}
-                              onChange={(newValue) => {
-                                setStartDate(newValue);
-                                setSelectedTrainerIds([]); // Clear trainers when date changes
-                              }}
-                              minDate={dayjs().add(1, "month")}
+                        <div className="row">
+                          <div className="col-md-6">
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <DatePicker
+                                label="Estimated Start Date"
+                                value={startDate}
+                                onChange={(newValue) => {
+                                  setStartDate(newValue);
+                                  calculateTrueStartDate(
+                                    newValue,
+                                    selectedSlots
+                                  );
+                                  setSelectedTrainerIds([]);
+                                }}
+                                minDate={dayjs().add(1, "month")}
+                                sx={{ width: "100%" }}
+                              />
+                            </LocalizationProvider>
+                            <small
+                              className="text-danger"
+                              style={{ marginTop: "8px", display: "block" }}
+                            >
+                              * The start date must be at least 1 month from now
+                            </small>
+                          </div>
+                          <div className="col-md-6">
+                            <TextField
+                              label="Actual Start Date"
+                              value={
+                                trueStartDate
+                                  ? trueStartDate.format("DD/MM/YYYY")
+                                  : ""
+                              }
+                              InputProps={{ readOnly: true }}
                               sx={{ width: "100%" }}
                             />
-                          </LocalizationProvider>
-                          <small
-                            className="text-danger"
-                            style={{ marginTop: "8px", display: "block" }}
-                          >
-                            * The start date must be at least 1 month from now
-                          </small>
+                            <small
+                              className="text-info"
+                              style={{ marginTop: "8px", display: "block" }}
+                            >
+                              * This will be the first day of class based on
+                              selected schedule
+                            </small>
+                          </div>
                         </div>
                         <div className="table-responsive mt-4">
                           <div className="d-flex justify-content-end mb-3">
@@ -587,7 +606,7 @@ const StaffClassesCreate = () => {
                                         <button
                                           className="btn btn-outline-info btn-sm"
                                           onClick={() => {
-                                            setSelectedTrainerIds([]); // Clear trainers when slots change
+                                            setSelectedTrainerIds([]);
                                             const newSlot = {
                                               dayOfWeek: parseInt(dayIndex),
                                               scheduleId: schedule.id,
@@ -627,11 +646,16 @@ const StaffClassesCreate = () => {
                                               });
 
                                               setSelectedSlots(updatedSlots);
+                                              calculateTrueStartDate(
+                                                startDate,
+                                                updatedSlots
+                                              ); // Add this line
                                             }
                                           }}
                                           style={{
                                             width: "100%",
                                             minWidth: "80px",
+                                            height: "31px",
                                             backgroundColor: isSelected
                                               ? "#26c6da"
                                               : "transparent",
@@ -640,7 +664,15 @@ const StaffClassesCreate = () => {
                                               : "black",
                                           }}
                                         >
-                                          {isSelected ? "Selected" : "Select"}
+                                          <span
+                                            style={{
+                                              visibility: isSelected
+                                                ? "visible"
+                                                : "hidden",
+                                            }}
+                                          >
+                                            Selected
+                                          </span>
                                         </button>
                                       </td>
                                     );
@@ -772,13 +804,26 @@ const StaffClassesCreate = () => {
                                   <strong>Start Date</strong>
                                 </td>
                                 <td>
-                                  {startDate ? (
-                                    dayjs(startDate).format("MMMM D, YYYY")
-                                  ) : (
-                                    <span style={{ color: "red" }}>
-                                      Not selected !
-                                    </span>
-                                  )}
+                                  <div>
+                                    <strong>Estimated: </strong>
+                                    {startDate ? (
+                                      dayjs(startDate).format("MMMM D, YYYY")
+                                    ) : (
+                                      <span style={{ color: "red" }}>
+                                        Not selected !
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ marginTop: "4px" }}>
+                                    <strong>Actual: </strong>
+                                    {trueStartDate ? (
+                                      trueStartDate.format("MMMM D, YYYY")
+                                    ) : (
+                                      <span style={{ color: "red" }}>
+                                        Not determined !
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                               <tr>
@@ -794,42 +839,62 @@ const StaffClassesCreate = () => {
                                           : "inherit",
                                       }}
                                     >
-                                      {selectedSlots
-                                        .sort((a, b) => {
-                                          const [dayA] = a.split("-");
-                                          const [dayB] = b.split("-");
-                                          return (
-                                            parseInt(dayA) - parseInt(dayB)
-                                          );
-                                        })
-                                        .reduce((acc, slot) => {
-                                          const [dayIndex, scheduleId] =
-                                            slot.split("-");
-                                          const schedule = schedules.find(
-                                            (s) =>
-                                              s.id.toString() ===
-                                              scheduleId.toString()
-                                          );
-                                          const days = [
-                                            "Sunday",
-                                            "Monday",
-                                            "Tuesday",
-                                            "Wednesday",
-                                            "Thursday",
-                                            "Friday",
-                                            "Saturday",
-                                          ];
-                                          const dayName =
-                                            days[
-                                              dayIndex === "6"
-                                                ? 0
-                                                : parseInt(dayIndex) + 1
+                                      <ul
+                                        style={{
+                                          listStyleType: "disc",
+                                          marginBottom: 0,
+                                          paddingLeft: "20px",
+                                        }}
+                                      >
+                                        {Object.entries(
+                                          selectedSlots.reduce(
+                                            (groups, slot) => {
+                                              const [dayIndex, scheduleId] =
+                                                slot.split("-");
+                                              const day = parseInt(dayIndex);
+                                              if (!groups[day])
+                                                groups[day] = [];
+                                              groups[day].push(scheduleId);
+                                              return groups;
+                                            },
+                                            {}
+                                          )
+                                        )
+                                          .sort(
+                                            ([dayA], [dayB]) =>
+                                              parseInt(dayA) - parseInt(dayB)
+                                          )
+                                          .map(([day, slots]) => {
+                                            const days = [
+                                              "Sun",
+                                              "Mon",
+                                              "Tue",
+                                              "Wed",
+                                              "Thu",
+                                              "Fri",
+                                              "Sat",
                                             ];
-                                          const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
-                                          return acc
-                                            ? `${acc}, ${timeSlot}`
-                                            : timeSlot;
-                                        }, "")}
+                                            const timeSlots = slots
+                                              .map((scheduleId) => {
+                                                const schedule = schedules.find(
+                                                  (s) =>
+                                                    s.id.toString() ===
+                                                    scheduleId.toString()
+                                                );
+                                                return `${schedule?.startTime?.slice(0, 5)} - ${schedule?.endTime?.slice(0, 5)}`;
+                                              })
+                                              .join("; ");
+
+                                            return (
+                                              <li key={day}>
+                                                <strong>
+                                                  {days[parseInt(day)]}
+                                                </strong>
+                                                {` (${timeSlots})`}
+                                              </li>
+                                            );
+                                          })}
+                                      </ul>
                                     </span>
                                   ) : (
                                     <span style={{ color: "red" }}>

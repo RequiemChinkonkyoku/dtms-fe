@@ -18,8 +18,8 @@ const TrainerLessons = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [orderBy, setOrderBy] = useState("lessonTitle");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("createdTime");
+  const [order, setOrder] = useState("desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [lessons, setLessons] = useState([]);
   const { loading, setLoading } = useLoading();
@@ -49,6 +49,10 @@ const TrainerLessons = () => {
     });
   }, [lessons]);
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -75,6 +79,11 @@ const TrainerLessons = () => {
   // Add this memoized sorting function
   const sortedLessons = React.useMemo(() => {
     const comparator = (a, b) => {
+      if (orderBy === "createdTime") {
+        const dateA = new Date(a[orderBy]).getTime();
+        const dateB = new Date(b[orderBy]).getTime();
+        return order === "asc" ? dateA - dateB : dateB - dateA;
+      }
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -181,6 +190,7 @@ const TrainerLessons = () => {
                                   ["skillId", "Skill"],
                                   ["duration", "Duration (hour)"],
                                   ["status", "Status"],
+                                  ["createdTime", "Created Date"], // Add this new column
                                 ].map(([key, label]) => (
                                   <th key={key}>
                                     <TableSortLabel
@@ -213,13 +223,14 @@ const TrainerLessons = () => {
                                     <td>
                                       {skillDetails[lesson.skillId] ||
                                         "Loading..."}
-                                    </td>{" "}
+                                    </td>
                                     <td>{lesson.duration}</td>
                                     <td
                                       className={getStatusClass(lesson.status)}
                                     >
                                       {getStatusText(lesson.status)}
                                     </td>
+                                    <td>{formatDate(lesson.createdTime)}</td>
                                     <td className="td-actions text-right">
                                       <button
                                         type="button"

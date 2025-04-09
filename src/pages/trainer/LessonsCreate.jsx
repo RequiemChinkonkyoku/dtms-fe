@@ -21,8 +21,10 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
+import Swal from "sweetalert2";
 
 const TrainerLessonsCreate = () => {
+  const navigate = useNavigate();
   const [equipmentList, setEquipmentList] = useState([]);
   const [skills, setSkills] = useState([]);
   const [formData, setFormData] = useState({
@@ -103,7 +105,16 @@ const TrainerLessonsCreate = () => {
         ? prev.lessonEquipmentDTOs.filter(
             (dto) => dto.equipmentId !== equipmentId
           )
-        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }],
+        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }], // Changed default from 0 to 1
+    }));
+  };
+
+  const handleQuantityChange = (equipmentId, quantity) => {
+    setFormData((prev) => ({
+      ...prev,
+      lessonEquipmentDTOs: prev.lessonEquipmentDTOs.map((dto) =>
+        dto.equipmentId === equipmentId ? { ...dto, quantity } : dto
+      ),
     }));
   };
 
@@ -126,9 +137,17 @@ const TrainerLessonsCreate = () => {
           "Content-Type": "application/json",
         },
       });
-      window.location.reload();
-      setResponseMessage("Lesson created successfully!");
-      setLessons([...lessons, response.data]);
+
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Lesson created successfully",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        navigate("/trainer/lessons");
+      });
+
       setFormData({
         lessonTitle: "",
         description: "",
@@ -137,9 +156,14 @@ const TrainerLessonsCreate = () => {
         duration: "",
         objective: "",
         skillId: "",
-        lessonEquipmentDTOs: [], // Changed from equipmentIds
+        lessonEquipmentDTOs: [],
       });
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to create lesson: " + error.message,
+      });
       console.error("Failed to create lesson. " + error.message);
     }
   };
@@ -158,114 +182,98 @@ const TrainerLessonsCreate = () => {
                 <div class="row">
                   <div class="col-md-9">
                     <form onSubmit={handleSubmit}>
-                      <div class="card">
+                      <div class="card mb-3">
                         <div class="card-header card-header-warning">
-                          <h4 class="card-title">Create a new lesson</h4>
-                          <p class="card-category">
-                            Enter the required information
-                          </p>
+                          <h4 class="card-title">Lesson Title</h4>
+                          <p class="card-category">Enter the lesson title</p>
                         </div>
-                        <div class="card-body ">
+                        <div class="card-body">
                           <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Lesson Title
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label class="bmd-label-floating">
+                                  Lesson Title
+                                </label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="lessonTitle"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
                                   value={formData.lessonTitle}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Description
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="description"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.description}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
+                        </div>
+                      </div>
+                      <br />
+                      <div class="card">
+                        <div class="card-header card-header-warning">
+                          <h4 class="card-title">Lesson Details</h4>
+                          <p class="card-category">
+                            Enter additional information
+                          </p>
+                        </div>
+                        <div class="card-body">
+                          <div class="form-group">
+                            <label>Description</label>
+                            <textarea
+                              name="description"
+                              class="form-control"
+                              rows="3"
+                              value={formData.description}
+                              onChange={handleChange}
+                            ></textarea>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">Note</label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="note"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.note}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
+                          <div class="form-group">
+                            <label>Note</label>
+                            <textarea
+                              name="note"
+                              class="form-control"
+                              rows="3"
+                              value={formData.note}
+                              onChange={handleChange}
+                            ></textarea>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Environment
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Environment</label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="environment"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.environment}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Duration
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Duration</label>
                                 <input
-                                  class="form-control"
                                   type="number"
                                   name="duration"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.duration}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Objective
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Objective</label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="objective"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.objective}
                                   onChange={handleChange}
                                 />
@@ -273,13 +281,17 @@ const TrainerLessonsCreate = () => {
                             </div>
                           </div>
                         </div>
-                        <div class="card-footer ml-auto mr-auto">
-                          <button type="submit" class="btn btn-warning">
-                            CONFIRM
-                          </button>
-                        </div>
                       </div>
                     </form>
+                    <div class="text-right mt-3">
+                      <button
+                        type="submit"
+                        class="btn btn-warning"
+                        onClick={handleSubmit}
+                      >
+                        CONFIRM
+                      </button>
+                    </div>
                   </div>
                   <div class="col-md-3">
                     <div class="card mb-3">
@@ -292,6 +304,7 @@ const TrainerLessonsCreate = () => {
                           onClick={() => setOpenSkillModal(true)}
                         >
                           <i className="material-icons">add</i> Add Skill
+                          {formData.skillId && " (1 chosen)"}
                         </button>
                       </div>
                     </div>
@@ -306,6 +319,8 @@ const TrainerLessonsCreate = () => {
                           onClick={() => setOpenEquipmentModal(true)}
                         >
                           <i className="material-icons">add</i> Add Equipment
+                          {formData.lessonEquipmentDTOs.length > 0 &&
+                            ` (${formData.lessonEquipmentDTOs.length} chosen)`}
                         </button>
                       </div>
                     </div>
@@ -428,6 +443,15 @@ const TrainerLessonsCreate = () => {
               />
             </div>
           </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenSkillModal(false)}
+            >
+              Save
+            </Button>
+          </DialogActions>
         </Dialog>
 
         <Dialog
@@ -483,6 +507,7 @@ const TrainerLessonsCreate = () => {
                       />
                     </th>
                     <th>Name</th>
+                    <th>Quantity</th>
                     <th className="text-right">Actions</th>
                   </tr>
                 </thead>
@@ -498,39 +523,58 @@ const TrainerLessonsCreate = () => {
                       equipmentPage * equipmentRowsPerPage +
                         equipmentRowsPerPage
                     )
-                    .map((equipment) => (
-                      <tr key={equipment.id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={formData.lessonEquipmentDTOs.some(
-                              (dto) => dto.equipmentId === equipment.id
-                            )}
-                            onChange={() =>
-                              handleEquipmentSelection(equipment.id)
-                            }
-                          />
-                        </td>
-                        <td>{equipment.name}</td>
-                        <td className="td-actions text-right">
-                          <button
-                            type="button"
-                            className="btn btn-info btn-sm"
-                            onClick={() =>
-                              handleEquipmentSelection(equipment.id)
-                            }
-                          >
-                            <i className="material-icons">
-                              {formData.lessonEquipmentDTOs.some(
-                                (dto) => dto.equipmentId === equipment.id
-                              )
-                                ? "remove"
-                                : "add"}
-                            </i>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    .map((equipment) => {
+                      const isSelected = formData.lessonEquipmentDTOs.some(
+                        (dto) => dto.equipmentId === equipment.id
+                      );
+                      const selectedEquipment =
+                        formData.lessonEquipmentDTOs.find(
+                          (dto) => dto.equipmentId === equipment.id
+                        );
+                      return (
+                        <tr key={equipment.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                handleEquipmentSelection(equipment.id)
+                              }
+                            />
+                          </td>
+                          <td>{equipment.name}</td>
+                          <td>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={selectedEquipment?.quantity || 0}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  equipment.id,
+                                  parseInt(e.target.value, 10)
+                                )
+                              }
+                              disabled={!isSelected}
+                              min="0"
+                              style={{ width: "80px" }}
+                            />
+                          </td>
+                          <td className="td-actions text-right">
+                            <button
+                              type="button"
+                              className="btn btn-info btn-sm"
+                              onClick={() =>
+                                handleEquipmentSelection(equipment.id)
+                              }
+                            >
+                              <i className="material-icons">
+                                {isSelected ? "remove" : "add"}
+                              </i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
               <TablePagination
