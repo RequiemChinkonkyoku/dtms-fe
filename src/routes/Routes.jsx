@@ -23,6 +23,7 @@ import StaffAccountsTrainerDetails from "../pages/staff/AccountsTrainerDetails";
 import StaffClasses from "../pages/staff/Classes";
 import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
 import TrainerLessonsCreate from "../pages/trainer/LessonsCreate";
+import TrainerClasses from "../pages/trainer/Classes";
 
 export const routes = createBrowserRouter([
   {
@@ -152,6 +153,10 @@ export const routes = createBrowserRouter([
       {
         path: "courses/details/:id",
         element: <TrainerCoursesDetails />,
+      },
+      {
+        path: "classes",
+        element: <TrainerClasses />,
       },
     ],
   },
