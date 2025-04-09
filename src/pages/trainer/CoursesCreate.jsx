@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
@@ -22,13 +23,13 @@ import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import TablePagination from "@mui/material/TablePagination";
-import { useNavigate } from "react-router-dom";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 
 const TrainerCoursesCreate = () => {
+  const navigate = useNavigate();
   const { loading, setLoading } = useLoading();
   const [complexity, setComplexity] = useState(1);
   const [complexityHover, setComplexityHover] = useState(-1);
@@ -719,13 +720,43 @@ const TrainerCoursesCreate = () => {
                     gap: "16px",
                   }}
                 >
-                  <TextField
-                    label="Search lesson..."
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <TextField
+                      label="Search lesson..."
+                      variant="outlined"
+                      size="small"
+                      value={lessonSearchTerm}
+                      onChange={(e) => setLessonSearchTerm(e.target.value)}
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() =>
+                        window.open("/trainer/lessons/create", "_blank")
+                      }
+                    >
+                      <i className="material-icons">add</i> Create New Lesson
+                    </Button>
+                  </div>
+                  <Button
                     variant="outlined"
-                    size="small"
-                    value={lessonSearchTerm}
-                    onChange={(e) => setLessonSearchTerm(e.target.value)}
-                  />
+                    color="primary"
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        const response = await axios.get("api/lessons");
+                        if (response.data.success && response.data.objectList) {
+                          setLessons(response.data.objectList);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching lessons:", error);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    <i className="material-icons">refresh</i> Refresh
+                  </Button>
                 </div>
                 <table className="table table-hover">
                   <thead>
@@ -854,7 +885,6 @@ const TrainerCoursesCreate = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
         <Dialog
           open={openBreedModal}
           onClose={() => setOpenBreedModal(false)}
@@ -1025,13 +1055,43 @@ const TrainerCoursesCreate = () => {
                     gap: "16px",
                   }}
                 >
-                  <TextField
-                    label="Search prerequisite..."
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <TextField
+                      label="Search prerequisite..."
+                      variant="outlined"
+                      size="small"
+                      value={prereqSearchTerm}
+                      onChange={(e) => setPrereqSearchTerm(e.target.value)}
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() =>
+                        window.open("/trainer/courses/create", "_blank")
+                      }
+                    >
+                      <i className="material-icons">add</i> Create New Course
+                    </Button>
+                  </div>
+                  <Button
                     variant="outlined"
-                    size="small"
-                    value={prereqSearchTerm}
-                    onChange={(e) => setPrereqSearchTerm(e.target.value)}
-                  />
+                    color="primary"
+                    onClick={async () => {
+                      setLoading(true);
+                      try {
+                        const response = await axios.get("api/courses");
+                        if (response.data.success && response.data.objectList) {
+                          setPrerequisites(response.data.objectList);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching prerequisites:", error);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                  >
+                    <i className="material-icons">refresh</i> Refresh
+                  </Button>
                 </div>
                 <table className="table table-hover">
                   <thead>
