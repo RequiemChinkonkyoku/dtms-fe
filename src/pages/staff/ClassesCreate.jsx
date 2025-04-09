@@ -193,35 +193,6 @@ const StaffClassesCreate = () => {
     }
   };
 
-  const fetchLessonNames = async (lessonIds) => {
-    try {
-      const names = await Promise.all(
-        lessonIds.map(async (id) => {
-          const response = await axios.get(`/api/lessons/${id}`);
-          return response.data.success ? response.data.object.lessonTitle : id;
-        })
-      );
-      setLessonTitle(names);
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-    }
-  };
-
-  const fetchDogBreedNames = async (breedIds) => {
-    try {
-      const names = await Promise.all(
-        breedIds.map(async (id) => {
-          const response = await axios.get(`/api/dogBreeds/${id}`);
-          return response.data.name;
-        })
-      );
-      console.log("Dog breed names fetched:", names);
-      setDogBreedNames(names);
-    } catch (error) {
-      console.error("Error fetching dog breeds:", error);
-    }
-  };
-
   // Modify fetchCourseDetails to include category fetch
   const fetchCourseDetails = async (courseId) => {
     try {
@@ -231,15 +202,13 @@ const StaffClassesCreate = () => {
       const response = await axios.get(`/api/courses/${courseId}`);
       if (response.data.success) {
         setSelectedCourse(response.data.object);
-        if (response.data.object.categoryId) {
-          await fetchCategoryName(response.data.object.categoryId);
-        }
-        if (response.data.object.lessonIds?.length > 0) {
-          await fetchLessonNames(response.data.object.lessonIds);
-        }
-        if (response.data.object.dogBreedIds?.length > 0) {
-          await fetchDogBreedNames(response.data.object.dogBreedIds);
-        }
+        setCategoryName(response.data.object.categoryName);
+        setLessonTitle(
+          response.data.object.courseLessons.map((lesson) => lesson.name)
+        );
+        setDogBreedNames(
+          response.data.object.courseDogBreeds.map((breed) => breed.name)
+        );
       }
     } catch (error) {
       console.error("Error fetching course details:", error);
@@ -632,6 +601,7 @@ const StaffClassesCreate = () => {
                                           style={{
                                             width: "100%",
                                             minWidth: "80px",
+                                            height: "31px",
                                             backgroundColor: isSelected
                                               ? "#26c6da"
                                               : "transparent",
@@ -640,7 +610,15 @@ const StaffClassesCreate = () => {
                                               : "black",
                                           }}
                                         >
-                                          {isSelected ? "Selected" : "Select"}
+                                          <span
+                                            style={{
+                                              visibility: isSelected
+                                                ? "visible"
+                                                : "hidden",
+                                            }}
+                                          >
+                                            Selected
+                                          </span>
                                         </button>
                                       </td>
                                     );
@@ -794,42 +772,62 @@ const StaffClassesCreate = () => {
                                           : "inherit",
                                       }}
                                     >
-                                      {selectedSlots
-                                        .sort((a, b) => {
-                                          const [dayA] = a.split("-");
-                                          const [dayB] = b.split("-");
-                                          return (
-                                            parseInt(dayA) - parseInt(dayB)
-                                          );
-                                        })
-                                        .reduce((acc, slot) => {
-                                          const [dayIndex, scheduleId] =
-                                            slot.split("-");
-                                          const schedule = schedules.find(
-                                            (s) =>
-                                              s.id.toString() ===
-                                              scheduleId.toString()
-                                          );
-                                          const days = [
-                                            "Sunday",
-                                            "Monday",
-                                            "Tuesday",
-                                            "Wednesday",
-                                            "Thursday",
-                                            "Friday",
-                                            "Saturday",
-                                          ];
-                                          const dayName =
-                                            days[
-                                              dayIndex === "6"
-                                                ? 0
-                                                : parseInt(dayIndex) + 1
+                                      <ul
+                                        style={{
+                                          listStyleType: "disc",
+                                          marginBottom: 0,
+                                          paddingLeft: "20px",
+                                        }}
+                                      >
+                                        {Object.entries(
+                                          selectedSlots.reduce(
+                                            (groups, slot) => {
+                                              const [dayIndex, scheduleId] =
+                                                slot.split("-");
+                                              const day = parseInt(dayIndex);
+                                              if (!groups[day])
+                                                groups[day] = [];
+                                              groups[day].push(scheduleId);
+                                              return groups;
+                                            },
+                                            {}
+                                          )
+                                        )
+                                          .sort(
+                                            ([dayA], [dayB]) =>
+                                              parseInt(dayA) - parseInt(dayB)
+                                          )
+                                          .map(([day, slots]) => {
+                                            const days = [
+                                              "Sun",
+                                              "Mon",
+                                              "Tue",
+                                              "Wed",
+                                              "Thu",
+                                              "Fri",
+                                              "Sat",
                                             ];
-                                          const timeSlot = `${dayName}(${schedule?.startTime} - ${schedule?.endTime})`;
-                                          return acc
-                                            ? `${acc}, ${timeSlot}`
-                                            : timeSlot;
-                                        }, "")}
+                                            const timeSlots = slots
+                                              .map((scheduleId) => {
+                                                const schedule = schedules.find(
+                                                  (s) =>
+                                                    s.id.toString() ===
+                                                    scheduleId.toString()
+                                                );
+                                                return `${schedule?.startTime?.slice(0, 5)} - ${schedule?.endTime?.slice(0, 5)}`;
+                                              })
+                                              .join("; ");
+
+                                            return (
+                                              <li key={day}>
+                                                <strong>
+                                                  {days[parseInt(day)]}
+                                                </strong>
+                                                {` (${timeSlots})`}
+                                              </li>
+                                            );
+                                          })}
+                                      </ul>
                                     </span>
                                   ) : (
                                     <span style={{ color: "red" }}>

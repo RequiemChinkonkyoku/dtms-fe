@@ -21,8 +21,10 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
+import Swal from "sweetalert2";
 
 const TrainerLessonsCreate = () => {
+  const navigate = useNavigate();
   const [equipmentList, setEquipmentList] = useState([]);
   const [skills, setSkills] = useState([]);
   const [formData, setFormData] = useState({
@@ -103,7 +105,16 @@ const TrainerLessonsCreate = () => {
         ? prev.lessonEquipmentDTOs.filter(
             (dto) => dto.equipmentId !== equipmentId
           )
-        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }],
+        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }], // Changed default from 0 to 1
+    }));
+  };
+
+  const handleQuantityChange = (equipmentId, quantity) => {
+    setFormData((prev) => ({
+      ...prev,
+      lessonEquipmentDTOs: prev.lessonEquipmentDTOs.map((dto) =>
+        dto.equipmentId === equipmentId ? { ...dto, quantity } : dto
+      ),
     }));
   };
 
@@ -126,9 +137,17 @@ const TrainerLessonsCreate = () => {
           "Content-Type": "application/json",
         },
       });
-      window.location.reload();
-      setResponseMessage("Lesson created successfully!");
-      setLessons([...lessons, response.data]);
+
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Lesson created successfully",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        navigate("/trainer/lessons");
+      });
+
       setFormData({
         lessonTitle: "",
         description: "",
@@ -137,9 +156,14 @@ const TrainerLessonsCreate = () => {
         duration: "",
         objective: "",
         skillId: "",
-        lessonEquipmentDTOs: [], // Changed from equipmentIds
+        lessonEquipmentDTOs: [],
       });
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to create lesson: " + error.message,
+      });
       console.error("Failed to create lesson. " + error.message);
     }
   };
@@ -292,6 +316,7 @@ const TrainerLessonsCreate = () => {
                           onClick={() => setOpenSkillModal(true)}
                         >
                           <i className="material-icons">add</i> Add Skill
+                          {formData.skillId && " (1 chosen)"}
                         </button>
                       </div>
                     </div>
@@ -306,6 +331,8 @@ const TrainerLessonsCreate = () => {
                           onClick={() => setOpenEquipmentModal(true)}
                         >
                           <i className="material-icons">add</i> Add Equipment
+                          {formData.lessonEquipmentDTOs.length > 0 &&
+                            ` (${formData.lessonEquipmentDTOs.length} chosen)`}
                         </button>
                       </div>
                     </div>
@@ -428,6 +455,15 @@ const TrainerLessonsCreate = () => {
               />
             </div>
           </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenSkillModal(false)}
+            >
+              Save
+            </Button>
+          </DialogActions>
         </Dialog>
 
         <Dialog
@@ -483,6 +519,7 @@ const TrainerLessonsCreate = () => {
                       />
                     </th>
                     <th>Name</th>
+                    <th>Quantity</th>
                     <th className="text-right">Actions</th>
                   </tr>
                 </thead>
@@ -498,39 +535,58 @@ const TrainerLessonsCreate = () => {
                       equipmentPage * equipmentRowsPerPage +
                         equipmentRowsPerPage
                     )
-                    .map((equipment) => (
-                      <tr key={equipment.id}>
-                        <td>
-                          <input
-                            type="checkbox"
-                            checked={formData.lessonEquipmentDTOs.some(
-                              (dto) => dto.equipmentId === equipment.id
-                            )}
-                            onChange={() =>
-                              handleEquipmentSelection(equipment.id)
-                            }
-                          />
-                        </td>
-                        <td>{equipment.name}</td>
-                        <td className="td-actions text-right">
-                          <button
-                            type="button"
-                            className="btn btn-info btn-sm"
-                            onClick={() =>
-                              handleEquipmentSelection(equipment.id)
-                            }
-                          >
-                            <i className="material-icons">
-                              {formData.lessonEquipmentDTOs.some(
-                                (dto) => dto.equipmentId === equipment.id
-                              )
-                                ? "remove"
-                                : "add"}
-                            </i>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    .map((equipment) => {
+                      const isSelected = formData.lessonEquipmentDTOs.some(
+                        (dto) => dto.equipmentId === equipment.id
+                      );
+                      const selectedEquipment =
+                        formData.lessonEquipmentDTOs.find(
+                          (dto) => dto.equipmentId === equipment.id
+                        );
+                      return (
+                        <tr key={equipment.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                handleEquipmentSelection(equipment.id)
+                              }
+                            />
+                          </td>
+                          <td>{equipment.name}</td>
+                          <td>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={selectedEquipment?.quantity || 0}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  equipment.id,
+                                  parseInt(e.target.value, 10)
+                                )
+                              }
+                              disabled={!isSelected}
+                              min="0"
+                              style={{ width: "80px" }}
+                            />
+                          </td>
+                          <td className="td-actions text-right">
+                            <button
+                              type="button"
+                              className="btn btn-info btn-sm"
+                              onClick={() =>
+                                handleEquipmentSelection(equipment.id)
+                              }
+                            >
+                              <i className="material-icons">
+                                {isSelected ? "remove" : "add"}
+                              </i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
               <TablePagination

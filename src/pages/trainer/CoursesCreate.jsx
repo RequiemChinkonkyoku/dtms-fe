@@ -122,10 +122,8 @@ const TrainerCoursesCreate = () => {
 
       const courseResponse = await axios.post("/api/courses", courseData);
       if (courseResponse.data.success) {
-        // After course is created, add prerequisites
-        const courseId = courseResponse.data.object.id; // Adjust based on your API response structure
-
-        // Create prerequisites one by one
+        // Create prerequisites
+        const courseId = courseResponse.data.object.id;
         for (const prerequisiteCourseId of selectedPrereqs) {
           await axios.post("/api/prerequisites", {
             courseId: courseId,
@@ -133,14 +131,23 @@ const TrainerCoursesCreate = () => {
           });
         }
 
-        // Handle success (e.g., show notification, redirect)
-        console.log("Course and prerequisites created successfully");
-        // You might want to redirect here
-        // navigate('/trainer/courses');
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Course created successfully",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          navigate("/trainer/courses");
+        });
       }
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to create course: " + error.message,
+      });
       console.error("Error creating course:", error);
-      // Handle error (e.g., show error message)
     }
   };
 
@@ -564,6 +571,27 @@ const TrainerCoursesCreate = () => {
                           </div>
                         </div>
                         <div class="row mt-4">
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Price (VND)</label>
+                              <div class="input-group">
+                                <input
+                                  type="number"
+                                  name="price"
+                                  class="form-control"
+                                  min="0"
+                                  step="1000"
+                                  value={formData.price}
+                                  onChange={handleInputChange}
+                                />
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text">VND</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mt-4">
                           <div class="col-md-12">
                             <div class="form-group">
                               <label>Course Image</label>
@@ -662,30 +690,6 @@ const TrainerCoursesCreate = () => {
                       </div>
                     </div>
                     <br />
-                    <div class="card mt-4">
-                      <div class="card-header card-header-primary">
-                        <h4 class="card-title">Course Price</h4>
-                      </div>
-                      <div class="card-body">
-                        <div class="form-group">
-                          <label>Price (VND)</label>
-                          <div class="input-group">
-                            <input
-                              type="number"
-                              name="price"
-                              class="form-control"
-                              min="0"
-                              step="1000"
-                              value={formData.price}
-                              onChange={handleInputChange}
-                            />
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">VND</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
