@@ -17,6 +17,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 
 const StaffClassesCreate = () => {
   const navigate = useNavigate();
@@ -34,6 +35,30 @@ const StaffClassesCreate = () => {
 
   const [availableTrainers, setAvailableTrainers] = useState([]);
   const [selectedTrainerIds, setSelectedTrainerIds] = useState([]);
+
+  const [trueStartDate, setTrueStartDate] = useState(null);
+
+  const calculateTrueStartDate = (selectedDate, slots) => {
+    if (!selectedDate || slots.length === 0) {
+      setTrueStartDate(null);
+      return;
+    }
+
+    const selectedDayIndices = [
+      ...new Set(slots.map((slot) => parseInt(slot.split("-")[0]))),
+    ];
+    if (selectedDayIndices.length === 0) return;
+
+    const firstClassDay = Math.min(...selectedDayIndices);
+    const pickedDate = dayjs(selectedDate);
+    const pickedDayIndex = pickedDate.day();
+
+    let daysToAdd = firstClassDay - pickedDayIndex;
+    if (daysToAdd < 0) daysToAdd += 7; // Only add 7 if the selected day is before the picked day
+    if (daysToAdd === 0) daysToAdd = 0; // If it's the same day, don't add any days
+
+    setTrueStartDate(pickedDate.add(daysToAdd, "day"));
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -221,7 +246,7 @@ const StaffClassesCreate = () => {
     try {
       const requestBody = {
         name: className,
-        startingDate: dayjs(startDate).format("YYYY-MM-DD"),
+        startingDate: trueStartDate.format("YYYY-MM-DD"), // Use trueStartDate instead
         courseId: selectedCourse?.id,
         trainerIds: selectedTrainerIds,
         slotDatas: formattedSlots,
@@ -497,25 +522,50 @@ const StaffClassesCreate = () => {
                         {/* Calendar will go here */}
                       </div>
                       <div className="card-body">
-                        <div style={{ width: "50%" }}>
-                          <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                              label="Start Date"
-                              value={startDate}
-                              onChange={(newValue) => {
-                                setStartDate(newValue);
-                                setSelectedTrainerIds([]); // Clear trainers when date changes
-                              }}
-                              minDate={dayjs().add(1, "month")}
+                        <div className="row">
+                          <div className="col-md-6">
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <DatePicker
+                                label="Estimated Start Date"
+                                value={startDate}
+                                onChange={(newValue) => {
+                                  setStartDate(newValue);
+                                  calculateTrueStartDate(
+                                    newValue,
+                                    selectedSlots
+                                  );
+                                  setSelectedTrainerIds([]);
+                                }}
+                                minDate={dayjs().add(1, "month")}
+                                sx={{ width: "100%" }}
+                              />
+                            </LocalizationProvider>
+                            <small
+                              className="text-danger"
+                              style={{ marginTop: "8px", display: "block" }}
+                            >
+                              * The start date must be at least 1 month from now
+                            </small>
+                          </div>
+                          <div className="col-md-6">
+                            <TextField
+                              label="Actual Start Date"
+                              value={
+                                trueStartDate
+                                  ? trueStartDate.format("DD/MM/YYYY")
+                                  : ""
+                              }
+                              InputProps={{ readOnly: true }}
                               sx={{ width: "100%" }}
                             />
-                          </LocalizationProvider>
-                          <small
-                            className="text-danger"
-                            style={{ marginTop: "8px", display: "block" }}
-                          >
-                            * The start date must be at least 1 month from now
-                          </small>
+                            <small
+                              className="text-info"
+                              style={{ marginTop: "8px", display: "block" }}
+                            >
+                              * This will be the first day of class based on
+                              selected schedule
+                            </small>
+                          </div>
                         </div>
                         <div className="table-responsive mt-4">
                           <div className="d-flex justify-content-end mb-3">
@@ -556,7 +606,7 @@ const StaffClassesCreate = () => {
                                         <button
                                           className="btn btn-outline-info btn-sm"
                                           onClick={() => {
-                                            setSelectedTrainerIds([]); // Clear trainers when slots change
+                                            setSelectedTrainerIds([]);
                                             const newSlot = {
                                               dayOfWeek: parseInt(dayIndex),
                                               scheduleId: schedule.id,
@@ -596,6 +646,10 @@ const StaffClassesCreate = () => {
                                               });
 
                                               setSelectedSlots(updatedSlots);
+                                              calculateTrueStartDate(
+                                                startDate,
+                                                updatedSlots
+                                              ); // Add this line
                                             }
                                           }}
                                           style={{
@@ -750,13 +804,26 @@ const StaffClassesCreate = () => {
                                   <strong>Start Date</strong>
                                 </td>
                                 <td>
-                                  {startDate ? (
-                                    dayjs(startDate).format("MMMM D, YYYY")
-                                  ) : (
-                                    <span style={{ color: "red" }}>
-                                      Not selected !
-                                    </span>
-                                  )}
+                                  <div>
+                                    <strong>Estimated: </strong>
+                                    {startDate ? (
+                                      dayjs(startDate).format("MMMM D, YYYY")
+                                    ) : (
+                                      <span style={{ color: "red" }}>
+                                        Not selected !
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ marginTop: "4px" }}>
+                                    <strong>Actual: </strong>
+                                    {trueStartDate ? (
+                                      trueStartDate.format("MMMM D, YYYY")
+                                    ) : (
+                                      <span style={{ color: "red" }}>
+                                        Not determined !
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                               </tr>
                               <tr>

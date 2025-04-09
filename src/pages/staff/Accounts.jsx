@@ -22,8 +22,8 @@ const Accounts = () => {
   const { loading, setLoading } = useLoading();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [orderBy, setOrderBy] = useState("username");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("registrationTime");
+  const [order, setOrder] = useState("desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [counts, setCounts] = useState({
@@ -33,6 +33,10 @@ const Accounts = () => {
     trainers: 0,
     staff: 0,
   });
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
   const handleViewDetails = (account) => {
     const { role } = getRoleAndSubRole(account.roleId);
@@ -92,9 +96,13 @@ const Accounts = () => {
     setOrderBy(property);
   };
 
-  // Add sorting function
   const sortedAccounts = React.useMemo(() => {
     const comparator = (a, b) => {
+      if (orderBy === "registrationTime") {
+        const dateA = new Date(a[orderBy]).getTime();
+        const dateB = new Date(b[orderBy]).getTime();
+        return order === "asc" ? dateA - dateB : dateB - dateA;
+      }
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -352,6 +360,7 @@ const Accounts = () => {
                                     ["roleId", "Role"],
                                     ["subRole", "Position"],
                                     ["status", "Status"],
+                                    ["registrationTime", "Registration Date"],
                                   ].map(([key, label]) => (
                                     <th key={key}>
                                       <TableSortLabel
@@ -394,6 +403,9 @@ const Accounts = () => {
                                           )}
                                         >
                                           {getStatusText(account.status)}
+                                        </td>
+                                        <td>
+                                          {formatDate(account.registrationTime)}
                                         </td>
                                         <td className="td-actions text-right">
                                           <button

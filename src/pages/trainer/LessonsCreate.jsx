@@ -182,114 +182,98 @@ const TrainerLessonsCreate = () => {
                 <div class="row">
                   <div class="col-md-9">
                     <form onSubmit={handleSubmit}>
-                      <div class="card">
+                      <div class="card mb-3">
                         <div class="card-header card-header-warning">
-                          <h4 class="card-title">Create a new lesson</h4>
-                          <p class="card-category">
-                            Enter the required information
-                          </p>
+                          <h4 class="card-title">Lesson Title</h4>
+                          <p class="card-category">Enter the lesson title</p>
                         </div>
-                        <div class="card-body ">
+                        <div class="card-body">
                           <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Lesson Title
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label class="bmd-label-floating">
+                                  Lesson Title
+                                </label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="lessonTitle"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
                                   value={formData.lessonTitle}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Description
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="description"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.description}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
+                        </div>
+                      </div>
+                      <br />
+                      <div class="card">
+                        <div class="card-header card-header-warning">
+                          <h4 class="card-title">Lesson Details</h4>
+                          <p class="card-category">
+                            Enter additional information
+                          </p>
+                        </div>
+                        <div class="card-body">
+                          <div class="form-group">
+                            <label>Description</label>
+                            <textarea
+                              name="description"
+                              class="form-control"
+                              rows="3"
+                              value={formData.description}
+                              onChange={handleChange}
+                            ></textarea>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">Note</label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
-                                <input
-                                  class="form-control"
-                                  type="text"
-                                  name="note"
-                                  required="true"
-                                  aria-required="true"
-                                  value={formData.note}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                            </div>
+                          <div class="form-group">
+                            <label>Note</label>
+                            <textarea
+                              name="note"
+                              class="form-control"
+                              rows="3"
+                              value={formData.note}
+                              onChange={handleChange}
+                            ></textarea>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Environment
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Environment</label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="environment"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.environment}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Duration
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Duration</label>
                                 <input
-                                  class="form-control"
                                   type="number"
                                   name="duration"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.duration}
                                   onChange={handleChange}
                                 />
                               </div>
                             </div>
                           </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Objective
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group">
+                          <div class="row mt-4">
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label>Objective</label>
                                 <input
-                                  class="form-control"
                                   type="text"
                                   name="objective"
-                                  required="true"
-                                  aria-required="true"
+                                  class="form-control"
+                                  min="1"
                                   value={formData.objective}
                                   onChange={handleChange}
                                 />
@@ -297,13 +281,17 @@ const TrainerLessonsCreate = () => {
                             </div>
                           </div>
                         </div>
-                        <div class="card-footer ml-auto mr-auto">
-                          <button type="submit" class="btn btn-warning">
-                            CONFIRM
-                          </button>
-                        </div>
                       </div>
                     </form>
+                    <div class="text-right mt-3">
+                      <button
+                        type="submit"
+                        class="btn btn-warning"
+                        onClick={handleSubmit}
+                      >
+                        CONFIRM
+                      </button>
+                    </div>
                   </div>
                   <div class="col-md-3">
                     <div class="card mb-3">
