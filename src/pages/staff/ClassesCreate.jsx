@@ -538,6 +538,7 @@ const StaffClassesCreate = () => {
                                 }}
                                 minDate={dayjs().add(1, "month")}
                                 sx={{ width: "100%" }}
+                                format="DD/MM/YYYY"
                               />
                             </LocalizationProvider>
                             <small
