@@ -21,10 +21,10 @@ const Footer = () => {
             </li>
           </ul>
         </nav> */}
-        <div className="copyright float-right">
+        {/* <div className="copyright float-right">
           &copy; {new Date().getFullYear()}, desgined with{" "}
           <i className="material-icons">favorite</i> by Requiem鎮魂曲.
-        </div>
+        </div> */}
       </div>
     </footer>
   );
