@@ -20,7 +20,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 // Add this constant at the top of the file, after imports
 const CLASS_STATUS = {
   0: { label: "Inactive", color: "badge-secondary" },
-  1: { label: "Active", color: "badge-warning" },
+  1: { label: "Open", color: "badge-warning" },
   2: { label: "Ongoing", color: "badge-info" },
   3: { label: "Closed", color: "badge-danger" },
   4: { label: "Completed", color: "badge-success" },
@@ -38,7 +38,7 @@ const StaffClasses = () => {
   const [counts, setCounts] = useState({
     total: 0,
     inactive: 0,
-    active: 0,
+    open: 0,
     ongoing: 0,
     closed: 0,
     completed: 0,
@@ -88,12 +88,12 @@ const StaffClasses = () => {
         // Calculate counts
         const total = classesData.length;
         const inactive = classesData.filter((c) => c.status === 0).length;
-        const active = classesData.filter((c) => c.status === 1).length;
+        const open = classesData.filter((c) => c.status === 1).length;
         const ongoing = classesData.filter((c) => c.status === 2).length;
         const closed = classesData.filter((c) => c.status === 3).length;
         const completed = classesData.filter((c) => c.status === 4).length;
 
-        setCounts({ total, inactive, active, ongoing, closed, completed });
+        setCounts({ total, inactive, open, ongoing, closed, completed });
 
         // Fetch details for each class
         await Promise.all(
@@ -236,8 +236,8 @@ const StaffClasses = () => {
                             pending
                           </i>
                         </div>
-                        <p className="card-category mb-0">Active</p>
-                        <h3 className="card-title mb-2">{counts.active}</h3>
+                        <p className="card-category mb-0">Open</p>
+                        <h3 className="card-title mb-2">{counts.open}</h3>
                       </div>
                       <div className="card-footer py-2">
                         <div className="stats">

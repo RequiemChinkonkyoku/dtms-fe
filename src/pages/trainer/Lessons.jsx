@@ -9,9 +9,12 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import OutlinedInput from "@mui/material/OutlinedInput";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
 import { TablePagination, TableSortLabel, TextField } from "@mui/material";
 
 const TrainerLessons = () => {
@@ -24,6 +27,8 @@ const TrainerLessons = () => {
   const [lessons, setLessons] = useState([]);
   const { loading, setLoading } = useLoading();
   const [skillDetails, setSkillDetails] = useState({});
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   // Add this function after your other useEffect hooks
   useEffect(() => {
@@ -121,6 +126,55 @@ const TrainerLessons = () => {
     fetchLessons();
   }, []);
 
+  const handleStatusChange = async (lesson) => {
+    setSelectedLesson(lesson);
+    setOpenModal(true);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    try {
+      const lessonResponse = await axios.get(
+        `/api/lessons/${selectedLesson.id}`
+      );
+      if (!lessonResponse.data.success) return;
+
+      const lessonData = lessonResponse.data.object;
+      const newStatus = selectedLesson.status === 0 ? 1 : 0;
+
+      const updatePayload = {
+        id: lessonData.id,
+        lessonTitle: lessonData.lessonTitle,
+        description: lessonData.description,
+        note: lessonData.notes,
+        environment: lessonData.environment,
+        duration: lessonData.duration,
+        objective: lessonData.objective,
+        skillId: lessonData.skillId,
+        status: newStatus,
+        lessonEquipmentDTOs: lessonData.lessonEquipments.map((eq) => ({
+          equipmentId: eq.equipmentId,
+          quantity: eq.quantity,
+        })),
+      };
+
+      const response = await axios.put("/api/lessons", updatePayload);
+      if (response.data.success) {
+        setLessons(
+          lessons.map((lesson) =>
+            lesson.id === selectedLesson.id
+              ? { ...lesson, status: newStatus }
+              : lesson
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating lesson status:", error);
+    } finally {
+      setOpenModal(false);
+      setSelectedLesson(null);
+    }
+  };
+
   return (
     <>
       <Head />
@@ -188,7 +242,7 @@ const TrainerLessons = () => {
                                   ["lessonTitle", "Title"],
                                   ["environment", "Environment"],
                                   ["skillId", "Skill"],
-                                  ["duration", "Duration (hour)"],
+                                  ["duration", "Duration (slots)"],
                                   ["status", "Status"],
                                   ["createdTime", "Created Date"], // Add this new column
                                 ].map(([key, label]) => (
@@ -235,16 +289,37 @@ const TrainerLessons = () => {
                                       <button
                                         type="button"
                                         rel="tooltip"
-                                        className="btn btn-success btn-sm"
+                                        className={`btn ${lesson.status === 0 ? "btn-warning" : "btn-success"} btn-sm`}
+                                        onClick={() =>
+                                          handleStatusChange(lesson)
+                                        }
+                                        title={
+                                          lesson.status === 1
+                                            ? "Deactivate"
+                                            : "Activate"
+                                        }
                                       >
-                                        <i className="material-icons">edit</i>
+                                        <i className="material-icons">
+                                          {lesson.status === 0
+                                            ? "toggle_off"
+                                            : "toggle_on"}
+                                        </i>
                                       </button>
                                       <button
                                         type="button"
                                         rel="tooltip"
-                                        className="btn btn-danger btn-sm"
+                                        className="btn btn-info btn-sm"
+                                        style={{ marginLeft: "8px" }}
+                                        onClick={() =>
+                                          navigate(
+                                            `/trainer/lessons/details/${lesson.id}`
+                                          )
+                                        }
+                                        title="View Details"
                                       >
-                                        <i className="material-icons">close</i>
+                                        <i className="material-icons">
+                                          visibility
+                                        </i>
                                       </button>
                                     </td>
                                   </tr>
@@ -270,6 +345,28 @@ const TrainerLessons = () => {
           </div>
         </div>
       </body>
+      <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+        <DialogTitle>Confirm Change</DialogTitle>
+        <DialogContent>
+          Are you sure you want to{" "}
+          {selectedLesson?.status === 1 ? "deactivate" : "activate"} the lesson
+          "{selectedLesson?.lessonTitle}"?
+        </DialogContent>
+        <DialogActions>
+          <button
+            className="btn btn-default"
+            onClick={() => setOpenModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className={`btn ${selectedLesson?.status === 1 ? "btn-warning" : "btn-success"}`}
+            onClick={handleConfirmStatusChange}
+          >
+            Confirm
+          </button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

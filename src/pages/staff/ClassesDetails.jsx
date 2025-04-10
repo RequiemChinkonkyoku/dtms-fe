@@ -14,7 +14,7 @@ import Navbar from "../../assets/components/staff/Navbar";
 
 const CLASS_STATUS = {
   0: { label: "Inactive", color: "badge-secondary" },
-  1: { label: "Active", color: "badge-warning" },
+  1: { label: "Open", color: "badge-warning" },
   2: { label: "Ongoing", color: "badge-info" },
   3: { label: "Closed", color: "badge-danger" },
   4: { label: "Completed", color: "badge-success" },
@@ -25,6 +25,11 @@ const StaffClassesDetails = () => {
   const [classDetails, setClassDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Add new state variables for modals
+  const [showOpenRegModal, setShowOpenRegModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showOpenClassModal, setShowOpenClassModal] = useState(false);
+  const [showConcludeModal, setShowConcludeModal] = useState(false);
 
   useEffect(() => {
     fetchClassDetails();
@@ -45,6 +50,20 @@ const StaffClassesDetails = () => {
       setError("An error occurred while fetching class details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      const response = await axios.put("/api/class/update-class-status", {
+        classId: id,
+        status: newStatus,
+      });
+      if (response.data.success) {
+        fetchClassDetails();
+      }
+    } catch (error) {
+      console.error("Error updating class status:", error);
     }
   };
 
@@ -131,7 +150,264 @@ const StaffClassesDetails = () => {
                         </div>
                       </div>
                     </div>
-
+                    <div class="col-md-12">
+                      <div className="text-right mt-3">
+                        <div className="d-flex justify-content-end">
+                          {classDetails.status === 0 && (
+                            <>
+                              <button
+                                className="btn btn-warning d-flex align-items-center justify-content-center"
+                                onClick={() => setShowOpenRegModal(true)}
+                                style={{ width: "180px" }}
+                              >
+                                Open for Registration
+                              </button>
+                              <div
+                                className={`modal fade ${showOpenRegModal ? "show" : ""}`}
+                                style={{
+                                  display: showOpenRegModal ? "block" : "none",
+                                }}
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title">
+                                        Confirm Action
+                                      </h5>
+                                      <button
+                                        type="button"
+                                        className="close"
+                                        onClick={() =>
+                                          setShowOpenRegModal(false)
+                                        }
+                                      >
+                                        <span>&times;</span>
+                                      </button>
+                                    </div>
+                                    <div className="modal-body">
+                                      Are you sure you want to open this class
+                                      for registration?
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() =>
+                                          setShowOpenRegModal(false)
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-warning"
+                                        onClick={() => {
+                                          handleStatusUpdate(1);
+                                          setShowOpenRegModal(false);
+                                        }}
+                                      >
+                                        Confirm
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {classDetails.status === 1 && (
+                            <>
+                              <button
+                                className="btn btn-danger d-flex align-items-center justify-content-center"
+                                onClick={() => setShowCancelModal(true)}
+                                style={{ width: "120px" }}
+                              >
+                                Cancel Class
+                              </button>
+                              <button
+                                className="btn btn-success d-flex align-items-center justify-content-center"
+                                onClick={() => setShowOpenClassModal(true)}
+                                style={{ width: "120px", marginLeft: "8px" }}
+                              >
+                                Open Class
+                              </button>
+                              <div
+                                className={`modal fade ${showCancelModal ? "show" : ""}`}
+                                style={{
+                                  display: showCancelModal ? "block" : "none",
+                                }}
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title">
+                                        Confirm Cancellation
+                                      </h5>
+                                      <button
+                                        type="button"
+                                        className="close"
+                                        onClick={() =>
+                                          setShowCancelModal(false)
+                                        }
+                                      >
+                                        <span>&times;</span>
+                                      </button>
+                                    </div>
+                                    <div className="modal-body">
+                                      Are you sure you want to cancel this
+                                      class? This action cannot be undone.
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() =>
+                                          setShowCancelModal(false)
+                                        }
+                                      >
+                                        No
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-danger"
+                                        onClick={() => {
+                                          handleStatusUpdate(3);
+                                          setShowCancelModal(false);
+                                        }}
+                                      >
+                                        Yes, Cancel Class
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                className={`modal fade ${showOpenClassModal ? "show" : ""}`}
+                                style={{
+                                  display: showOpenClassModal
+                                    ? "block"
+                                    : "none",
+                                }}
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title">
+                                        Confirm Opening Class
+                                      </h5>
+                                      <button
+                                        type="button"
+                                        className="close"
+                                        onClick={() =>
+                                          setShowOpenClassModal(false)
+                                        }
+                                      >
+                                        <span>&times;</span>
+                                      </button>
+                                    </div>
+                                    <div className="modal-body">
+                                      Are you sure you want to open this class?
+                                      Make sure all preparations are complete.
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() =>
+                                          setShowOpenClassModal(false)
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-success"
+                                        onClick={() => {
+                                          handleStatusUpdate(2);
+                                          setShowOpenClassModal(false);
+                                        }}
+                                      >
+                                        Yes, Open Class
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {classDetails.status === 2 && (
+                            <>
+                              <button
+                                className="btn btn-success d-flex align-items-center justify-content-center"
+                                onClick={() => setShowConcludeModal(true)}
+                                style={{ width: "120px" }}
+                              >
+                                Conclude Class
+                              </button>
+                              <div
+                                className={`modal fade ${showConcludeModal ? "show" : ""}`}
+                                style={{
+                                  display: showConcludeModal ? "block" : "none",
+                                }}
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h5 className="modal-title">
+                                        Confirm Conclusion
+                                      </h5>
+                                      <button
+                                        type="button"
+                                        className="close"
+                                        onClick={() =>
+                                          setShowConcludeModal(false)
+                                        }
+                                      >
+                                        <span>&times;</span>
+                                      </button>
+                                    </div>
+                                    <div className="modal-body">
+                                      Are you sure you want to conclude this
+                                      class? This will mark the class as
+                                      completed.
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() =>
+                                          setShowConcludeModal(false)
+                                        }
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-success"
+                                        onClick={() => {
+                                          handleStatusUpdate(4);
+                                          setShowConcludeModal(false);
+                                        }}
+                                      >
+                                        Yes, Conclude Class
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        {new Date().toDateString() !==
+                          new Date(
+                            classDetails.startingDate
+                          ).toDateString() && (
+                          <small className="text-danger d-block mt-2">
+                            Warning: Starting date is not today, proceed with
+                            caution.
+                          </small>
+                        )}
+                      </div>
+                    </div>
                     <div className="col-md-12">
                       <div className="card mt-4">
                         <div className="card-header card-header-info">

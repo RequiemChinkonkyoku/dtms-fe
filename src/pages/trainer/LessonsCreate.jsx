@@ -253,14 +253,29 @@ const TrainerLessonsCreate = () => {
                           <div class="row mt-4">
                             <div class="col-md-12">
                               <div class="form-group">
-                                <label>Duration</label>
+                                <label>Duration (slots)</label>
                                 <input
                                   type="number"
                                   name="duration"
                                   class="form-control"
                                   min="1"
+                                  max="4"
                                   value={formData.duration}
-                                  onChange={handleChange}
+                                  onChange={(e) => {
+                                    const value = Math.min(
+                                      Math.max(
+                                        parseInt(e.target.value) || 1,
+                                        1
+                                      ),
+                                      4
+                                    );
+                                    handleChange({
+                                      target: {
+                                        name: "duration",
+                                        value: value.toString(),
+                                      },
+                                    });
+                                  }}
                                 />
                               </div>
                             </div>
