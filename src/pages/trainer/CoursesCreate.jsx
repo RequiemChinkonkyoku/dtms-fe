@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
+import Swal from "sweetalert2";
 import "../../assets/css/material-dashboard.min.css";
 import Rating from "@mui/material/Rating";
 import Box from "@mui/material/Box";
@@ -97,7 +98,66 @@ const TrainerCoursesCreate = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate required fields
+    const requiredFields = {
+      name: "Course Name",
+      description: "Description",
+      categoryId: "Category",
+      durationInWeeks: "Duration",
+      daysPerWeek: "Days per Week",
+      slotsPerDay: "Slots per Day",
+      price: "Price",
+      minTrainers: "Min Trainers",
+      maxTrainers: "Max Trainers",
+    };
+
+    const missingFields = Object.entries(requiredFields).filter(
+      ([key]) => !formData[key]
+    );
+
+    if (selectedLessons.length === 0) {
+      missingFields.push(["lessons", "Lessons"]);
+    }
+    if (selectedBreeds.length === 0) {
+      missingFields.push(["breeds", "Dog Breeds"]);
+    }
+
+    if (missingFields.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Required Fields Missing",
+        html: `Please fill in the following fields:<br/><br/>
+          ${missingFields.map(([_, label]) => `- ${label}`).join("<br/>")}`,
+      });
+
+      // Add red border to missing fields
+      missingFields.forEach(([key]) => {
+        const element = document.querySelector(`[name="${key}"]`);
+        if (element) {
+          element.style.border = "1px solid red";
+          element.addEventListener(
+            "input",
+            function () {
+              this.style.border = "";
+            },
+            { once: true }
+          );
+        }
+      });
+
+      return;
+    }
+
     try {
+      // Show loading alert
+      Swal.fire({
+        title: "Creating course...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       let imageUrl = "";
       if (courseImage) {
         const formData = new FormData();
@@ -132,21 +192,21 @@ const TrainerCoursesCreate = () => {
           });
         }
 
-        Swal.fire({
+        await Swal.fire({
           icon: "success",
           title: "Success!",
           text: "Course created successfully",
-          showConfirmButton: false,
           timer: 1500,
-        }).then(() => {
-          navigate("/trainer/courses");
+          showConfirmButton: false,
         });
+
+        navigate("/trainer/courses");
       }
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error!",
-        text: "Failed to create course: " + error.message,
+        text: error.response?.data?.message || "Failed to create course",
       });
       console.error("Error creating course:", error);
     }
@@ -356,7 +416,8 @@ const TrainerCoursesCreate = () => {
                           <div class="col-md-8">
                             <div class="form-group">
                               <label class="bmd-label-floating">
-                                Course Name
+                                Course Name{" "}
+                                <span style={{ color: "red" }}>*</span>
                               </label>
                               <input
                                 type="text"
@@ -369,7 +430,9 @@ const TrainerCoursesCreate = () => {
                           </div>
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label class="bmd-label-floating">Category</label>
+                              <label class="bmd-label-floating">
+                                Category <span style={{ color: "red" }}>*</span>
+                              </label>
                               <FormControl
                                 sx={{ mt: 0.3 }}
                                 fullWidth
@@ -406,7 +469,9 @@ const TrainerCoursesCreate = () => {
                   <div class="col-md-3">
                     <div class="card">
                       <div class="card-header card-header-primary">
-                        <h4 class="card-title">Course Lessons</h4>
+                        <h4 class="card-title">
+                          Course Lessons <span style={{ color: "red" }}>*</span>
+                        </h4>
                       </div>
                       <div class="card-body">
                         <button
@@ -431,7 +496,9 @@ const TrainerCoursesCreate = () => {
                       </div>
                       <div class="card-body">
                         <div class="form-group">
-                          <label>Description</label>
+                          <label>
+                            Description <span style={{ color: "red" }}>*</span>
+                          </label>
                           <textarea
                             name="description"
                             class="form-control"
@@ -443,7 +510,10 @@ const TrainerCoursesCreate = () => {
                         <div class="row mt-4">
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Duration (weeks)</label>
+                              <label>
+                                Duration (weeks){" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <input
                                 type="number"
                                 name="durationInWeeks"
@@ -456,7 +526,10 @@ const TrainerCoursesCreate = () => {
                           </div>
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Days per Week</label>
+                              <label>
+                                Days per Week{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <input
                                 type="number"
                                 name="daysPerWeek"
@@ -470,7 +543,10 @@ const TrainerCoursesCreate = () => {
                           </div>
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Slots per Day</label>
+                              <label>
+                                Slots per Day{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <input
                                 type="number"
                                 name="slotsPerDay"
@@ -486,7 +562,10 @@ const TrainerCoursesCreate = () => {
                         <div class="row mt-4">
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Min Trainers</label>
+                              <label>
+                                Min Trainers{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <input
                                 type="number"
                                 name="minTrainers"
@@ -499,7 +578,10 @@ const TrainerCoursesCreate = () => {
                           </div>
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Max Trainers</label>
+                              <label>
+                                Max Trainers{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <input
                                 type="number"
                                 name="maxTrainers"
@@ -512,7 +594,10 @@ const TrainerCoursesCreate = () => {
                           </div>
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Complexity</label>
+                              <label>
+                                Complexity{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <Box
                                 sx={{
                                   display: "flex",
@@ -574,7 +659,10 @@ const TrainerCoursesCreate = () => {
                         <div class="row mt-4">
                           <div class="col-md-4">
                             <div class="form-group">
-                              <label>Price (VND)</label>
+                              <label>
+                                Price (VND){" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <div class="input-group">
                                 <input
                                   type="number"
@@ -595,7 +683,10 @@ const TrainerCoursesCreate = () => {
                         <div class="row mt-4">
                           <div class="col-md-12">
                             <div class="form-group">
-                              <label>Course Image</label>
+                              <label>
+                                Course Image{" "}
+                                <span style={{ color: "red" }}>*</span>
+                              </label>
                               <div>
                                 <div
                                   style={{
@@ -658,7 +749,10 @@ const TrainerCoursesCreate = () => {
                   <div class="col-md-3">
                     <div class="card">
                       <div class="card-header card-header-primary">
-                        <h4 class="card-title">Suitable Dog Breeds</h4>
+                        <h4 class="card-title">
+                          Suitable Dog Breeds{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </h4>
                       </div>
                       <div class="card-body">
                         <button
@@ -787,7 +881,7 @@ const TrainerCoursesCreate = () => {
                       {[
                         ["lessonTitle", "Title"],
                         ["environment", "Environment"],
-                        ["duration", "Duration (mins)"],
+                        ["duration", "Duration (slots)"],
                       ].map(([key, label]) => (
                         <th key={key}>
                           <TableSortLabel

@@ -128,7 +128,7 @@ const TrainerLessonsDetails = () => {
                             <div className="row mt-4">
                               <div className="col-md-12">
                                 <div className="form-group">
-                                  <label>Duration (hours)</label>
+                                  <label>Duration (slots)</label>
                                   <input
                                     type="number"
                                     className="form-control"

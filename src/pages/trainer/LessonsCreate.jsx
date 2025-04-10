@@ -192,7 +192,8 @@ const TrainerLessonsCreate = () => {
                             <div class="col-md-12">
                               <div class="form-group">
                                 <label class="bmd-label-floating">
-                                  Lesson Title
+                                  Lesson Title{" "}
+                                  <span style={{ color: "red" }}>*</span>
                                 </label>
                                 <input
                                   type="text"
@@ -216,7 +217,10 @@ const TrainerLessonsCreate = () => {
                         </div>
                         <div class="card-body">
                           <div class="form-group">
-                            <label>Description</label>
+                            <label>
+                              Description{" "}
+                              <span style={{ color: "red" }}>*</span>
+                            </label>
                             <textarea
                               name="description"
                               class="form-control"
@@ -226,7 +230,9 @@ const TrainerLessonsCreate = () => {
                             ></textarea>
                           </div>
                           <div class="form-group">
-                            <label>Note</label>
+                            <label>
+                              Note <span style={{ color: "red" }}>*</span>
+                            </label>
                             <textarea
                               name="note"
                               class="form-control"
@@ -236,9 +242,12 @@ const TrainerLessonsCreate = () => {
                             ></textarea>
                           </div>
                           <div class="row mt-4">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                               <div class="form-group">
-                                <label>Environment</label>
+                                <label>
+                                  Environment{" "}
+                                  <span style={{ color: "red" }}>*</span>
+                                </label>
                                 <input
                                   type="text"
                                   name="environment"
@@ -249,11 +258,12 @@ const TrainerLessonsCreate = () => {
                                 />
                               </div>
                             </div>
-                          </div>
-                          <div class="row mt-4">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                               <div class="form-group">
-                                <label>Duration (slots)</label>
+                                <label>
+                                  Duration (slots){" "}
+                                  <span style={{ color: "red" }}>*</span>
+                                </label>
                                 <input
                                   type="number"
                                   name="duration"
@@ -283,7 +293,10 @@ const TrainerLessonsCreate = () => {
                           <div class="row mt-4">
                             <div class="col-md-12">
                               <div class="form-group">
-                                <label>Objective</label>
+                                <label>
+                                  Objective{" "}
+                                  <span style={{ color: "red" }}>*</span>
+                                </label>
                                 <input
                                   type="text"
                                   name="objective"
@@ -311,7 +324,9 @@ const TrainerLessonsCreate = () => {
                   <div class="col-md-3">
                     <div class="card mb-3">
                       <div class="card-header card-header-info">
-                        <h4 class="card-title">Add Skill</h4>
+                        <h4 class="card-title">
+                          Add Skill <span style={{ color: "red" }}>*</span>
+                        </h4>
                       </div>
                       <div class="card-body">
                         <button
@@ -326,7 +341,9 @@ const TrainerLessonsCreate = () => {
                     <br />
                     <div class="card">
                       <div class="card-header card-header-info">
-                        <h4 class="card-title">Add Equipment</h4>
+                        <h4 class="card-title">
+                          Add Equipment <span style={{ color: "red" }}>*</span>
+                        </h4>
                       </div>
                       <div class="card-body">
                         <button
