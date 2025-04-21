@@ -25,6 +25,7 @@ import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
 import TrainerLessonsCreate from "../pages/trainer/LessonsCreate";
 import TrainerClasses from "../pages/trainer/Classes";
 import TrainerLessonsDetails from "../pages/trainer/LessonsDetails";
+import StaffDogsDetails from "../pages/staff/DogsDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -58,6 +59,10 @@ export const routes = createBrowserRouter([
       {
         path: "dogs",
         element: <StaffDogs />,
+      },
+      {
+        path: "dogs/details/:id",
+        element: <StaffDogsDetails />,
       },
       {
         path: "accounts",

@@ -72,10 +72,6 @@ const Blogs = () => {
     return date.toLocaleString();
   };
 
-  if (loading) {
-    return <Loader />;
-  }
-
   return (
     <>
       <Head />

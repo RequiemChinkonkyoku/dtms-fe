@@ -80,11 +80,16 @@ const StaffAccountsCustomerDetails = () => {
                         <img
                           className="img"
                           src={
-                            account.imageUrl === "empty"
+                            !account || account.imageUrl === "empty"
                               ? "/path/to/default/avatar.jpg"
                               : account.imageUrl
                           }
-                          alt={account.fullName}
+                          alt={account?.fullName || "Customer"}
+                          style={{
+                            width: "150px",
+                            height: "150px",
+                            objectFit: "cover",
+                          }}
                         />
                       </div>
                       <div className="card-body">
@@ -93,6 +98,26 @@ const StaffAccountsCustomerDetails = () => {
                           Customer - Individual
                         </p>
                       </div>
+                    </div>
+                    <div className="text-center mt-3">
+                      <button
+                        type="button"
+                        className="btn btn-warning btn-sm mr-2"
+                      >
+                        Reset Password
+                      </button>
+                      {account.status === 1 ? (
+                        <button type="button" className="btn btn-danger btn-sm">
+                          Deactivate
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-success btn-sm"
+                        >
+                          Reactivate
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="col-md-9">
@@ -134,7 +159,11 @@ const StaffAccountsCustomerDetails = () => {
                               <p className="form-control-static">
                                 {new Date(
                                   account.dateOfBirth
-                                ).toLocaleDateString()}
+                                ).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })}
                               </p>
                             </div>
                           </div>
@@ -174,11 +203,13 @@ const StaffAccountsCustomerDetails = () => {
                             <div className="form-group">
                               <label>Status</label>
                               <p className="form-control-static">
-                                {account.status === 1
-                                  ? "Active"
-                                  : account.status === 0
-                                    ? "Inactive"
-                                    : "Disabled"}
+                                {account.status === 1 ? (
+                                  <span class="text-success">Active</span>
+                                ) : account.status === 0 ? (
+                                  <span class="text-warning">Inactive</span>
+                                ) : (
+                                  <span class="text-danger">Deactivated</span>
+                                )}
                               </p>
                             </div>
                           </div>
@@ -229,11 +260,7 @@ const StaffAccountsCustomerDetails = () => {
                                       />
                                     </td>
                                     <td>{dog.name}</td>
-                                    <td>
-                                      {new Date(
-                                        dog.dateOfBirth
-                                      ).toLocaleDateString()}
-                                    </td>
+                                    <td>{dog.dateOfBirth}</td>
                                     <td>
                                       {dog.gender === 0 ? "Male" : "Female"}
                                     </td>
@@ -242,9 +269,7 @@ const StaffAccountsCustomerDetails = () => {
                                     </td>
                                     <td>{dog.dogBreedName}</td>
                                     <td>
-                                      {new Date(
-                                        dog.registrationTime
-                                      ).toLocaleDateString()}
+                                      {dog.registrationTime.split(" ")[0]}
                                     </td>
                                     <td className="td-actions text-right">
                                       <button
