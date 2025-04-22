@@ -26,6 +26,7 @@ import TrainerLessonsCreate from "../pages/trainer/LessonsCreate";
 import TrainerClasses from "../pages/trainer/Classes";
 import TrainerLessonsDetails from "../pages/trainer/LessonsDetails";
 import StaffDogsDetails from "../pages/staff/DogsDetails";
+import StaffCages from "../pages/staff/Cages";
 
 export const routes = createBrowserRouter([
   {
@@ -62,7 +63,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: "dogs/details/:id",
-        element: <StaffDogsDetails   />,
+        element: <StaffDogsDetails />,
       },
       {
         path: "accounts",
@@ -95,6 +96,10 @@ export const routes = createBrowserRouter([
       {
         path: "accounts/trainer/details/:id",
         element: <StaffAccountsTrainerDetails />,
+      },
+      {
+        path: "cages",
+        element: <StaffCages />,
       },
     ],
   },
