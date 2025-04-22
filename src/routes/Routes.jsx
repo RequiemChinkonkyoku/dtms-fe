@@ -62,7 +62,7 @@ export const routes = createBrowserRouter([
       },
       {
         path: "dogs/details/:id",
-        element: <StaffDogsDetails />,
+        element: <StaffDogsDetails   />,
       },
       {
         path: "accounts",

@@ -7,6 +7,7 @@ import Sidebar from "../../assets/components/staff/Sidebar";
 import Navbar from "../../assets/components/staff/Navbar";
 import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
+import { Link } from "react-router-dom";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -449,17 +450,15 @@ const StaffDogs = () => {
                                                   : "keyboard_arrow_down"}
                                               </i>
                                             </button>
-                                            <button
-                                              type="button"
-                                              rel="tooltip"
+                                            <Link
+                                              to={`/staff/dogs/details/${dog.id}`}
                                               className="btn btn-info btn-sm"
                                               style={{ marginLeft: "8px" }}
-                                              onClick={() => handleEdit(dog)}
                                             >
                                               <i className="material-icons">
                                                 more_vert
                                               </i>
-                                            </button>
+                                            </Link>
                                           </td>
                                         </tr>
                                       ))

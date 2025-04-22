@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { Link } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -67,6 +68,7 @@ const StaffAccountsCustomerDetails = () => {
     <>
       <Head />
       <body>
+        <div className="pattern-background" />
         <div className="wrapper">
           <Sidebar />
           <div className="main-panel ps-container ps-theme-default">
@@ -272,9 +274,8 @@ const StaffAccountsCustomerDetails = () => {
                                       {dog.registrationTime.split(" ")[0]}
                                     </td>
                                     <td className="td-actions text-right">
-                                      <button
-                                        type="button"
-                                        rel="tooltip"
+                                      <Link
+                                        to={`/staff/dogs/details/${dog.id}`}
                                         className="btn btn-info btn-sm"
                                         data-original-title="View Details"
                                         title="View Details"
@@ -282,7 +283,7 @@ const StaffAccountsCustomerDetails = () => {
                                         <i className="material-icons">
                                           more_vert
                                         </i>
-                                      </button>
+                                      </Link>
                                     </td>
                                   </tr>
                                 ))}
