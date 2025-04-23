@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 
+import { TablePagination, TextField } from "@mui/material";
+
 const Blogs = () => {
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({
@@ -15,6 +20,24 @@ const Blogs = () => {
     active: 0,
     inactive: 0,
   });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const filteredBlogs = React.useMemo(() => {
+    return blogs.filter((blog) =>
+      blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [blogs, searchTerm]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -68,13 +91,12 @@ const Blogs = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
-
-  if (loading) {
-    return <Loader />;
-  }
 
   return (
     <>
@@ -147,10 +169,28 @@ const Blogs = () => {
                         <h4 className="card-title">Blog Management</h4>
                       </div>
                       <div className="card-body">
-                        <div className="toolbar">
-                          <button className="btn btn-primary">
+                        <div
+                          className="toolbar"
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "20px",
+                          }}
+                        >
+                          <TextField
+                            label="Search..."
+                            variant="outlined"
+                            size="small"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                          <Link
+                            className="btn btn-primary"
+                            to={"/staff/blogs/create"}
+                          >
                             <i className="material-icons">add</i> New Blog
-                          </button>
+                          </Link>
                         </div>
                         <div className="table-responsive">
                           <table className="table table-hover">
@@ -166,51 +206,49 @@ const Blogs = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {blogs.map((blog, index) => (
-                                <tr key={blog.id}>
-                                  <td className="text-center">{index + 1}</td>
-                                  <td>{blog.title}</td>
-                                  <td className={getStatusClass(blog.status)}>
-                                    {getStatusText(blog.status)}
-                                  </td>
-                                  <td>{formatDate(blog.timePublished)}</td>
-                                  <td>{formatDate(blog.createdTime)}</td>
-                                  <td>{formatDate(blog.lastUpdatedTime)}</td>
-                                  <td className="td-actions text-right">
-                                    <button
-                                      type="button"
-                                      rel="tooltip"
-                                      className="btn btn-info btn-sm"
-                                      data-original-title=""
-                                      title="View"
-                                    >
-                                      <i className="material-icons">
-                                        visibility
-                                      </i>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      rel="tooltip"
-                                      className="btn btn-success btn-sm"
-                                      data-original-title=""
-                                      title="Edit"
-                                    >
-                                      <i className="material-icons">edit</i>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      rel="tooltip"
-                                      className="btn btn-danger btn-sm"
-                                      data-original-title=""
-                                      title="Delete"
-                                    >
-                                      <i className="material-icons">delete</i>
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
+                              {filteredBlogs
+                                .slice(
+                                  page * rowsPerPage,
+                                  page * rowsPerPage + rowsPerPage
+                                )
+                                .map((blog, index) => (
+                                  <tr key={blog.id}>
+                                    <td className="text-center">
+                                      {page * rowsPerPage + index + 1}
+                                    </td>
+                                    <td>{blog.title}</td>
+                                    <td className={getStatusClass(blog.status)}>
+                                      {getStatusText(blog.status)}
+                                    </td>
+                                    <td>{formatDate(blog.timePublished)}</td>
+                                    <td>{formatDate(blog.createdTime)}</td>
+                                    <td>{formatDate(blog.lastUpdatedTime)}</td>
+                                    <td className="td-actions text-right">
+                                      <button
+                                        type="button"
+                                        rel="tooltip"
+                                        className="btn btn-info btn-sm"
+                                        data-original-title=""
+                                        title="View"
+                                      >
+                                        <i className="material-icons">
+                                          visibility
+                                        </i>
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
                             </tbody>
                           </table>
+                          <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            component="div"
+                            count={filteredBlogs.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                          />
                         </div>
                       </div>
                     </div>

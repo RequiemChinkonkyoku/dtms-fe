@@ -25,6 +25,9 @@ import TrainerCoursesCreate from "../pages/trainer/CoursesCreate";
 import TrainerLessonsCreate from "../pages/trainer/LessonsCreate";
 import TrainerClasses from "../pages/trainer/Classes";
 import TrainerLessonsDetails from "../pages/trainer/LessonsDetails";
+import StaffDogsDetails from "../pages/staff/DogsDetails";
+import StaffCages from "../pages/staff/Cages";
+import StaffBlogsCreate from "../pages/staff/BlogsCreate";
 
 export const routes = createBrowserRouter([
   {
@@ -60,6 +63,10 @@ export const routes = createBrowserRouter([
         element: <StaffDogs />,
       },
       {
+        path: "dogs/details/:id",
+        element: <StaffDogsDetails />,
+      },
+      {
         path: "accounts",
         element: <Accounts />,
       },
@@ -70,6 +77,10 @@ export const routes = createBrowserRouter([
       {
         path: "blogs",
         element: <Blogs />,
+      },
+      {
+        path: "blogs/create",
+        element: <StaffBlogsCreate />,
       },
       {
         path: "classes",
@@ -90,6 +101,10 @@ export const routes = createBrowserRouter([
       {
         path: "accounts/trainer/details/:id",
         element: <StaffAccountsTrainerDetails />,
+      },
+      {
+        path: "cages",
+        element: <StaffCages />,
       },
     ],
   },

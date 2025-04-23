@@ -7,6 +7,7 @@ import Sidebar from "../../assets/components/staff/Sidebar";
 import Navbar from "../../assets/components/staff/Navbar";
 import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
+import { Link } from "react-router-dom";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -25,6 +26,13 @@ import {
   Typography,
   TextField,
   TableSortLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -56,13 +64,126 @@ const StaffDogs = () => {
     dogBreedId: "",
   });
   const [dogBreeds, setDogBreeds] = useState([]);
-
+  const [breedPage, setBreedPage] = useState(0);
+  const [breedOrderBy, setBreedOrderBy] = useState("createdTime");
+  const [breedOrder, setBreedOrder] = useState("desc");
+  const [breedRowsPerPage, setBreedRowsPerPage] = useState(5);
+  const [breedSearchTerm, setBreedSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState("registrationTime");
   const [order, setOrder] = useState("desc");
   const [openRows, setOpenRows] = useState({});
+  const [isBreedModalOpen, setIsBreedModalOpen] = useState(false);
+  const [breedFormData, setBreedFormData] = useState({
+    name: "",
+    description: "",
+  });
+  const [editingBreed, setEditingBreed] = useState(null);
+  const [updateBreedFormData, setUpdateBreedFormData] = useState({
+    name: "",
+    description: "",
+    status: 1,
+  });
+
+  const handleBreedSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("/api/dogBreeds", breedFormData);
+      setDogBreeds([...dogBreeds, response.data]);
+      setIsBreedModalOpen(false);
+      setBreedFormData({ name: "", description: "" });
+    } catch (error) {
+      console.error("Error creating breed:", error);
+    }
+  };
+
+  const handleBreedEdit = (breed) => {
+    setEditingBreed(breed);
+    setUpdateBreedFormData({
+      name: breed.name,
+      description: breed.description,
+      status: breed.status,
+    });
+  };
+
+  const handleBreedUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/api/dogBreeds/${editingBreed.id}`, updateBreedFormData);
+      const updatedBreeds = dogBreeds.map((breed) =>
+        breed.id === editingBreed.id
+          ? { ...breed, ...updateBreedFormData }
+          : breed
+      );
+      setDogBreeds(updatedBreeds);
+      setEditingBreed(null);
+    } catch (error) {
+      console.error("Error updating breed:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchDogBreeds = async () => {
+      try {
+        const response = await axios.get("/api/dogBreeds");
+        setDogBreeds(response.data);
+      } catch (error) {
+        console.error("Error fetching dog breeds:", error);
+      }
+    };
+
+    fetchDogBreeds();
+  }, []);
+
+  const handleBreedChangePage = (event, newPage) => {
+    setBreedPage(newPage);
+  };
+
+  const handleBreedChangeRowsPerPage = (event) => {
+    setBreedRowsPerPage(parseInt(event.target.value, 10));
+    setBreedPage(0);
+  };
+
+  const handleBreedSort = (property) => {
+    const isAsc = breedOrderBy === property && breedOrder === "asc";
+    setBreedOrder(isAsc ? "desc" : "asc");
+    setBreedOrderBy(property);
+  };
+
+  const filteredBreeds = React.useMemo(() => {
+    const filtered = dogBreeds.filter((breed) =>
+      breed.name.toLowerCase().includes(breedSearchTerm.toLowerCase())
+    );
+
+    return filtered.sort((a, b) => {
+      if (breedOrderBy === "dogNames") {
+        // Special handling for dogNames array length
+        return breedOrder === "asc"
+          ? a.dogNames.length - b.dogNames.length
+          : b.dogNames.length - a.dogNames.length;
+      }
+
+      if (breedOrderBy === "createdTime") {
+        const [datePartA] = a[breedOrderBy].split(" ");
+        const [dayA, monthA, yearA] = datePartA.split("/");
+        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+
+        const [datePartB] = b[breedOrderBy].split(" ");
+        const [dayB, monthB, yearB] = datePartB.split("/");
+        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+
+        return breedOrder === "asc" ? dateA - dateB : dateB - dateA;
+      }
+
+      if (breedOrder === "asc") {
+        return a[breedOrderBy] < b[breedOrderBy] ? -1 : 1;
+      } else {
+        return b[breedOrderBy] < a[breedOrderBy] ? -1 : 1;
+      }
+    });
+  }, [dogBreeds, breedSearchTerm, breedOrder, breedOrderBy]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -449,17 +570,15 @@ const StaffDogs = () => {
                                                   : "keyboard_arrow_down"}
                                               </i>
                                             </button>
-                                            <button
-                                              type="button"
-                                              rel="tooltip"
+                                            <Link
+                                              to={`/staff/dogs/details/${dog.id}`}
                                               className="btn btn-info btn-sm"
                                               style={{ marginLeft: "8px" }}
-                                              onClick={() => handleEdit(dog)}
                                             >
                                               <i className="material-icons">
                                                 more_vert
                                               </i>
-                                            </button>
+                                            </Link>
                                           </td>
                                         </tr>
                                       ))
@@ -482,340 +601,262 @@ const StaffDogs = () => {
                     </div>
                   </div>
                 </div>
-
-                {editingDog && (
-                  <div
-                    className="modal show d-block"
-                    tabIndex="-1"
-                    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-                  >
-                    <div className="modal-dialog modal-lg">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h5 className="modal-title">Update Dog</h5>
-                          <button
-                            type="button"
-                            className="btn-close"
-                            onClick={handleCancelEdit}
-                            aria-label="Close"
-                          ></button>
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="card">
+                      <div className="card-header card-header-info card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">pets</i>
                         </div>
-                        <div className="modal-body">
-                          <form onSubmit={handleUpdate}>
-                            <div className="form-group mb-3">
-                              <label className="form-label">Name</label>
-                              <input
-                                type="text"
-                                name="name"
-                                className="form-control"
-                                value={updateFormData.name}
-                                onChange={handleUpdateChange}
-                                required
-                              />
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">Breed</label>
-                              <select
-                                name="dogBreedId"
-                                className="form-control"
-                                value={updateFormData.dogBreedId}
-                                onChange={handleUpdateChange}
-                                required
-                              >
-                                <option value="">Select Breed</option>
-                                {dogBreeds.map((breed) => (
-                                  <option key={breed.id} value={breed.id}>
-                                    {breed.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">
-                                Date of Birth
-                              </label>
-                              <input
-                                type="date"
-                                name="dateOfBirth"
-                                className="form-control"
-                                value={updateFormData.dateOfBirth}
-                                onChange={handleUpdateChange}
-                                required
-                              />
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">Gender</label>
-                              <select
-                                name="gender"
-                                className="form-control mt-2"
-                                value={updateFormData.gender}
-                                onChange={handleUpdateChange}
-                                required
-                              >
-                                <option value="">Select Gender</option>
-                                <option value="0">Female</option>
-                                <option value="1">Male</option>
-                              </select>
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">Status</label>
-                              <select
-                                name="status"
-                                className="form-control mt-2"
-                                value={updateFormData.status}
-                                onChange={handleUpdateChange}
-                                required
-                              >
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                              </select>
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">
-                                Customer Profile ID
-                              </label>
-                              <input
-                                type="text"
-                                name="customerProfileId"
-                                className="form-control"
-                                value={updateFormData.customerProfileId}
-                                onChange={handleUpdateChange}
-                                required
-                              />
-                            </div>
-                            <div className="form-group mb-3">
-                              <label className="form-label">Dog Breed ID</label>
-                              <input
-                                type="text"
-                                name="dogBreedId"
-                                className="form-control"
-                                value={updateFormData.dogBreedId}
-                                onChange={handleUpdateChange}
-                                required
-                              />
-                            </div>
-                            <div className="modal-footer">
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={handleCancelEdit}
-                              >
-                                Cancel
-                              </button>
-                              <button type="submit" className="btn btn-primary">
-                                Update
-                              </button>
-                            </div>
-                          </form>
+                        <h4 className="card-title">Dog Breeds</h4>
+                      </div>
+                      <div className="card-body">
+                        <div className="table-responsive">
+                          <div
+                            style={{
+                              padding: "16px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <TextField
+                              label="Search breeds..."
+                              variant="outlined"
+                              size="small"
+                              value={breedSearchTerm}
+                              onChange={(e) =>
+                                setBreedSearchTerm(e.target.value)
+                              }
+                            />
+                            <button
+                              className="btn btn-info"
+                              onClick={() => setIsBreedModalOpen(true)}
+                            >
+                              <i className="material-icons">add</i> Add Breed
+                            </button>
+                          </div>
+                          <TableContainer>
+                            <Table className="table">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell className="text-center">
+                                    #
+                                  </TableCell>
+                                  {[
+                                    ["name", "Name"],
+                                    ["dogNames", "Dogs Count"],
+                                    ["status", "Status"],
+                                    ["createdTime", "Created Date"],
+                                  ].map(([key, label]) => (
+                                    <TableCell key={key}>
+                                      <TableSortLabel
+                                        active={breedOrderBy === key}
+                                        direction={
+                                          breedOrderBy === key
+                                            ? breedOrder
+                                            : "asc"
+                                        }
+                                        onClick={() => handleBreedSort(key)}
+                                      >
+                                        {label}
+                                      </TableSortLabel>
+                                    </TableCell>
+                                  ))}
+                                  <TableCell className="text-right">
+                                    Actions
+                                  </TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {filteredBreeds
+                                  .slice(
+                                    breedPage * breedRowsPerPage,
+                                    breedPage * breedRowsPerPage +
+                                      breedRowsPerPage
+                                  )
+                                  .map((breed, index) => (
+                                    <TableRow key={breed.id}>
+                                      <td className="text-center">
+                                        {breedPage * breedRowsPerPage +
+                                          index +
+                                          1}
+                                      </td>
+                                      <td>{breed.name}</td>
+                                      <td>{breed.dogNames.length}</td>
+                                      <td
+                                        className={getStatusClass(breed.status)}
+                                      >
+                                        {getStatusText(breed.status)}
+                                      </td>
+                                      <td>{formatDate(breed.createdTime)}</td>
+                                      <td className="td-actions text-right">
+                                        <button
+                                          type="button"
+                                          className="btn btn-info btn-sm"
+                                          title="Edit"
+                                          onClick={() => handleBreedEdit(breed)}
+                                        >
+                                          <i className="material-icons">edit</i>
+                                        </button>
+                                      </td>
+                                    </TableRow>
+                                  ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                          <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            component="div"
+                            count={filteredBreeds.length}
+                            rowsPerPage={breedRowsPerPage}
+                            page={breedPage}
+                            onPageChange={handleBreedChangePage}
+                            onRowsPerPageChange={handleBreedChangeRowsPerPage}
+                          />
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
-
-                <div class="row">
-                  <div class="col-md-12">
-                    <form
-                      id="TypeValidation"
-                      class="form-horizontal"
-                      action=""
-                      method=""
-                      novalidate="novalidate"
-                      onSubmit={handleSubmit}
-                    >
-                      <div class="card ">
-                        <div class="card-header card-header-warning card-header-text">
-                          <div class="card-text">
-                            <h4 class="card-title">Create new dog</h4>
-                          </div>
-                        </div>
-                        <div class="card-body ">
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">Name</label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group is-filled has-success">
-                                <input
-                                  class="form-control valid"
-                                  type="text"
-                                  name="name"
-                                  aria-required="true"
-                                  aria-invalid="false"
-                                  value={formData.name}
-                                  onChange={handleChange}
-                                  required
-                                />
-                                <label
-                                  id="required-error"
-                                  class="error"
-                                  for="required"
-                                ></label>
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div className="row">
-                            <label className="col-sm-2 col-form-label">
-                              Breed
-                            </label>
-                            <div className="col-sm-7">
-                              <div className="form-group bmd-form-group is-filled has-success">
-                                <select
-                                  className="form-control valid"
-                                  name="dogBreedId"
-                                  value={formData.dogBreedId}
-                                  onChange={handleChange}
-                                  required
-                                  style={{
-                                    marginTop: "8px",
-                                    marginBottom: "8px",
-                                  }}
-                                >
-                                  <option value="">Select Breed</option>
-                                  {dogBreeds.map((breed) => (
-                                    <option key={breed.id} value={breed.id}>
-                                      {breed.name}
-                                    </option>
-                                  ))}
-                                </select>
-                                <label
-                                  id="required-error"
-                                  className="error"
-                                  htmlFor="required"
-                                ></label>
-                              </div>
-                            </div>
-                            <label className="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div className="row">
-                            <label className="col-sm-2 col-form-label">
-                              Date of Birth
-                            </label>
-                            <div className="col-sm-7">
-                              <div className="form-group bmd-form-group is-filled">
-                                <DatePicker
-                                  selected={
-                                    formData.dateOfBirth
-                                      ? new Date(formData.dateOfBirth)
-                                      : null
-                                  }
-                                  onChange={(date) => {
-                                    setFormData({
-                                      ...formData,
-                                      dateOfBirth: date
-                                        ? date.toISOString().split("T")[0]
-                                        : "",
-                                    });
-                                  }}
-                                  className="form-control"
-                                  dateFormat="dd/MM/yyyy"
-                                  placeholderText="Select date"
-                                  maxDate={new Date()} // Prevents future dates
-                                  showYearDropdown
-                                  scrollableYearDropdown
-                                  yearDropdownItemNumber={100}
-                                />
-                              </div>
-                            </div>
-                            <label className="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Gender
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group is-filled has-success">
-                                <select
-                                  name="gender"
-                                  className="form-control mt-2"
-                                  value={formData.gender}
-                                  onChange={handleChange}
-                                  required
-                                >
-                                  <option value="">Select Gender</option>
-                                  <option value="0">Female</option>
-                                  <option value="1">Male</option>
-                                </select>
-                                <label
-                                  id="required-error"
-                                  class="error"
-                                  for="required"
-                                ></label>
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">Image</label>
-                            <div class="col-sm-7">
-                              <input
-                                type="file"
-                                className="form-control"
-                                accept="image/*"
-                                onChange={handleFileUpload}
-                              />
-                              <label
-                                id="required-error"
-                                class="error"
-                                for="required"
-                              ></label>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                          <div class="row">
-                            <label class="col-sm-2 col-form-label">
-                              Customer Profile ID
-                            </label>
-                            <div class="col-sm-7">
-                              <div class="form-group bmd-form-group is-filled has-success">
-                                <input
-                                  class="form-control valid"
-                                  type="text"
-                                  name="customerProfileId"
-                                  aria-required="true"
-                                  aria-invalid="false"
-                                  value={formData.customerProfileId}
-                                  onChange={handleChange}
-                                  required
-                                />
-                                <label
-                                  id="required-error"
-                                  class="error"
-                                  for="required"
-                                ></label>
-                              </div>
-                            </div>
-                            <label class="col-sm-3 label-on-right">
-                              <code>required</code>
-                            </label>
-                          </div>
-                        </div>
-                        <div class="card-footer ml-auto mr-auto">
-                          <button type="submit" class="btn btn-warning">
-                            Submit<div class="ripple-container"></div>
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
                 </div>
-                {responseMessage && (
-                  <p className="text-success">{responseMessage}</p>
-                )}
-                {errorMessage && <p className="text-danger">{errorMessage}</p>}
               </div>
             </div>
           </div>
         </div>
+        {isBreedModalOpen && (
+          <Dialog
+            open={isBreedModalOpen}
+            onClose={() => setIsBreedModalOpen(false)}
+          >
+            <DialogTitle>Add New Breed</DialogTitle>
+            <DialogContent>
+              <div style={{ minWidth: "400px", marginTop: "20px" }}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label className="bmd-label-floating">Name</label>
+                  <TextField
+                    fullWidth
+                    value={breedFormData.name}
+                    onChange={(e) =>
+                      setBreedFormData({
+                        ...breedFormData,
+                        name: e.target.value,
+                      })
+                    }
+                    margin="normal"
+                  />
+                </div>
+                <div>
+                  <label className="bmd-label-floating">Description</label>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={breedFormData.description}
+                    onChange={(e) =>
+                      setBreedFormData({
+                        ...breedFormData,
+                        description: e.target.value,
+                      })
+                    }
+                    margin="normal"
+                  />
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setIsBreedModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleBreedSubmit}
+                disabled={!breedFormData.name || !breedFormData.description}
+              >
+                Create
+              </button>
+            </DialogActions>
+          </Dialog>
+        )}
+
+        {editingBreed && (
+          <Dialog
+            open={Boolean(editingBreed)}
+            onClose={() => setEditingBreed(null)}
+          >
+            <DialogTitle>Update Breed</DialogTitle>
+            <DialogContent>
+              <div style={{ minWidth: "400px", marginTop: "20px" }}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label className="bmd-label-floating">Name</label>
+                  <TextField
+                    fullWidth
+                    value={updateBreedFormData.name}
+                    onChange={(e) =>
+                      setUpdateBreedFormData({
+                        ...updateBreedFormData,
+                        name: e.target.value,
+                      })
+                    }
+                    margin="normal"
+                  />
+                </div>
+                <div style={{ marginBottom: "16px" }}>
+                  <label className="bmd-label-floating">Description</label>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={updateBreedFormData.description}
+                    onChange={(e) =>
+                      setUpdateBreedFormData({
+                        ...updateBreedFormData,
+                        description: e.target.value,
+                      })
+                    }
+                    margin="normal"
+                  />
+                </div>
+                <div>
+                  <label className="bmd-label-floating">Status</label>
+                  <FormControl fullWidth margin="normal">
+                    <Select
+                      value={updateBreedFormData.status}
+                      onChange={(e) =>
+                        setUpdateBreedFormData({
+                          ...updateBreedFormData,
+                          status: Number(e.target.value),
+                        })
+                      }
+                    >
+                      <MenuItem value={1}>Active</MenuItem>
+                      <MenuItem value={0}>Inactive</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setEditingBreed(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleBreedUpdate}
+                disabled={
+                  !updateBreedFormData.name || !updateBreedFormData.description
+                }
+              >
+                Update
+              </button>
+            </DialogActions>
+          </Dialog>
+        )}
       </body>
     </>
   );
