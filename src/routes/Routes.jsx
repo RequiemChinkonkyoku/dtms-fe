@@ -29,6 +29,7 @@ import StaffDogsDetails from "../pages/staff/DogsDetails";
 import StaffCages from "../pages/staff/Cages";
 import StaffBlogsCreate from "../pages/staff/BlogsCreate";
 import StaffBlogsDetails from "../pages/staff/BlogsDetails";
+import StaffSkills from "../pages/staff/Skills";
 
 export const routes = createBrowserRouter([
   {
@@ -110,6 +111,10 @@ export const routes = createBrowserRouter([
       {
         path: "cages",
         element: <StaffCages />,
+      },
+      {
+        path: "skills",
+        element: <StaffSkills />,
       },
     ],
   },
