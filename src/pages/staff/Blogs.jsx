@@ -42,7 +42,7 @@ const Blogs = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await axios.get("/api/blog/get-all-blogs");
+        const response = await axios.get("/api/blogs");
         if (response.data.success && response.data.objectList) {
           const blogsData = response.data.objectList;
           setBlogs(blogsData);
