@@ -90,6 +90,14 @@ const Sidebar = () => {
                 <p>Skills</p>
               </Link>
             </li>
+            <li
+              className={`nav-item ${location.pathname === "/staff/equipments" ? "active" : ""}`}
+            >
+              <Link className="nav-link" to="/staff/equipments">
+                <i className="material-icons">fitness_center</i>
+                <p>Equipments</p>
+              </Link>
+            </li>
           </ul>
           <div
             className="ps-scrollbar-x-rail"
