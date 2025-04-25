@@ -287,7 +287,6 @@ const StaffBlogsCreate = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="row mt-4">
                   <div className="col-md-12">
                     <div className="card">

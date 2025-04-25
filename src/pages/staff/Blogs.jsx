@@ -102,7 +102,7 @@ const Blogs = () => {
         return "Draft";
       case 1:
         return "Published";
-      case -1:
+      case 2:
         return "Archived";
       default:
         return "Unknown";
@@ -115,7 +115,7 @@ const Blogs = () => {
         return "text-success";
       case 0:
         return "text-warning";
-      case -1:
+      case 2:
         return "text-danger";
       default:
         return "";
@@ -279,7 +279,7 @@ const Blogs = () => {
                                           title="Edit"
                                           onClick={() =>
                                             navigate(
-                                              `/staff/blogs/edit/${blog.id}`
+                                              `/staff/blogs/details/${blog.id}`
                                             )
                                           }
                                         >
@@ -294,7 +294,7 @@ const Blogs = () => {
                                           title="View"
                                           onClick={() =>
                                             navigate(
-                                              `/staff/blogs/view/${blog.id}`
+                                              `/staff/blogs/details/${blog.id}`
                                             )
                                           }
                                         >
