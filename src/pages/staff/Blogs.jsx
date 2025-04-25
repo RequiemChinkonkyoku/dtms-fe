@@ -8,13 +8,17 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
+import { useAuth } from "../../contexts/AuthContext";
 
-import { TablePagination, TextField } from "@mui/material";
+import { TablePagination, TextField, TableSortLabel } from "@mui/material";
 
 const Blogs = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [orderBy, setOrderBy] = useState("createdTime");
+  const [order, setOrder] = useState("desc");
   const [counts, setCounts] = useState({
     total: 0,
     active: 0,
@@ -23,6 +27,12 @@ const Blogs = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSort = (column) => {
+    const isAsc = orderBy === column && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(column);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -34,10 +44,32 @@ const Blogs = () => {
   };
 
   const filteredBlogs = React.useMemo(() => {
-    return blogs.filter((blog) =>
+    const filtered = blogs.filter((blog) =>
       blog.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [blogs, searchTerm]);
+
+    return filtered.sort((a, b) => {
+      if (
+        orderBy === "createdTime" ||
+        orderBy === "lastUpdatedTime" ||
+        orderBy === "timePublished"
+      ) {
+        return order === "asc"
+          ? new Date(a[orderBy]) - new Date(b[orderBy])
+          : new Date(b[orderBy]) - new Date(a[orderBy]);
+      }
+
+      if (orderBy === "status") {
+        return order === "asc"
+          ? a[orderBy] - b[orderBy]
+          : b[orderBy] - a[orderBy];
+      }
+
+      return order === "asc"
+        ? a[orderBy].localeCompare(b[orderBy])
+        : b[orderBy].localeCompare(a[orderBy]);
+    });
+  }, [blogs, searchTerm, orderBy, order]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -197,11 +229,25 @@ const Blogs = () => {
                             <thead>
                               <tr>
                                 <th className="text-center">#</th>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Published Date</th>
-                                <th>Created Date</th>
-                                <th>Last Updated</th>
+                                {[
+                                  ["title", "Title"],
+                                  ["status", "Status"],
+                                  ["timePublished", "Published Date"],
+                                  ["createdTime", "Created Date"],
+                                  ["lastUpdatedTime", "Last Updated"],
+                                ].map(([key, label]) => (
+                                  <th key={key}>
+                                    <TableSortLabel
+                                      active={orderBy === key}
+                                      direction={
+                                        orderBy === key ? order : "asc"
+                                      }
+                                      onClick={() => handleSort(key)}
+                                    >
+                                      {label}
+                                    </TableSortLabel>
+                                  </th>
+                                ))}
                                 <th className="text-right">Actions</th>
                               </tr>
                             </thead>
@@ -224,17 +270,39 @@ const Blogs = () => {
                                     <td>{formatDate(blog.createdTime)}</td>
                                     <td>{formatDate(blog.lastUpdatedTime)}</td>
                                     <td className="td-actions text-right">
-                                      <button
-                                        type="button"
-                                        rel="tooltip"
-                                        className="btn btn-info btn-sm"
-                                        data-original-title=""
-                                        title="View"
-                                      >
-                                        <i className="material-icons">
-                                          visibility
-                                        </i>
-                                      </button>
+                                      {blog.staffId === user?.unique_name ? (
+                                        <button
+                                          type="button"
+                                          rel="tooltip"
+                                          className="btn btn-warning btn-sm"
+                                          data-original-title=""
+                                          title="Edit"
+                                          onClick={() =>
+                                            navigate(
+                                              `/staff/blogs/edit/${blog.id}`
+                                            )
+                                          }
+                                        >
+                                          <i className="material-icons">edit</i>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          rel="tooltip"
+                                          className="btn btn-info btn-sm"
+                                          data-original-title=""
+                                          title="View"
+                                          onClick={() =>
+                                            navigate(
+                                              `/staff/blogs/view/${blog.id}`
+                                            )
+                                          }
+                                        >
+                                          <i className="material-icons">
+                                            visibility
+                                          </i>
+                                        </button>
+                                      )}
                                     </td>
                                   </tr>
                                 ))}
