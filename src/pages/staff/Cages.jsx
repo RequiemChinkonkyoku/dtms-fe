@@ -62,7 +62,7 @@ const StaffCages = () => {
     try {
       await axios.post("/api/cages", newCage);
       handleCloseModal();
-      // Refresh the cages list
+
       const response = await axios.get("/api/cages");
       setCages(response.data.objectList);
     } catch (error) {

@@ -86,7 +86,6 @@ const TrainerCoursesDetails = () => {
 
   useEffect(() => {
     if (course) {
-      // Fetch lessons
       const fetchLessons = async () => {
         const lessonPromises = course.lessonIds.map(async (lessonId) => {
           try {
@@ -102,7 +101,6 @@ const TrainerCoursesDetails = () => {
         setLessons(lessonData.filter((lesson) => lesson !== null));
       };
 
-      // Fetch breeds
       const fetchBreeds = async () => {
         const breedPromises = course.dogBreedIds.map(async (breedId) => {
           try {
@@ -167,7 +165,6 @@ const TrainerCoursesDetails = () => {
     }
   }, [course]);
 
-  // Add these handlers
   const handleUpdateInputChange = (e) => {
     const { name, value } = e.target;
     setUpdateFormData((prev) => ({
@@ -181,7 +178,6 @@ const TrainerCoursesDetails = () => {
       const response = await axios.put("/api/courses", updateFormData);
       if (response.data.success) {
         setOpenUpdateModal(false);
-        // Refresh the course data
         window.location.reload();
       }
     } catch (error) {

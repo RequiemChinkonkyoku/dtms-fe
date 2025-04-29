@@ -161,7 +161,6 @@ const StaffBlogsCreate = () => {
     }
   };
 
-  // Add this useEffect for cleanup
   useEffect(() => {
     return () => {
       if (imagePreview) {

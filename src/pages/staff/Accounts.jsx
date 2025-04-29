@@ -135,7 +135,6 @@ const Accounts = () => {
         const accountsData = response.data;
         setAccounts(accountsData);
 
-        // Calculate counts based on roles
         const total = accountsData.length;
         const admin = accountsData.filter(
           (acc) => getRoleAndSubRole(acc.roleId).role === "Admin"

@@ -24,7 +24,6 @@ const TrainerLessonsDetails = () => {
         if (response.data.success) {
           setLesson(response.data.object);
 
-          // Fetch skill details
           const skillResponse = await axios.get(
             `/api/skills/${response.data.object.skillId}`
           );

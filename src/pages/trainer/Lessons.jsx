@@ -30,7 +30,6 @@ const TrainerLessons = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
 
-  // Add this function after your other useEffect hooks
   useEffect(() => {
     const fetchSkillDetails = async (skillId) => {
       try {
@@ -46,7 +45,6 @@ const TrainerLessons = () => {
       }
     };
 
-    // Fetch skill details for each lesson
     lessons.forEach((lesson) => {
       if (lesson.skillId && !skillDetails[lesson.skillId]) {
         fetchSkillDetails(lesson.skillId);
@@ -81,7 +79,6 @@ const TrainerLessons = () => {
     return status === 1 ? "Active" : "Inactive";
   };
 
-  // Add this memoized sorting function
   const sortedLessons = React.useMemo(() => {
     const comparator = (a, b) => {
       if (orderBy === "createdTime") {
@@ -244,7 +241,7 @@ const TrainerLessons = () => {
                                   ["skillId", "Skill"],
                                   ["duration", "Duration (slots)"],
                                   ["status", "Status"],
-                                  ["createdTime", "Created Date"], // Add this new column
+                                  ["createdTime", "Created Date"],
                                 ].map(([key, label]) => (
                                   <th key={key}>
                                     <TableSortLabel

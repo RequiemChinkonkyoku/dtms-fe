@@ -41,7 +41,6 @@ const TrainerClasses = () => {
         setLoading(true);
         const response = await axios.get("/api/class");
         if (response.data.success) {
-          // Filter classes where the trainer is assigned
           const trainerClasses = response.data.objectList.filter((classItem) =>
             classItem.assignedTrainers.some(
               (trainer) => trainer.id === user?.unique_name
@@ -93,7 +92,6 @@ const TrainerClasses = () => {
     setPage(0);
   };
 
-  // Filter and sort data
   const filteredData = classes
     .filter((row) =>
       Object.values(row).some((value) =>

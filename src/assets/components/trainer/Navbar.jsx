@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../../contexts/AuthContext"; // Adjust the import path as needed
+import { useAuth } from "../../../contexts/AuthContext";
 import axios from "../../../utils/axiosConfig";
 
 const Navbar = () => {
@@ -12,10 +12,10 @@ const Navbar = () => {
   const location = useLocation();
 
   const handleLogout = async (e) => {
-    e.preventDefault(); // Prevent the default anchor behavior
+    e.preventDefault();
     try {
       await logout();
-      navigate("/login"); // Redirect to login page after logout
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -37,13 +37,13 @@ const Navbar = () => {
   }, [user]);
 
   const toggleProfileDropdown = (e) => {
-    e.preventDefault(); // Prevent default anchor behavior
+    e.preventDefault();
     setIsProfileOpen(!isProfileOpen);
     if (isNotificationsOpen) setIsNotificationsOpen(false);
   };
 
   const toggleNotificationsDropdown = (e) => {
-    e.preventDefault(); // Prevent default anchor behavior
+    e.preventDefault();
     setIsNotificationsOpen(!isNotificationsOpen);
     if (isProfileOpen) setIsProfileOpen(false);
   };

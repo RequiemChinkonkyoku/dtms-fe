@@ -35,7 +35,7 @@ const TrainerLessonsCreate = () => {
     duration: "",
     objective: "",
     skillId: "",
-    lessonEquipmentDTOs: [], // Changed from equipmentIds
+    lessonEquipmentDTOs: [],
   });
   const [openSkillModal, setOpenSkillModal] = useState(false);
   const [openEquipmentModal, setOpenEquipmentModal] = useState(false);
@@ -92,7 +92,7 @@ const TrainerLessonsCreate = () => {
 
     setFormData((prevFormData) => ({
       ...prevFormData,
-      [name]: name === "equipmentIds" ? [...value] : value, // Spread the value array
+      [name]: name === "equipmentIds" ? [...value] : value,
     }));
   };
 
@@ -105,7 +105,7 @@ const TrainerLessonsCreate = () => {
         ? prev.lessonEquipmentDTOs.filter(
             (dto) => dto.equipmentId !== equipmentId
           )
-        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }], // Changed default from 0 to 1
+        : [...prev.lessonEquipmentDTOs, { equipmentId, quantity: 1 }],
     }));
   };
 
@@ -118,7 +118,6 @@ const TrainerLessonsCreate = () => {
     }));
   };
 
-  // Update the "Select All" handler
   const handleSelectAllEquipments = (allSelected) => {
     setFormData((prev) => ({
       ...prev,

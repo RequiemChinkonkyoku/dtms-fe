@@ -28,14 +28,12 @@ const StaffDashboard = () => {
         axios.get("/api/dogs"),
       ]);
 
-      // Set counts as before
       setCounts({
         classes: classesRes.data.objectList?.length || 0,
         accounts: accountsRes.data?.length || 0,
         dogs: dogsRes.data?.length || 0,
       });
 
-      // Process upcoming classes
       const now = new Date();
       const oneMonthFromNow = new Date(now.setMonth(now.getMonth() + 1));
 

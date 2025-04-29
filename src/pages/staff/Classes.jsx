@@ -17,7 +17,6 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-// Add this constant at the top of the file, after imports
 const CLASS_STATUS = {
   0: { label: "Inactive", color: "badge-secondary" },
   1: { label: "Open", color: "badge-warning" },
@@ -85,7 +84,6 @@ const StaffClasses = () => {
         const classesData = response.data.objectList || [];
         setClasses(classesData);
 
-        // Calculate counts
         const total = classesData.length;
         const inactive = classesData.filter((c) => c.status === 0).length;
         const open = classesData.filter((c) => c.status === 1).length;
@@ -95,12 +93,10 @@ const StaffClasses = () => {
 
         setCounts({ total, inactive, open, ongoing, closed, completed });
 
-        // Fetch details for each class
         await Promise.all(
           classesData.map((classItem) => fetchClassDetails(classItem.id))
         );
 
-        // Only apply minimum time after all operations are complete
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 2000 - elapsedTime);
         await new Promise((resolve) => setTimeout(resolve, remainingTime));
@@ -128,8 +124,6 @@ const StaffClasses = () => {
     setPage(0);
   };
 
-  // Filter and sort data
-  // Update filtered data to use classes array
   const filteredData = classes
     .filter((row) =>
       Object.values(row).some((value) =>
@@ -144,7 +138,6 @@ const StaffClasses = () => {
       }
     });
 
-  // Paginate data
   const paginatedData = filteredData.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
