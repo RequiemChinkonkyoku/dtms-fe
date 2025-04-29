@@ -82,6 +82,22 @@ const Sidebar = () => {
                 <p>Blogs</p>
               </Link>
             </li>
+            <li
+              className={`nav-item ${location.pathname === "/staff/skills" ? "active" : ""}`}
+            >
+              <Link className="nav-link" to="/staff/skills">
+                <i className="material-icons">psychology</i>
+                <p>Skills</p>
+              </Link>
+            </li>
+            <li
+              className={`nav-item ${location.pathname === "/staff/equipments" ? "active" : ""}`}
+            >
+              <Link className="nav-link" to="/staff/equipments">
+                <i className="material-icons">fitness_center</i>
+                <p>Equipments</p>
+              </Link>
+            </li>
           </ul>
           <div
             className="ps-scrollbar-x-rail"
