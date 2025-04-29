@@ -28,7 +28,7 @@ const PrivateRoute = () => {
   }
 
   // Extract role from the JWT token
-  const userRole = user.role; // Ensure this comes from JWT decoding
+  const userRole = user.role;
 
   // Get the base path from the current location
   const basePath = "/" + location.pathname.split("/")[1];
