@@ -38,7 +38,7 @@ const Login = () => {
       } else if (ROLE_GROUPS.TRAINER.includes(user?.role)) {
         navigate("/trainer/dashboard", { replace: true });
       } else {
-        navigate("/", { replace: true }); // Fallback route
+        navigate("/", { replace: true }); // Fallback
       }
     }
   }, [isLoggedIn, user, navigate]);

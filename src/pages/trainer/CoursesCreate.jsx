@@ -81,7 +81,7 @@ const TrainerCoursesCreate = () => {
     minTrainers: 1,
     maxTrainers: 1,
     complexity: 1,
-    categoryId: "", // Add this line
+    categoryId: "",
     lessons: [],
     breeds: [],
     prerequisites: [],
@@ -98,7 +98,6 @@ const TrainerCoursesCreate = () => {
   };
 
   const handleSubmit = async () => {
-    // Validate required fields
     const requiredFields = {
       name: "Course Name",
       description: "Description",
@@ -130,7 +129,6 @@ const TrainerCoursesCreate = () => {
           ${missingFields.map(([_, label]) => `- ${label}`).join("<br/>")}`,
       });
 
-      // Add red border to missing fields
       missingFields.forEach(([key]) => {
         const element = document.querySelector(`[name="${key}"]`);
         if (element) {
@@ -149,7 +147,6 @@ const TrainerCoursesCreate = () => {
     }
 
     try {
-      // Show loading alert
       Swal.fire({
         title: "Creating course...",
         allowOutsideClick: false,
@@ -183,7 +180,6 @@ const TrainerCoursesCreate = () => {
 
       const courseResponse = await axios.post("/api/courses", courseData);
       if (courseResponse.data.success) {
-        // Create prerequisites
         const courseId = courseResponse.data.object.id;
         for (const prerequisiteCourseId of selectedPrereqs) {
           await axios.post("/api/prerequisites", {
@@ -239,13 +235,11 @@ const TrainerCoursesCreate = () => {
     const file = event.target.files[0];
     if (file) {
       setCourseImage(file);
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
   };
 
-  // Clean up preview URL when component unmounts
   useEffect(() => {
     return () => {
       if (imagePreview) {
@@ -934,7 +928,6 @@ const TrainerCoursesCreate = () => {
                               rel="tooltip"
                               className="btn btn-primary btn-sm"
                               onClick={() => {
-                                // Redirect to lesson details page
                                 console.log(
                                   "View details of lesson:",
                                   lesson.id

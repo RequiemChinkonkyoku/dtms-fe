@@ -72,7 +72,6 @@ const TrainerDashboard = () => {
     fetchScheduleData();
   }, [user?.unique_name]);
 
-  // Update getDaySlots to be more precise
   const getDaySlots = (dayOffset) => {
     const date = new Date();
     date.setDate(date.getDate() - date.getDay() + dayOffset);
