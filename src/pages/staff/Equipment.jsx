@@ -126,7 +126,6 @@ const StaffEquipments = () => {
         const response = await axios.get("/api/equipments");
         setEquipments(response.data.objectList);
 
-        // Fetch category details for each equipment
         response.data.objectList.forEach((equipment) => {
           if (
             equipment.equipmentCategoryId &&

@@ -19,11 +19,11 @@ export const AuthProvider = ({ children }) => {
             console.log(decodedToken);
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
           } else {
-            await logout(); // Use the logout function to clean up
+            await logout();
           }
         } catch (error) {
           console.error("Token decoding failed:", error);
-          await logout(); // Clean up if token is invalid
+          await logout();
         }
       }
       setLoading(false);
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      console.log("Login Successful:", decodedToken); // Debugging
+      console.log("Login Successful:", decodedToken);
       return true;
     } catch (error) {
       console.error("Login failed:", error);
@@ -56,7 +56,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Optionally, call a logout endpoint on your server
       // await axios.post('/Auth/Logout');
     } catch (error) {
       console.error("Logout failed:", error);

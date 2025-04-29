@@ -159,7 +159,6 @@ const StaffDogs = () => {
 
     return filtered.sort((a, b) => {
       if (breedOrderBy === "dogNames") {
-        // Special handling for dogNames array length
         return breedOrder === "asc"
           ? a.dogNames.length - b.dogNames.length
           : b.dogNames.length - a.dogNames.length;
@@ -245,7 +244,6 @@ const StaffDogs = () => {
       .sort(comparator);
   }, [dogs, order, orderBy, searchTerm]);
 
-  // Fetch dogs when the component mounts
   useEffect(() => {
     const fetchDogs = async () => {
       setLoading(true);
@@ -323,14 +321,12 @@ const StaffDogs = () => {
 
       const imageUrl = await response.text();
       setImgUrl(imageUrl);
-      // Update formData with the new imageUrl
       setFormData((prev) => ({
         ...prev,
         imageUrl: imageUrl,
       }));
     } catch (error) {
       console.error("Error uploading file:", error);
-      // Handle error appropriately
     }
   };
 
@@ -338,7 +334,6 @@ const StaffDogs = () => {
     if (window.confirm("Are you sure you want to deactivate this dog?")) {
       try {
         await axios.delete(`/api/dogs/${id}`);
-        // Refresh the page to show updated status
         window.location.reload();
       } catch (error) {
         setErrorMessage("Failed to deactivate the dog. " + error.message);
@@ -423,13 +418,11 @@ const StaffDogs = () => {
     }
   };
 
-  // Add a helper function to get breed name by id
   const getBreedNameById = (breedId) => {
     const breed = dogBreeds.find((breed) => breed.id === breedId);
     return breed ? breed.name : "Unknown Breed";
   };
 
-  // if (loading) return <Loader />;
   if (error) return <p>{error}</p>;
 
   return (

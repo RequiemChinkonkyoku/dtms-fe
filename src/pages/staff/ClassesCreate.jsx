@@ -54,8 +54,8 @@ const StaffClassesCreate = () => {
     const pickedDayIndex = pickedDate.day();
 
     let daysToAdd = firstClassDay - pickedDayIndex;
-    if (daysToAdd < 0) daysToAdd += 7; // Only add 7 if the selected day is before the picked day
-    if (daysToAdd === 0) daysToAdd = 0; // If it's the same day, don't add any days
+    if (daysToAdd < 0) daysToAdd += 7;
+    if (daysToAdd === 0) daysToAdd = 0;
 
     setTrueStartDate(pickedDate.add(daysToAdd, "day"));
   };
@@ -88,7 +88,6 @@ const StaffClassesCreate = () => {
         requestBody
       );
       if (response.data) {
-        // Removed .success check since the response is a direct array
         setAvailableTrainers(response.data);
         setSelectedTrainerIds([]);
       }
@@ -102,7 +101,6 @@ const StaffClassesCreate = () => {
   const validateSlotSelection = (currentSlots) => {
     if (!selectedCourse) return true;
 
-    // Group slots by day
     const slotsByDay = currentSlots.reduce((acc, slot) => {
       const [day] = slot.split("-");
       acc[day] = (acc[day] || 0) + 1;
@@ -114,12 +112,10 @@ const StaffClassesCreate = () => {
     const requiredTotalSlots =
       selectedCourse.daysPerWeek * selectedCourse.slotsPerDay;
 
-    // Only validate if we've selected all required slots or trying to select more than allowed
     if (
       totalSelectedSlots >= requiredTotalSlots ||
       selectedDays > selectedCourse.daysPerWeek
     ) {
-      // Check number of days
       if (selectedDays !== selectedCourse.daysPerWeek) {
         Swal.fire({
           icon: "warning",
@@ -130,7 +126,6 @@ const StaffClassesCreate = () => {
         return false;
       }
 
-      // Check slots per day
       const invalidDays = Object.entries(slotsByDay).filter(
         ([_, count]) => count !== selectedCourse.slotsPerDay
       );
@@ -167,12 +162,10 @@ const StaffClassesCreate = () => {
     );
   };
 
-  // Add this useEffect to handle schedule card unlock
   useEffect(() => {
     setIsScheduleEnabled(!!selectedCourse);
   }, [selectedCourse]);
 
-  // Add this useEffect to handle trainer card unlock
   useEffect(() => {
     setIsTrainerEnabled(!!startDate && selectedSlots.length > 0);
   }, [startDate, selectedSlots]);
@@ -201,12 +194,10 @@ const StaffClassesCreate = () => {
     fetchSchedules();
   }, []);
 
-  // Add new state at the top with other states
   const [categoryName, setCategoryName] = useState("");
   const [lessonTitles, setLessonTitle] = useState([]);
   const [dogBreedNames, setDogBreedNames] = useState([]);
 
-  // Add new function after other fetch functions
   const fetchCategoryName = async (categoryId) => {
     try {
       const response = await axios.get(`/api/categories/${categoryId}`);
@@ -218,12 +209,11 @@ const StaffClassesCreate = () => {
     }
   };
 
-  // Modify fetchCourseDetails to include category fetch
   const fetchCourseDetails = async (courseId) => {
     try {
       setLoading(true);
-      setSelectedSlots([]); // Clear selected slots
-      setSelectedTrainerIds([]); // Clear selected trainers
+      setSelectedSlots([]);
+      setSelectedTrainerIds([]);
       const response = await axios.get(`/api/courses/${courseId}`);
       if (response.data.success) {
         setSelectedCourse(response.data.object);
@@ -246,7 +236,7 @@ const StaffClassesCreate = () => {
     try {
       const requestBody = {
         name: className,
-        startingDate: trueStartDate.format("YYYY-MM-DD"), // Use trueStartDate instead
+        startingDate: trueStartDate.format("YYYY-MM-DD"),
         courseId: selectedCourse?.id,
         trainerIds: selectedTrainerIds,
         slotDatas: formattedSlots,
@@ -597,7 +587,6 @@ const StaffClassesCreate = () => {
                                     {schedule.startTime} - {schedule.endTime}
                                   </td>
                                   {[...Array(7)].map((_, index) => {
-                                    // Fix: directly use index as dayIndex (0 = Sunday, 6 = Saturday)
                                     const dayIndex = index;
                                     const slotKey = `${dayIndex}-${schedule.id}`;
                                     const isSelected =
@@ -650,7 +639,7 @@ const StaffClassesCreate = () => {
                                               calculateTrueStartDate(
                                                 startDate,
                                                 updatedSlots
-                                              ); // Add this line
+                                              );
                                             }
                                           }}
                                           style={{

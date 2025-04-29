@@ -4,8 +4,6 @@ import { AuthProvider } from "../contexts/AuthContext";
 import PrivateRoute from "./PrivateRoute";
 
 import Login from "../pages/Login";
-import DogBreedTable from "../pages/staff/DogBreedManagement";
-import DogDocumentTable from "../pages/staff/DogDocumentManagement";
 import ForgotPassword from "../pages/ForgotPassword";
 import Accounts from "../pages/staff/Accounts";
 import AdminDashboard from "../pages/admin/Dashboard";
@@ -122,22 +120,6 @@ export const routes = createBrowserRouter([
         element: <StaffEquipments />,
       },
     ],
-  },
-  {
-    path: "/DogBreedTable",
-    element: (
-      <AuthProvider>
-        <DogBreedTable />
-      </AuthProvider>
-    ),
-  },
-  {
-    path: "/DogDocumentTable",
-    element: (
-      <AuthProvider>
-        <DogDocumentTable />
-      </AuthProvider>
-    ),
   },
   {
     path: "/admin",

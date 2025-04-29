@@ -25,7 +25,6 @@ const StaffClassesDetails = () => {
   const [classDetails, setClassDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Add new state variables for modals
   const [showOpenRegModal, setShowOpenRegModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showOpenClassModal, setShowOpenClassModal] = useState(false);

@@ -79,7 +79,6 @@ const Blogs = () => {
           const blogsData = response.data.objectList;
           setBlogs(blogsData);
 
-          // Calculate counts
           const total = blogsData.length;
           const active = blogsData.filter((blog) => blog.status === 1).length;
           const inactive = blogsData.filter((blog) => blog.status !== 1).length;
