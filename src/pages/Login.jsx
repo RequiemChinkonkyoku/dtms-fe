@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
 import Footer from "../assets/components/auth/Footer";
 import LoaderLogin from "../assets/components/auth/LoaderLogin";
+import { showToast } from "../utils/toastConfig";
 
 const Login = () => {
   const [loading, setLoading] = useState();
@@ -66,10 +67,12 @@ const Login = () => {
         setButtonState("authorized");
         await new Promise((resolve) => setTimeout(resolve, 500));
         setIsLoggedIn(true);
+        showToast.success("Login successful!");
       } else {
         setButtonState("error");
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setButtonState("initial");
+        showToast.error("Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -115,7 +118,7 @@ const Login = () => {
                   >
                     <div className="card card-login">
                       <div className="card-header card-header-info text-center">
-                        <h4 className="card-title">DTMS STAFF PORTAL</h4>
+                        <h4 className="card-title">P.A.W STAFF PORTAL</h4>
                         <div className="social-line">
                           <i className="material-icons">pets</i>
                         </div>
