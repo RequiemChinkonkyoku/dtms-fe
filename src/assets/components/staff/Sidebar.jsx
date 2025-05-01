@@ -48,6 +48,14 @@ const Sidebar = () => {
                       <p> Dashboard </p>
                     </Link>
                   </li>
+                  <li
+                    className={`nav-item ${location.pathname === "/staff/statistics" ? "active" : ""}`}
+                  >
+                    <Link className="nav-link" to="/staff/statistics">
+                      <i className="material-icons">analytics</i>
+                      <p> Statisics </p>
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </div>

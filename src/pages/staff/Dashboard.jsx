@@ -7,14 +7,46 @@ import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 
+import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { Badge } from "@mui/material";
+import { PickersDay } from "@mui/x-date-pickers";
+
+function CustomDay(props) {
+  const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
+
+  const isHighlighted = highlightedDays.some(
+    (d) => d.format("YYYY-MM-DD") === day.format("YYYY-MM-DD")
+  );
+
+  return (
+    <Badge
+      key={day.toString()}
+      overlap="circular"
+      badgeContent={isHighlighted ? "●" : undefined}
+      color="info"
+    >
+      <PickersDay
+        {...other}
+        outsideCurrentMonth={outsideCurrentMonth}
+        day={day}
+      />
+    </Badge>
+  );
+}
+
 const StaffDashboard = () => {
   const [counts, setCounts] = useState({
     classes: 0,
     accounts: 0,
     dogs: 0,
   });
+  const [recentDogs, setRecentDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [upcomingClasses, setUpcomingClasses] = useState([]);
+  const [customerCount, setCustomerCount] = useState(0);
+  const [highlightedDays, setHighlightedDays] = useState([]);
 
   useEffect(() => {
     fetchCounts();
@@ -35,6 +67,16 @@ const StaffDashboard = () => {
       });
 
       const now = new Date();
+      const oneMonthAgo = new Date(now.setDate(now.getDate() - 30));
+
+      const recentDogs =
+        dogsRes.data?.filter((dog) => {
+          const registrationDate = new Date(dog.registrationTime);
+          return (
+            registrationDate >= oneMonthAgo && registrationDate <= new Date()
+          );
+        }) || [];
+
       const oneMonthFromNow = new Date(now.setMonth(now.getMonth() + 1));
 
       const upcoming =
@@ -43,7 +85,25 @@ const StaffDashboard = () => {
           return startDate > new Date() && startDate <= oneMonthFromNow;
         }) || [];
 
+      const classStartDates =
+        classesRes.data.objectList?.map((classItem) =>
+          dayjs(classItem.startingDate)
+        ) || [];
+      setHighlightedDays(classStartDates);
+
+      // Count customers based on roleId
+      const customerRoleIds = [
+        "a4b5c67890d1e2f3a4b5c67890d1e2f3",
+        "b5c67890d1e2f3a4b5c67890d1e2f3a4",
+      ];
+      const customerCount =
+        accountsRes.data?.filter((account) =>
+          customerRoleIds.includes(account.roleId)
+        ).length || 0;
+
       setUpcomingClasses(upcoming);
+      setRecentDogs(recentDogs);
+      setCustomerCount(customerCount); // Set the customer count
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -63,56 +123,93 @@ const StaffDashboard = () => {
             <div className="content">
               <div className="container-fluid">
                 <div className="row">
-                  <div className="col-lg-4 col-md-6 col-sm-6">
-                    <div className="card card-stats">
-                      <div className="card-header card-header-warning card-header-icon">
-                        <div className="card-icon">
-                          <i className="material-icons">class</i>
+                  <div className="col-md-8">
+                    <div className="row">
+                      <div className="col-md-4 col-sm-6">
+                        <div className="card card-stats">
+                          <div className="card-header card-header-info card-header-icon">
+                            <div className="card-icon">
+                              <i className="material-icons">pets</i>
+                            </div>
+                            <p className="card-category">Total dogs</p>
+                            <h3 className="card-title">{counts.dogs}</h3>
+                          </div>
+                          <div className="card-footer">
+                            <div className="stats">
+                              <i className="material-icons">update</i> All dogs
+                              in the database
+                            </div>
+                          </div>
                         </div>
-                        <p className="card-category">Total Classes</p>
-                        <h3 className="card-title">{counts.classes}</h3>
                       </div>
-                      <div className="card-footer">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                      <div className="col-md-4 col-sm-6">
+                        <div className="card card-stats">
+                          <div className="card-header card-header-info card-header-icon">
+                            <div className="card-icon">
+                              <i className="material-icons">post_add</i>
+                            </div>
+                            <p className="card-category">Recent dogs</p>
+                            <h3 className="card-title">{recentDogs.length}</h3>
+                          </div>
+                          <div className="card-footer">
+                            <div className="stats">
+                              <i className="material-icons">update</i> Newly
+                              registered dogs in 30 days
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-4 col-sm-6">
+                        <div className="card card-stats">
+                          <div className="card-header card-header-info card-header-icon">
+                            <div className="card-icon">
+                              <i className="material-icons">post_add</i>
+                            </div>
+                            <p className="card-category">Customers</p>
+                            <h3 className="card-title">{customerCount}</h3>{" "}
+                            {/* Display customer count */}
+                          </div>
+                          <div className="card-footer">
+                            <div className="stats">
+                              <i className="material-icons">update</i> Active
+                              customers
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
-                    <div className="card card-stats">
-                      <div className="card-header card-header-rose card-header-icon">
-                        <div className="card-icon">
-                          <i className="material-icons">group</i>
-                        </div>
-                        <p className="card-category">Total Accounts</p>
-                        <h3 className="card-title">{counts.accounts}</h3>
-                      </div>
-                      <div className="card-footer">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
-                    <div className="card card-stats">
-                      <div className="card-header card-header-info card-header-icon">
-                        <div className="card-icon">
-                          <i className="material-icons">pets</i>
-                        </div>
-                        <p className="card-category">Total Dogs</p>
-                        <h3 className="card-title">{counts.dogs}</h3>
-                      </div>
-                      <div className="card-footer">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                  <div className="col-md-4">
+                    <div className="col-md-12">
+                      <div className="card ">
+                        {/* <div className="card-header card-header-info card-header-icon">
+                          <div className="card-icon">
+                            <i className="material-icons">post_add</i>
+                          </div>
+                          <h4 className="card-title">Calendar</h4>
+                        </div> */}
+                        <div className="card-body">
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DateCalendar
+                              value={dayjs()}
+                              readOnly
+                              slots={{
+                                day: CustomDay,
+                              }}
+                              slotProps={{
+                                day: {
+                                  highlightedDays,
+                                },
+                              }}
+                            />
+                          </LocalizationProvider>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="row">
+
+                {/* <div className="row">
                   <div className="col-lg-8 col-md-8">
                     <div className="card">
                       <div className="card-header card-header-warning">
@@ -187,7 +284,7 @@ const StaffDashboard = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
