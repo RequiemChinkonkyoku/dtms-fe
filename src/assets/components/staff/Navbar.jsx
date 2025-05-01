@@ -39,43 +39,33 @@ const Navbar = () => {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.startsWith("/staff")) {
-      const subPath = path.replace("/staff/", "").split("/")[0];
-      switch (subPath) {
-        case "dashboard":
-          return "STAFF/DASHBOARD";
-        case "classes":
-          return location.pathname.includes("/create")
-            ? "STAFF/CLASSES/CREATE"
-            : location.pathname.includes("/edit")
-              ? "STAFF/CLASSES/EDIT"
-              : location.pathname.includes("/details")
-                ? "STAFF/CLASSES/DETAILS"
-                : "STAFF/CLASSES";
-        case "courses":
-          return location.pathname.includes("/details")
-            ? "STAFF/COURSES/DETAILS"
-            : "STAFF/COURSES";
-        case "trainers":
-          return location.pathname.includes("/details")
-            ? "STAFF/TRAINERS/DETAILS"
-            : "STAFF/TRAINERS";
-        case "customers":
-          return location.pathname.includes("/details")
-            ? "STAFF/CUSTOMERS/DETAILS"
-            : "STAFF/CUSTOMERS";
-        case "dogs":
-          return location.pathname.includes("/details")
-            ? "STAFF/DOGS/DETAILS"
-            : "STAFF/DOGS";
-        case "profile":
-          return "STAFF/PROFILE";
-        case "settings":
-          return "STAFF/SETTINGS";
-        case "notifications":
-          return "STAFF/NOTIFICATIONS";
-        default:
-          return "STAFF";
-      }
+      const segments = path.replace("/staff/", "").split("/");
+      let title = [];
+
+      segments.forEach((segment, index) => {
+        switch (segment) {
+          case "dashboard":
+            title.push("DASHBOARD");
+            break;
+          case "classes":
+            title.push("CLASSES");
+            break;
+          case "create":
+            title.push("CREATE");
+            break;
+        }
+      });
+
+      return title.map((segment, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+              navigate_next
+            </i>
+          )}
+          <span>{segment}</span>
+        </React.Fragment>
+      ));
     }
     return "STAFF";
   };
@@ -95,13 +85,12 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-transparent navbar-absolute">
       <div className="container-fluid">
-        <div className="navbar-wrapper d-flex align-items-center">
-          <div className="navbar-minimize">
-            {/* Commented out minimize button */}
-          </div>
-          <a className="navbar-brand" href="#">
-            {getPageTitle()}
-          </a>
+        <div className="navbar-brand d-flex align-items-center">
+          <i className="material-icons mr-1">home</i>
+          <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+            navigate_next
+          </i>
+          {getPageTitle()}
         </div>
         <button
           aria-controls="navigation-index"

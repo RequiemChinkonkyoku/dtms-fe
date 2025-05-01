@@ -10,7 +10,7 @@ const Sidebar = () => {
       <div
         className="sidebar"
         data-background-color="black"
-        data-color="orange"
+        data-color="azure"
         style={{
           backgroundImage: `url(${sidebarBg})`,
           backgroundSize: "cover",
@@ -18,8 +18,19 @@ const Sidebar = () => {
         }}
       >
         <div className="logo">
-          <a className="simple-text logo-mini">P</a>
-          <a className="simple-text logo-normal">DTMS</a>
+          <a className="simple-text logo-mini">
+            <img
+              src="/pawicon.ico"
+              alt="PAW"
+              style={{ height: "40px", width: "40px" }}
+            />
+          </a>
+          <a
+            className="simple-text logo-normal"
+            style={{ display: "flex", alignItems: "center", height: "50px" }}
+          >
+            P.A.W
+          </a>
         </div>
         <div
           className="sidebar-wrapper ps-container ps-theme-default"

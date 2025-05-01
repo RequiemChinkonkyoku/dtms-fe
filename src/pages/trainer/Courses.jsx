@@ -10,6 +10,11 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import CustomFilter from "../../assets/components/common/CustomFilter";
+
 const TrainerCourses = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -19,6 +24,7 @@ const TrainerCourses = () => {
   const [orderBy, setOrderBy] = useState("createdTime");
   const [order, setOrder] = useState("desc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [complexityFilter, setComplexityFilter] = useState("all");
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
@@ -37,19 +43,6 @@ const TrainerCourses = () => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-  };
-
-  const getComplexityText = (complexity) => {
-    switch (complexity) {
-      case 1:
-        return "Basic";
-      case 2:
-        return "Intermediate";
-      case 3:
-        return "Advanced";
-      default:
-        return "Unknown";
-    }
   };
 
   const getStatusText = (status) => {
@@ -89,11 +82,17 @@ const TrainerCourses = () => {
     };
 
     return [...courses]
-      .filter((course) =>
-        course.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter((course) => {
+        const matchesSearch = course.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesComplexity =
+          complexityFilter === "all" ||
+          course.complexity === parseInt(complexityFilter);
+        return matchesSearch && matchesComplexity;
+      })
       .sort(comparator);
-  }, [courses, order, orderBy, searchTerm]);
+  }, [courses, order, orderBy, searchTerm, complexityFilter]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -159,13 +158,27 @@ const TrainerCourses = () => {
                                 gap: "16px",
                               }}
                             >
-                              <TextField
-                                label="Search course..."
-                                variant="outlined"
-                                size="small"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                              />
+                              <div style={{ display: "flex", gap: "16px" }}>
+                                <CustomSearch
+                                  value={searchTerm}
+                                  onChange={setSearchTerm}
+                                  setPage={setPage}
+                                />
+                                <CustomFilter
+                                  value={complexityFilter}
+                                  onChange={setComplexityFilter}
+                                  setPage={setPage}
+                                  label="Complexity"
+                                  options={[
+                                    { value: "all", label: "All Complexity" },
+                                    { value: "1", label: "Beginner" },
+                                    { value: "2", label: "Intermediate" },
+                                    { value: "3", label: "Advanced" },
+                                    { value: "4", label: "Expert" },
+                                    { value: "5", label: "Master" },
+                                  ]}
+                                />
+                              </div>
                               <button
                                 className="btn btn-primary"
                                 onClick={() =>
@@ -176,95 +189,82 @@ const TrainerCourses = () => {
                                 Course
                               </button>
                             </div>
-                            <table className="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th className="text-center">#</th>
-                                  {[
-                                    ["name", "Name"],
-                                    ["durationInWeeks", "Duration"],
-                                    ["daysPerWeek", "Days/Week"],
-                                    ["slotsPerDay", "Slots/Day"],
-                                    ["complexity", "Complexity"],
-                                    ["status", "Status"],
-                                    ["createdTime", "Created Date"],
-                                  ].map(([key, label]) => (
-                                    <th key={key}>
-                                      <TableSortLabel
-                                        active={orderBy === key}
-                                        direction={
-                                          orderBy === key ? order : "asc"
-                                        }
-                                        onClick={() => handleSort(key)}
-                                      >
-                                        {label}
-                                      </TableSortLabel>
-                                    </th>
-                                  ))}
-                                  <th className="text-right">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {sortedCourses
-                                  .slice(
-                                    page * rowsPerPage,
-                                    page * rowsPerPage + rowsPerPage
-                                  )
-                                  .map((course, index) => (
-                                    <tr key={course.id}>
-                                      <td className="text-center">
-                                        {page * rowsPerPage + index + 1}
-                                      </td>
-                                      <td>{course.name}</td>
-                                      <td>{course.durationInWeeks} week(s)</td>
-                                      <td>{course.daysPerWeek} day(s)</td>
-                                      <td>{course.slotsPerDay} slot(s)</td>
-                                      <td style={{ verticalAlign: "middle" }}>
-                                        {[...Array(5)].map((_, index) => (
-                                          <i
-                                            key={index}
-                                            className="material-icons"
-                                            style={{ fontSize: "18px" }}
-                                          >
-                                            {index < course.complexity
-                                              ? "star"
-                                              : "star_border"}
-                                          </i>
-                                        ))}
-                                      </td>
-                                      <td
-                                        className={getStatusClass(
-                                          course.status
-                                        )}
-                                      >
-                                        {getStatusText(course.status)}
-                                      </td>
-                                      <td>{formatDate(course.createdTime)}</td>
-                                      <td className="td-actions text-right">
-                                        <button
-                                          type="button"
-                                          rel="tooltip"
-                                          className="btn btn-info btn-sm"
-                                          data-original-title="View Details"
-                                          title="View Details"
-                                          onClick={() =>
-                                            navigate(
-                                              `/trainer/courses/details/${course.id}`
-                                            )
-                                          }
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                {
+                                  key: "durationInWeeks",
+                                  label: "Duration",
+                                  render: (value) => `${value} week(s)`,
+                                },
+                                {
+                                  key: "daysPerWeek",
+                                  label: "Days/Week",
+                                  render: (value) => `${value} day(s)`,
+                                },
+                                {
+                                  key: "slotsPerDay",
+                                  label: "Slots/Day",
+                                  render: (value) => `${value} slot(s)`,
+                                },
+                                {
+                                  key: "complexity",
+                                  label: "Complexity",
+                                  render: (value) => (
+                                    <div style={{ verticalAlign: "middle" }}>
+                                      {[...Array(5)].map((_, index) => (
+                                        <i
+                                          key={index}
+                                          className="material-icons"
+                                          style={{ fontSize: "18px" }}
                                         >
-                                          <i className="material-icons">
-                                            more_vert
-                                          </i>
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  ))}
-                              </tbody>
-                            </table>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                                          {index < value
+                                            ? "star"
+                                            : "star_border"}
+                                        </i>
+                                      ))}
+                                    </div>
+                                  ),
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedCourses}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  rel="tooltip"
+                                  className="btn btn-info btn-sm"
+                                  data-original-title="View Details"
+                                  title="View Details"
+                                  onClick={() =>
+                                    navigate(
+                                      `/trainer/courses/details/${row.id}`
+                                    )
+                                  }
+                                >
+                                  <i className="material-icons">more_vert</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedCourses.length}
                               rowsPerPage={rowsPerPage}
                               page={page}
