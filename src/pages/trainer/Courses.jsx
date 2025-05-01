@@ -133,7 +133,10 @@ const TrainerCourses = () => {
                         <div className="card-icon">
                           <i className="material-icons">school</i>
                         </div>
-                        <h4 className="card-title">Courses</h4>
+                        <h4 className="card-title">Course management</h4>
+                        <p class="card-category text-muted">
+                          Create new course, view details and manage them.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (

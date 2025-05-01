@@ -193,7 +193,10 @@ const TrainerLessons = () => {
                       <div className="card-icon">
                         <i className="material-icons">pets</i>
                       </div>
-                      <h4 className="card-title">Lesson List</h4>
+                      <h4 className="card-title">Lesson management</h4>
+                      <p class="card-category text-muted">
+                        Create new lesson, view details and manage them.
+                      </p>
                     </div>
                     <div className="card-body">
                       {loading ? (

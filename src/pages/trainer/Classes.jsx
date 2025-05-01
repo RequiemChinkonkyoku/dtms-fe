@@ -132,10 +132,13 @@ const TrainerClasses = () => {
               <div className="row">
                 <div className="col-md-12">
                   <div className="card">
-                    <div className="card-header card-header-primary">
-                      <h4 className="card-title">My Classes</h4>
-                      <p className="card-category">
-                        Classes you are assigned to
+                    <div className="card-header card-header-primary card-header-icon">
+                      <div className="card-icon">
+                        <i className="material-icons">category</i>
+                      </div>
+                      <h4 className="card-title">Your classes</h4>
+                      <p class="card-category text-muted">
+                        Check out the classes you are assigned to.
                       </p>
                     </div>
                     <div className="card-body">
@@ -232,9 +235,14 @@ const TrainerClasses = () => {
               <div className="row mt-4">
                 <div className="col-md-12">
                   <div className="card">
-                    <div className="card-header card-header-info">
-                      <h4 className="card-title">Class Schedule</h4>
-                      <p className="card-category">Your upcoming classes</p>
+                    <div className="card-header card-header-info card-header-icon">
+                      <div className="card-icon">
+                        <i className="material-icons">calendar_today</i>
+                      </div>
+                      <h4 className="card-title">Your class schedule</h4>
+                      <p class="card-category text-muted">
+                        View all of your class schedule.
+                      </p>
                     </div>
                     <div className="card-body">
                       {loading ? (
