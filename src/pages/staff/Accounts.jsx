@@ -12,6 +12,10 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomFilter from "../../assets/components/common/CustomFilter";
 
 import { useNavigate } from "react-router-dom";
 import { useLoading } from "../../contexts/LoadingContext";
@@ -26,6 +30,7 @@ const Accounts = () => {
   const [order, setOrder] = useState("desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [counts, setCounts] = useState({
     total: 0,
     admin: 0,
@@ -85,12 +90,18 @@ const Accounts = () => {
     setPage(newPage);
   };
 
+  // const handleChangeRowsPerPage = (event) => {
+  //   setRowsPerPage(parseInt(event.target.value, 10));
+  //   setPage(0);
+  // };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const handleSort = (property) => {
+    setPage(0); // Reset to first page
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -120,10 +131,15 @@ const Accounts = () => {
         const { role } = getRoleAndSubRole(account.roleId);
         const matchesRole =
           roleFilter === "all" || role.toLowerCase() === roleFilter;
-        return matchesSearch && matchesRole;
+        const matchesStatus =
+          statusFilter === "all" ||
+          (statusFilter === "1" && account.status === 1) ||
+          (statusFilter === "0" && account.status === 0) ||
+          (statusFilter === "-1" && account.status === -1);
+        return matchesSearch && matchesRole && matchesStatus;
       })
       .sort(comparator);
-  }, [accounts, order, orderBy, searchTerm, roleFilter]);
+  }, [accounts, order, orderBy, searchTerm, roleFilter, statusFilter]);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -291,6 +307,10 @@ const Accounts = () => {
                           <i className="material-icons">groups</i>
                         </div>
                         <h4 className="card-title">Account management</h4>
+                        <p class="card-category text-muted">
+                          Create new accounts, view account details, and manage
+                          their permissions.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -316,125 +336,101 @@ const Accounts = () => {
                               }}
                             >
                               <div style={{ display: "flex", gap: "16px" }}>
-                                <TextField
-                                  label="Search..."
-                                  variant="outlined"
-                                  size="small"
+                                <CustomSearch
                                   value={searchTerm}
-                                  onChange={(e) =>
-                                    setSearchTerm(e.target.value)
-                                  }
+                                  onChange={setSearchTerm}
+                                  setPage={setPage}
                                 />
-                                <TextField
-                                  select
-                                  label="Role"
+                                <CustomFilter
                                   value={roleFilter}
-                                  onChange={(e) =>
-                                    setRoleFilter(e.target.value)
-                                  }
-                                  variant="outlined"
-                                  size="small"
-                                  style={{ minWidth: "120px" }}
-                                >
-                                  <MenuItem value="all">All Roles</MenuItem>
-                                  <MenuItem value="admin">Admin</MenuItem>
-                                  <MenuItem value="staff">Staff</MenuItem>
-                                  <MenuItem value="trainer">Trainer</MenuItem>
-                                  <MenuItem value="customer">Customer</MenuItem>
-                                </TextField>
+                                  onChange={setRoleFilter}
+                                  setPage={setPage}
+                                  label="Role"
+                                  options={[
+                                    { value: "all", label: "All Roles" },
+                                    { value: "admin", label: "Admin" },
+                                    { value: "staff", label: "Staff" },
+                                    { value: "trainer", label: "Trainer" },
+                                    { value: "customer", label: "Customer" },
+                                  ]}
+                                />
+                                <CustomFilter
+                                  value={statusFilter}
+                                  onChange={setStatusFilter}
+                                  setPage={setPage}
+                                  label="Status"
+                                  options={[
+                                    { value: "all", label: "All Status" },
+                                    { value: "1", label: "Active" },
+                                    { value: "0", label: "Inactive" },
+                                    { value: "-1", label: "Disabled" },
+                                  ]}
+                                />
                               </div>
                               <button className="btn btn-info">
                                 <i className="material-icons">add</i> Create
                                 Account
                               </button>
                             </div>
-                            <table className="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th className="text-center">#</th>
-                                  {[
-                                    ["username", "Username"],
-                                    ["email", "Email"],
-                                    ["fullName", "Full Name"],
-                                    ["roleId", "Role"],
-                                    ["subRole", "Position"],
-                                    ["status", "Status"],
-                                    ["registrationTime", "Registration Date"],
-                                  ].map(([key, label]) => (
-                                    <th key={key}>
-                                      <TableSortLabel
-                                        active={orderBy === key}
-                                        direction={
-                                          orderBy === key ? order : "asc"
-                                        }
-                                        onClick={() => handleSort(key)}
-                                      >
-                                        {label}
-                                      </TableSortLabel>
-                                    </th>
-                                  ))}
-                                  <th className="text-right">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {sortedAccounts
-                                  .slice(
-                                    page * rowsPerPage,
-                                    page * rowsPerPage + rowsPerPage
-                                  )
-                                  .map((account, index) => {
-                                    const { role, subRole } = getRoleAndSubRole(
-                                      account.roleId
-                                    );
-                                    return (
-                                      <tr key={account.id}>
-                                        <td className="text-center">
-                                          {page * rowsPerPage + index + 1}
-                                        </td>
-                                        <td>{account.username}</td>
-                                        <td>{account.email}</td>
-                                        <td>{account.fullName}</td>
-                                        <td>{role}</td>
-                                        <td>{subRole}</td>
-                                        <td
-                                          className={getStatusClass(
-                                            account.status
-                                          )}
-                                        >
-                                          {getStatusText(account.status)}
-                                        </td>
-                                        <td>
-                                          {formatDate(account.registrationTime)}
-                                        </td>
-                                        <td className="td-actions text-right">
-                                          <button
-                                            type="button"
-                                            rel="tooltip"
-                                            className="btn btn-info btn-sm"
-                                            data-original-title="View Details"
-                                            title="View Details"
-                                            onClick={() =>
-                                              handleViewDetails(account)
-                                            }
-                                          >
-                                            <i className="material-icons">
-                                              more_vert
-                                            </i>
-                                          </button>
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                              </tbody>
-                            </table>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "username", label: "Username" },
+                                { key: "email", label: "Email" },
+                                { key: "fullName", label: "Full Name" },
+                                {
+                                  key: "roleId",
+                                  label: "Role",
+                                  render: (value, row) =>
+                                    getRoleAndSubRole(value).role,
+                                },
+                                {
+                                  key: "roleId",
+                                  label: "Position",
+                                  render: (value, row) =>
+                                    getRoleAndSubRole(value).subRole,
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value, row) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "registrationTime",
+                                  label: "Registration Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedAccounts}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  rel="tooltip"
+                                  className="btn btn-info btn-sm"
+                                  data-original-title="View Details"
+                                  title="View Details"
+                                  onClick={() => handleViewDetails(row)}
+                                >
+                                  <i className="material-icons">more_vert</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedAccounts.length}
                               rowsPerPage={rowsPerPage}
                               page={page}
                               onPageChange={handleChangePage}
-                              onRowsPerPageChange={handleChangeRowsPerPage}
+                              onRowsPerPageChange={(e) =>
+                                handleChangeRowsPerPage(e)
+                              }
                             />
                           </div>
                         )}
