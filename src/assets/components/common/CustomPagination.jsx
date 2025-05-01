@@ -9,7 +9,8 @@ const CustomPagination = ({
   onRowsPerPageChange,
 }) => {
   const pageCount = Math.ceil(count / rowsPerPage);
-  const pages = Array.from({ length: pageCount }, (_, i) => i);
+  const startItem = page * rowsPerPage + 1;
+  const endItem = Math.min((page + 1) * rowsPerPage, count);
 
   const handlePageClick = (newPage) => {
     onPageChange(null, newPage);
@@ -19,7 +20,7 @@ const CustomPagination = ({
     <div className="d-flex justify-content-end align-items-center gap-3">
       <TextField
         select
-        label="Row per page"
+        label="Rows per page"
         value={rowsPerPage}
         onChange={onRowsPerPageChange}
         variant="outlined"
@@ -37,6 +38,26 @@ const CustomPagination = ({
             href="#"
             onClick={(e) => {
               e.preventDefault();
+              handlePageClick(0);
+            }}
+            aria-label="First"
+          >
+            <span aria-hidden="true">
+              <i className="fa fa-angle-double-left" aria-hidden="true"></i>
+              <i
+                className="fa fa-angle-double-left"
+                aria-hidden="true"
+                style={{ marginLeft: "-13px" }}
+              ></i>
+            </span>
+          </a>
+        </li>
+        <li className={`page-item ${page === 0 ? "disabled" : ""}`}>
+          <a
+            className="page-link"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
               handlePageClick(page - 1);
             }}
             aria-label="Previous"
@@ -47,23 +68,11 @@ const CustomPagination = ({
           </a>
         </li>
 
-        {pages.map((pageNum) => (
-          <li
-            key={pageNum}
-            className={`page-item ${page === pageNum ? "active" : ""}`}
-          >
-            <a
-              className="page-link"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageClick(pageNum);
-              }}
-            >
-              {pageNum + 1}
-            </a>
-          </li>
-        ))}
+        <li className="page-item disabled">
+          <span className="page-link">
+            {startItem}-{endItem} of {count}
+          </span>
+        </li>
 
         <li className={`page-item ${page >= pageCount - 1 ? "disabled" : ""}`}>
           <a
@@ -77,6 +86,26 @@ const CustomPagination = ({
           >
             <span aria-hidden="true">
               <i className="fa fa-angle-double-right" aria-hidden="true"></i>
+            </span>
+          </a>
+        </li>
+        <li className={`page-item ${page >= pageCount - 1 ? "disabled" : ""}`}>
+          <a
+            className="page-link"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageClick(pageCount - 1);
+            }}
+            aria-label="Last"
+          >
+            <span aria-hidden="true">
+              <i className="fa fa-angle-double-right" aria-hidden="true"></i>
+              <i
+                className="fa fa-angle-double-right"
+                aria-hidden="true"
+                style={{ marginLeft: "-13px" }}
+              ></i>
             </span>
           </a>
         </li>

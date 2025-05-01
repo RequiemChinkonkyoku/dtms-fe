@@ -9,6 +9,10 @@ import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
 import { Link } from "react-router-dom";
 
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import "react-datepicker/dist/react-datepicker.css";
 
 import {
@@ -34,8 +38,6 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const StaffDogs = () => {
   const [dogs, setDogs] = useState([]);
@@ -443,7 +445,10 @@ const StaffDogs = () => {
                         <div className="card-icon">
                           <i className="material-icons">pets</i>
                         </div>
-                        <h4 className="card-title">Dogs List</h4>
+                        <h4 className="card-title">Dog management</h4>
+                        <p class="card-category text-muted">
+                          Create new dogs, view and manage their details.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -467,121 +472,61 @@ const StaffDogs = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <TextField
-                                label="Search by name..."
-                                variant="outlined"
-                                size="small"
+                              <CustomSearch
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search by name..."
                               />
                               <button className="btn btn-info">
                                 <i className="material-icons">add</i> Create Dog
                               </button>
                             </div>
-                            <TableContainer>
-                              <Table className="table">
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell className="text-center">
-                                      #
-                                    </TableCell>
-                                    {[
-                                      ["name", "Name"],
-                                      ["dateOfBirth", "Date of Birth"],
-                                      ["gender", "Gender"],
-                                      ["dogBreedName", "Breed"],
-                                      ["status", "Status"],
-                                      ["registrationTime", "Registration Date"],
-                                    ].map(([key, label]) => (
-                                      <TableCell key={key}>
-                                        <TableSortLabel
-                                          active={orderBy === key}
-                                          direction={
-                                            orderBy === key ? order : "asc"
-                                          }
-                                          onClick={() => handleSort(key)}
-                                        >
-                                          {label}
-                                        </TableSortLabel>
-                                      </TableCell>
-                                    ))}
-                                    <th className="text-right">Actions</th>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {loading ? (
-                                    <TableRow>
-                                      <TableCell colSpan={7} align="center">
-                                        <Loader />
-                                      </TableCell>
-                                    </TableRow>
-                                  ) : (
-                                    sortedDogs
-                                      .slice(
-                                        page * rowsPerPage,
-                                        page * rowsPerPage + rowsPerPage
-                                      )
-                                      .map((dog, index) => (
-                                        <tr key={dog.id}>
-                                          <td className="text-center">
-                                            {page * rowsPerPage + index + 1}
-                                          </td>
-                                          <td>{dog.name}</td>
-                                          <td>{dog.dateOfBirth}</td>
-                                          <td>
-                                            {dog.gender === 0
-                                              ? "Male"
-                                              : "Female"}
-                                          </td>
-                                          <td>{dog.dogBreedName}</td>
-                                          <td
-                                            className={getStatusClass(
-                                              dog.status
-                                            )}
-                                          >
-                                            {getStatusText(dog.status)}
-                                          </td>
-                                          <td>
-                                            {formatDate(dog.registrationTime)}
-                                          </td>
-                                          <td className="td-actions text-right">
-                                            <button
-                                              type="button"
-                                              className="btn btn-primary btn-sm"
-                                              onClick={() =>
-                                                handleRowClick(dog.id)
-                                              }
-                                            >
-                                              <i
-                                                className="material-icons"
-                                                style={{
-                                                  transition: "transform 0.3s",
-                                                }}
-                                              >
-                                                {openRows[dog.id]
-                                                  ? "keyboard_arrow_up"
-                                                  : "keyboard_arrow_down"}
-                                              </i>
-                                            </button>
-                                            <Link
-                                              to={`/staff/dogs/details/${dog.id}`}
-                                              className="btn btn-info btn-sm"
-                                              style={{ marginLeft: "8px" }}
-                                            >
-                                              <i className="material-icons">
-                                                more_vert
-                                              </i>
-                                            </Link>
-                                          </td>
-                                        </tr>
-                                      ))
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                { key: "dateOfBirth", label: "Date of Birth" },
+                                {
+                                  key: "gender",
+                                  label: "Gender",
+                                  render: (value) =>
+                                    value === 0 ? "Male" : "Female",
+                                },
+                                { key: "dogBreedName", label: "Breed" },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "registrationTime",
+                                  label: "Registration Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedDogs}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <>
+                                  <Link
+                                    to={`/staff/dogs/details/${row.id}`}
+                                    className="btn btn-info btn-sm"
+                                    style={{ marginLeft: "8px" }}
+                                  >
+                                    <i className="material-icons">more_vert</i>
+                                  </Link>
+                                </>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedDogs.length}
                               rowsPerPage={rowsPerPage}
                               page={page}
@@ -602,6 +547,9 @@ const StaffDogs = () => {
                           <i className="material-icons">pets</i>
                         </div>
                         <h4 className="card-title">Dog Breeds</h4>
+                        <p class="card-category text-muted">
+                          Insert new dog breeds, view and edit existing ones.
+                        </p>
                       </div>
                       <div className="card-body">
                         <div className="table-responsive">
@@ -613,14 +561,11 @@ const StaffDogs = () => {
                               alignItems: "center",
                             }}
                           >
-                            <TextField
-                              label="Search breeds..."
-                              variant="outlined"
-                              size="small"
+                            <CustomSearch
                               value={breedSearchTerm}
-                              onChange={(e) =>
-                                setBreedSearchTerm(e.target.value)
-                              }
+                              onChange={setBreedSearchTerm}
+                              setPage={setBreedPage}
+                              placeholder="Search breeds..."
                             />
                             <button
                               className="btn btn-info"
@@ -629,78 +574,47 @@ const StaffDogs = () => {
                               <i className="material-icons">add</i> Add Breed
                             </button>
                           </div>
-                          <TableContainer>
-                            <Table className="table">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell className="text-center">
-                                    #
-                                  </TableCell>
-                                  {[
-                                    ["name", "Name"],
-                                    ["dogNames", "Dogs Count"],
-                                    ["status", "Status"],
-                                    ["createdTime", "Created Date"],
-                                  ].map(([key, label]) => (
-                                    <TableCell key={key}>
-                                      <TableSortLabel
-                                        active={breedOrderBy === key}
-                                        direction={
-                                          breedOrderBy === key
-                                            ? breedOrder
-                                            : "asc"
-                                        }
-                                        onClick={() => handleBreedSort(key)}
-                                      >
-                                        {label}
-                                      </TableSortLabel>
-                                    </TableCell>
-                                  ))}
-                                  <TableCell className="text-right">
-                                    Actions
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {filteredBreeds
-                                  .slice(
-                                    breedPage * breedRowsPerPage,
-                                    breedPage * breedRowsPerPage +
-                                      breedRowsPerPage
-                                  )
-                                  .map((breed, index) => (
-                                    <TableRow key={breed.id}>
-                                      <td className="text-center">
-                                        {breedPage * breedRowsPerPage +
-                                          index +
-                                          1}
-                                      </td>
-                                      <td>{breed.name}</td>
-                                      <td>{breed.dogNames.length}</td>
-                                      <td
-                                        className={getStatusClass(breed.status)}
-                                      >
-                                        {getStatusText(breed.status)}
-                                      </td>
-                                      <td>{formatDate(breed.createdTime)}</td>
-                                      <td className="td-actions text-right">
-                                        <button
-                                          type="button"
-                                          className="btn btn-info btn-sm"
-                                          title="Edit"
-                                          onClick={() => handleBreedEdit(breed)}
-                                        >
-                                          <i className="material-icons">edit</i>
-                                        </button>
-                                      </td>
-                                    </TableRow>
-                                  ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                          <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
+                          <CustomTable
+                            columns={[
+                              { key: "name", label: "Name" },
+                              {
+                                key: "dogNames",
+                                label: "Dogs Count",
+                                render: (value) => value.length,
+                              },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value) => (
+                                  <span className={getStatusClass(value)}>
+                                    {getStatusText(value)}
+                                  </span>
+                                ),
+                              },
+                              {
+                                key: "createdTime",
+                                label: "Created Date",
+                                render: (value) => formatDate(value),
+                              },
+                            ]}
+                            data={filteredBreeds}
+                            page={breedPage}
+                            rowsPerPage={breedRowsPerPage}
+                            orderBy={breedOrderBy}
+                            order={breedOrder}
+                            onSort={handleBreedSort}
+                            renderActions={(row) => (
+                              <button
+                                type="button"
+                                className="btn btn-info btn-sm"
+                                title="Edit"
+                                onClick={() => handleBreedEdit(row)}
+                              >
+                                <i className="material-icons">edit</i>
+                              </button>
+                            )}
+                          />
+                          <CustomPagination
                             count={filteredBreeds.length}
                             rowsPerPage={breedRowsPerPage}
                             page={breedPage}

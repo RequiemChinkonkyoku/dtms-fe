@@ -10,7 +10,7 @@ const Sidebar = () => {
       <div
         className="sidebar"
         data-background-color="black"
-        data-color="orange"
+        data-color="azure"
         style={{
           backgroundImage: `url(${sidebarBg})`,
           backgroundSize: "cover",

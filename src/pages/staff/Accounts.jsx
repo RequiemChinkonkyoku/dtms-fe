@@ -90,11 +90,6 @@ const Accounts = () => {
     setPage(newPage);
   };
 
-  // const handleChangeRowsPerPage = (event) => {
-  //   setRowsPerPage(parseInt(event.target.value, 10));
-  //   setPage(0);
-  // };
-
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -114,6 +109,22 @@ const Accounts = () => {
         const dateB = new Date(b[orderBy]).getTime();
         return order === "asc" ? dateA - dateB : dateB - dateA;
       }
+      // Handle virtual columns
+      if (orderBy === "role") {
+        const roleA = getRoleAndSubRole(a.roleId).role;
+        const roleB = getRoleAndSubRole(b.roleId).role;
+        return order === "asc"
+          ? roleA.localeCompare(roleB)
+          : roleB.localeCompare(roleA);
+      }
+      if (orderBy === "position") {
+        const posA = getRoleAndSubRole(a.roleId).subRole;
+        const posB = getRoleAndSubRole(b.roleId).subRole;
+        return order === "asc"
+          ? posA.localeCompare(posB)
+          : posB.localeCompare(posA);
+      }
+      // Default sorting for other columns
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -187,19 +198,6 @@ const Accounts = () => {
         return "Inactive";
       case 1:
         return "Active";
-      default:
-        return "Unknown";
-    }
-  };
-
-  const getProfileTypeText = (profileType) => {
-    switch (profileType) {
-      case 1:
-        return "Customer";
-      case 2:
-        return "Trainer";
-      case 3:
-        return "Staff";
       default:
         return "Unknown";
     }
@@ -308,7 +306,7 @@ const Accounts = () => {
                         </div>
                         <h4 className="card-title">Account management</h4>
                         <p class="card-category text-muted">
-                          Create new accounts, view account details, and manage
+                          Create new accounts, view user details, and manage
                           their permissions.
                         </p>
                       </div>
@@ -378,16 +376,16 @@ const Accounts = () => {
                                 { key: "email", label: "Email" },
                                 { key: "fullName", label: "Full Name" },
                                 {
-                                  key: "roleId",
+                                  key: "role",
                                   label: "Role",
                                   render: (value, row) =>
-                                    getRoleAndSubRole(value).role,
+                                    getRoleAndSubRole(row.roleId).role,
                                 },
                                 {
-                                  key: "roleId",
+                                  key: "position",
                                   label: "Position",
                                   render: (value, row) =>
-                                    getRoleAndSubRole(value).subRole,
+                                    getRoleAndSubRole(row.roleId).subRole,
                                 },
                                 {
                                   key: "status",
