@@ -8,6 +8,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import {
   Table,
   TableBody,
@@ -260,98 +264,62 @@ const StaffEquipments = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <TextField
-                                label="Search by name..."
-                                variant="outlined"
-                                size="small"
+                              <CustomSearch
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search equipments..."
                               />
                               <button
                                 className="btn btn-info"
                                 onClick={() => setOpenCreateModal(true)}
                               >
                                 <i className="material-icons">add</i> Create
-                                Skill
+                                Equipment
                               </button>
                             </div>
-                            <TableContainer>
-                              <Table className="table">
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell className="text-center">
-                                      #
-                                    </TableCell>
-                                    {[
-                                      ["name", "Name"],
-                                      ["equipmentCategory", "Category"],
-                                      ["status", "Status"],
-                                      ["createdTime", "Created Date"],
-                                    ].map(([key, label]) => (
-                                      <TableCell key={key}>
-                                        <TableSortLabel
-                                          active={orderBy === key}
-                                          direction={
-                                            orderBy === key ? order : "asc"
-                                          }
-                                          onClick={() => handleSort(key)}
-                                        >
-                                          {label}
-                                        </TableSortLabel>
-                                      </TableCell>
-                                    ))}
-                                    <TableCell className="text-right">
-                                      Actions
-                                    </TableCell>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {sortedEquipments
-                                    .slice(
-                                      page * rowsPerPage,
-                                      page * rowsPerPage + rowsPerPage
-                                    )
-                                    .map((equipment, index) => (
-                                      <TableRow key={equipment.id}>
-                                        <td className="text-center">
-                                          {page * rowsPerPage + index + 1}
-                                        </td>
-                                        <td>{equipment.name}</td>
-                                        <td>
-                                          {categoryDetails[
-                                            equipment.equipmentCategoryId
-                                          ] || "Loading..."}
-                                        </td>
-                                        <td
-                                          className={getStatusClass(
-                                            equipment.status
-                                          )}
-                                        >
-                                          {getStatusText(equipment.status)}
-                                        </td>
-                                        <td>
-                                          {formatDate(equipment.createdTime)}
-                                        </td>
-                                        <td className="td-actions text-right">
-                                          <button
-                                            type="button"
-                                            className="btn btn-info btn-sm"
-                                            title="Edit"
-                                            onClick={() => openEdit(equipment)}
-                                          >
-                                            <i className="material-icons">
-                                              edit
-                                            </i>
-                                          </button>
-                                        </td>
-                                      </TableRow>
-                                    ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                {
+                                  key: "equipmentCategoryId",
+                                  label: "Category",
+                                  render: (value) =>
+                                    categoryDetails[value] || "Loading...",
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedEquipments}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  title="Edit"
+                                  onClick={() => openEdit(row)}
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedEquipments.length}
                               rowsPerPage={rowsPerPage}
                               page={page}

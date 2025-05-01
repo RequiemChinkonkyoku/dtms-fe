@@ -8,6 +8,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import {
   Table,
   TableBody,
@@ -216,12 +220,11 @@ const StaffSkills = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <TextField
-                                label="Search by name..."
-                                variant="outlined"
-                                size="small"
+                              <CustomSearch
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search skills..."
                               />
                               <button
                                 className="btn btn-info"
@@ -231,75 +234,42 @@ const StaffSkills = () => {
                                 Skill
                               </button>
                             </div>
-                            <TableContainer>
-                              <Table className="table">
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell className="text-center">
-                                      #
-                                    </TableCell>
-                                    {[
-                                      ["name", "Name"],
-                                      ["createdTime", "Created Date"],
-                                      ["status", "Status"],
-                                    ].map(([key, label]) => (
-                                      <TableCell key={key}>
-                                        <TableSortLabel
-                                          active={orderBy === key}
-                                          direction={
-                                            orderBy === key ? order : "asc"
-                                          }
-                                          onClick={() => handleSort(key)}
-                                        >
-                                          {label}
-                                        </TableSortLabel>
-                                      </TableCell>
-                                    ))}
-                                    <TableCell className="text-right">
-                                      Actions
-                                    </TableCell>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {sortedSkills
-                                    .slice(
-                                      page * rowsPerPage,
-                                      page * rowsPerPage + rowsPerPage
-                                    )
-                                    .map((skill, index) => (
-                                      <TableRow key={skill.id}>
-                                        <td className="text-center">
-                                          {page * rowsPerPage + index + 1}
-                                        </td>
-                                        <td>{skill.name}</td>
-                                        <td>{formatDate(skill.createdTime)}</td>
-                                        <td
-                                          className={getStatusClass(
-                                            skill.status
-                                          )}
-                                        >
-                                          {getStatusText(skill.status)}
-                                        </td>
-                                        <td className="td-actions text-right">
-                                          <button
-                                            type="button"
-                                            className="btn btn-info btn-sm"
-                                            title="Edit"
-                                            onClick={() => openEdit(skill)}
-                                          >
-                                            <i className="material-icons">
-                                              edit
-                                            </i>
-                                          </button>
-                                        </td>
-                                      </TableRow>
-                                    ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                              ]}
+                              data={sortedSkills}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  title="Edit"
+                                  onClick={() => openEdit(row)}
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedSkills.length}
                               rowsPerPage={rowsPerPage}
                               page={page}

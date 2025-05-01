@@ -8,6 +8,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import {
   Table,
   TableBody,
@@ -191,7 +195,10 @@ const StaffCages = () => {
                         <div className="card-icon">
                           <i className="material-icons">home</i>
                         </div>
-                        <h4 className="card-title">Cages List</h4>
+                        <h4 className="card-title">Cage management</h4>
+                        <p class="card-category text-muted">
+                          Create new cages, view details and manage them.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -215,12 +222,11 @@ const StaffCages = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <TextField
-                                label="Search..."
-                                variant="outlined"
-                                size="small"
+                              <CustomSearch
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search cages..."
                               />
                               <button
                                 className="btn btn-info"
@@ -230,76 +236,47 @@ const StaffCages = () => {
                                 Cage
                               </button>
                             </div>
-                            <TableContainer>
-                              <Table className="table">
-                                <TableHead>
-                                  <TableRow>
-                                    {[
-                                      ["number", "Number"],
-                                      ["location", "Location"],
-                                      ["cageCategory", "Category"],
-                                      ["status", "Status"],
-                                      ["createdTime", "Created Time"],
-                                    ].map(([key, label]) => (
-                                      <TableCell key={key}>
-                                        <TableSortLabel
-                                          active={orderBy === key}
-                                          direction={
-                                            orderBy === key ? order : "asc"
-                                          }
-                                          onClick={() => handleSort(key)}
-                                        >
-                                          {label}
-                                        </TableSortLabel>
-                                      </TableCell>
-                                    ))}
-                                    <TableCell className="text-right">
-                                      Actions
-                                    </TableCell>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {sortedCages
-                                    .slice(
-                                      page * rowsPerPage,
-                                      page * rowsPerPage + rowsPerPage
-                                    )
-                                    .map((cage, index) => (
-                                      <TableRow key={cage.id}>
-                                        <td>{cage.number}</td>
-                                        <td>{cage.location}</td>
-                                        <td>
-                                          {getCategoryName(cage.cageCategoryId)}
-                                        </td>
-                                        <td
-                                          className={getStatusClass(
-                                            cage.status
-                                          )}
-                                        >
-                                          {getStatusText(cage.status)}
-                                        </td>
-                                        <td>{formatDate(cage.createdTime)}</td>
-                                        <td className="td-actions text-right">
-                                          <button
-                                            type="button"
-                                            className="btn btn-info btn-sm"
-                                            onClick={() =>
-                                              handleOpenEditModal(cage)
-                                            }
-                                          >
-                                            <i className="material-icons">
-                                              edit
-                                            </i>
-                                          </button>
-                                        </td>
-                                      </TableRow>
-                                    ))}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "number", label: "Number" },
+                                { key: "location", label: "Location" },
+                                {
+                                  key: "cageCategoryId",
+                                  label: "Category",
+                                  render: (value) => getCategoryName(value),
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Time",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedCages}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  onClick={() => handleOpenEditModal(row)}
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedCages.length}
                               rowsPerPage={rowsPerPage}
                               page={page}

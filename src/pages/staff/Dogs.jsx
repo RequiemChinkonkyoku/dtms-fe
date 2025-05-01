@@ -43,28 +43,6 @@ const StaffDogs = () => {
   const [dogs, setDogs] = useState([]);
   const { loading, setLoading } = useLoading();
   const [error, setError] = useState(null);
-  const [responseMessage, setResponseMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    imageUrl: "",
-    dateOfBirth: "",
-    gender: 0,
-    customerProfileId: "",
-    dogBreedId: "",
-  });
-  const [imgUrl, setImgUrl] = useState("");
-  const [editingDog, setEditingDog] = useState(null);
-  const [updateFormData, setUpdateFormData] = useState({
-    name: "",
-    imageUrl: "",
-    breed: "",
-    dateOfBirth: "",
-    gender: 0,
-    status: 1,
-    customerProfileId: "",
-    dogBreedId: "",
-  });
   const [dogBreeds, setDogBreeds] = useState([]);
   const [breedPage, setBreedPage] = useState(0);
   const [breedOrderBy, setBreedOrderBy] = useState("createdTime");
@@ -76,7 +54,6 @@ const StaffDogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState("registrationTime");
   const [order, setOrder] = useState("desc");
-  const [openRows, setOpenRows] = useState({});
   const [isBreedModalOpen, setIsBreedModalOpen] = useState(false);
   const [breedFormData, setBreedFormData] = useState({
     name: "",
@@ -208,13 +185,6 @@ const StaffDogs = () => {
     setOrderBy(property);
   };
 
-  const handleRowClick = (id) => {
-    setOpenRows((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
   const sortedDogs = React.useMemo(() => {
     const comparator = (a, b) => {
       if (orderBy === "registrationTime") {
@@ -266,133 +236,6 @@ const StaffDogs = () => {
 
     fetchDogs();
   }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    console.log("name", name);
-    console.log("value", value);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setResponseMessage("");
-    setErrorMessage("");
-
-    try {
-      const response = await axios.post("/api/dogs", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog created successfully!");
-      setDogs([...dogs, response.data]);
-      setFormData({
-        name: "",
-        imageUrl: "",
-        dateOfBirth: "",
-        gender: 0,
-        customerProfileId: "",
-        dogBreedId: "",
-      });
-      window.location.reload();
-    } catch (error) {
-      setErrorMessage("Failed to create the dog. " + error.message);
-    }
-  };
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("https://localhost:7256/api/uploadFile", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const imageUrl = await response.text();
-      setImgUrl(imageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        imageUrl: imageUrl,
-      }));
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to deactivate this dog?")) {
-      try {
-        await axios.delete(`/api/dogs/${id}`);
-        window.location.reload();
-      } catch (error) {
-        setErrorMessage("Failed to deactivate the dog. " + error.message);
-      }
-    }
-  };
-
-  const handleEdit = (dog) => {
-    setEditingDog(dog);
-    setUpdateFormData({
-      name: dog.name,
-      imageUrl: dog.imageUrl,
-      breed: dog.breed,
-      dateOfBirth: dog.dateOfBirth,
-      gender: dog.gender,
-      status: dog.status,
-      customerProfileId: dog.customerProfileId,
-      dogBreedId: dog.dogBreedId,
-    });
-  };
-
-  const handleUpdateChange = (e) => {
-    const { name, value } = e.target;
-    setUpdateFormData({
-      ...updateFormData,
-      [name]: value,
-    });
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`/api/dogs/${editingDog.id}`, updateFormData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog updated successfully!");
-      setEditingDog(null);
-      window.location.reload();
-    } catch (error) {
-      setErrorMessage("Failed to update the dog. " + error.message);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingDog(null);
-    setUpdateFormData({
-      name: "",
-      imageUrl: "",
-      dateOfBirth: "",
-      gender: "",
-      status: "",
-      customerProfileId: "",
-      dogBreedId: "",
-    });
-  };
 
   const getStatusText = (status) => {
     switch (status) {
@@ -546,7 +389,7 @@ const StaffDogs = () => {
                         <div className="card-icon">
                           <i className="material-icons">pets</i>
                         </div>
-                        <h4 className="card-title">Dog Breeds</h4>
+                        <h4 className="card-title">Dog breed management</h4>
                         <p class="card-category text-muted">
                           Insert new dog breeds, view and edit existing ones.
                         </p>

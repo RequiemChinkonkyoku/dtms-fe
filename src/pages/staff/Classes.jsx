@@ -8,10 +8,11 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import CustomFilter from "../../assets/components/common/CustomFilter";
 
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import { TablePagination, TableSortLabel, TextField } from "@mui/material";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -34,6 +35,7 @@ const StaffClasses = () => {
   const [classes, setClasses] = useState([]);
   const { loading, setLoading } = useLoading();
   const [classDetails, setClassDetails] = useState({});
+  const [statusFilter, setStatusFilter] = useState("all");
   const [counts, setCounts] = useState({
     total: 0,
     inactive: 0,
@@ -44,18 +46,6 @@ const StaffClasses = () => {
   });
 
   const [expandedRows, setExpandedRows] = useState(new Set());
-
-  const toggleRowExpansion = (rowId) => {
-    setExpandedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(rowId)) {
-        newSet.delete(rowId);
-      } else {
-        newSet.add(rowId);
-      }
-      return newSet;
-    });
-  };
 
   const fetchClassDetails = async (classId) => {
     try {
@@ -125,11 +115,14 @@ const StaffClasses = () => {
   };
 
   const filteredData = classes
-    .filter((row) =>
-      Object.values(row).some((value) =>
+    .filter((row) => {
+      const matchesSearch = Object.values(row).some((value) =>
         value?.toString().toLowerCase().includes(filterText.toLowerCase())
-      )
-    )
+      );
+      const matchesStatus =
+        statusFilter === "all" || row.status.toString() === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
     .sort((a, b) => {
       if (order === "asc") {
         return a[orderBy] > b[orderBy] ? 1 : -1;
@@ -137,11 +130,6 @@ const StaffClasses = () => {
         return b[orderBy] > a[orderBy] ? 1 : -1;
       }
     });
-
-  const paginatedData = filteredData.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   return (
     <>
@@ -155,171 +143,143 @@ const StaffClasses = () => {
             <div class="content">
               <div class="container-fluid">
                 <div className="row">
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-primary card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             class
                           </i>
                         </div>
                         <p className="card-category mb-0">Total Classes</p>
-                        <h3 className="card-title mb-2">{counts.total}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.total}</h3>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  {/* Repeat the same pattern for other status cards */}
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-secondary card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             block
                           </i>
                         </div>
                         <p className="card-category mb-0">Inactive</p>
-                        <h3 className="card-title mb-2">{counts.inactive}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.inactive}</h3>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  {/* Repeat similar structure for Open, Ongoing, Closed, and Completed */}
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-warning card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             pending
                           </i>
                         </div>
                         <p className="card-category mb-0">Open</p>
-                        <h3 className="card-title mb-2">{counts.open}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.open}</h3>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-info card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             play_circle
                           </i>
                         </div>
                         <p className="card-category mb-0">Ongoing</p>
-                        <h3 className="card-title mb-2">{counts.ongoing}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.ongoing}</h3>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-danger card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             cancel
                           </i>
                         </div>
                         <p className="card-category mb-0">Closed</p>
-                        <h3 className="card-title mb-2">{counts.closed}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.closed}</h3>
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-4 col-md-6 col-sm-6">
+                  <div className="col-lg-2 col-md-4 col-sm-6">
                     <div className="card card-stats">
                       <div className="card-header card-header-success card-header-icon py-2">
                         <div
                           className="card-icon"
                           style={{
-                            width: "56px",
-                            height: "56px",
-                            marginTop: "-20px",
+                            width: "46px",
+                            height: "46px",
+                            marginTop: "-15px",
                           }}
                         >
                           <i
                             className="material-icons"
-                            style={{ fontSize: "24px", lineHeight: "56px" }}
+                            style={{ fontSize: "20px", lineHeight: "46px" }}
                           >
                             check_circle
                           </i>
                         </div>
                         <p className="card-category mb-0">Completed</p>
-                        <h3 className="card-title mb-2">{counts.completed}</h3>
-                      </div>
-                      <div className="card-footer py-2">
-                        <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
-                        </div>
+                        <h3 className="card-title mb-0">{counts.completed}</h3>
                       </div>
                     </div>
                   </div>
@@ -331,7 +291,10 @@ const StaffClasses = () => {
                         <div class="card-icon">
                           <i class="material-icons">topic</i>
                         </div>
-                        <h4 class="card-title">Classes</h4>
+                        <h4 class="card-title">Class management</h4>
+                        <p class="card-category text-muted">
+                          Create new classes, view details and manage them.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -353,15 +316,34 @@ const StaffClasses = () => {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
+                                gap: "16px",
                               }}
                             >
-                              <TextField
-                                label="Search by name..."
-                                variant="outlined"
-                                size="small"
-                                value={filterText}
-                                onChange={(e) => setFilterText(e.target.value)}
-                              />
+                              <div style={{ display: "flex", gap: "16px" }}>
+                                <CustomSearch
+                                  value={filterText}
+                                  onChange={setFilterText}
+                                  setPage={setPage}
+                                  placeholder="Search classes..."
+                                />
+                                <CustomFilter
+                                  options={[
+                                    { value: "all", label: "All Status" },
+                                    ...Object.entries(CLASS_STATUS).map(
+                                      ([value, { label }]) => ({
+                                        value,
+                                        label,
+                                      })
+                                    ),
+                                  ]}
+                                  value={statusFilter}
+                                  onChange={(value) => {
+                                    setStatusFilter(value);
+                                    setPage(0);
+                                  }}
+                                  label="Status"
+                                />
+                              </div>
                               <Link to="/staff/classes/create">
                                 <button className="btn btn-info">
                                   <i className="material-icons">add</i> Create
@@ -369,145 +351,66 @@ const StaffClasses = () => {
                                 </button>
                               </Link>
                             </div>
-                            <table className="table">
-                              <thead>
-                                <tr>
-                                  <th className="text-center">#</th>
-                                  <th>
-                                    <TableSortLabel
-                                      active={orderBy === "name"}
-                                      direction={
-                                        orderBy === "name" ? order : "asc"
-                                      }
-                                      onClick={() => handleSort("name")}
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Class Name" },
+                                { key: "courseName", label: "Course" },
+                                {
+                                  key: "enrolledDogCount",
+                                  label: "Enrolled Dogs",
+                                },
+                                {
+                                  key: "startingDate",
+                                  label: "Start Date",
+                                  render: (value) =>
+                                    new Date(value).toLocaleDateString(),
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span
+                                      className={`badge ${CLASS_STATUS[value]?.color || "badge-secondary"}`}
                                     >
-                                      Class Name
-                                    </TableSortLabel>
-                                  </th>
-                                  <th>
-                                    <TableSortLabel
-                                      active={orderBy === "courseName"}
-                                      direction={
-                                        orderBy === "courseName" ? order : "asc"
-                                      }
-                                      onClick={() => handleSort("courseName")}
+                                      {CLASS_STATUS[value]?.label || "Unknown"}
+                                    </span>
+                                  ),
+                                },
+                              ]}
+                              data={filteredData}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <>
+                                  <Link to={`/staff/classes/details/${row.id}`}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-info btn-sm"
+                                      style={{ marginLeft: "8px" }}
                                     >
-                                      Course
-                                    </TableSortLabel>
-                                  </th>
-                                  <th>
-                                    <TableSortLabel
-                                      active={orderBy === "enrolledDogCount"}
-                                      direction={
-                                        orderBy === "enrolledDogCount"
-                                          ? order
-                                          : "asc"
-                                      }
-                                      onClick={() =>
-                                        handleSort("enrolledDogCount")
-                                      }
-                                    >
-                                      Enrolled Dogs
-                                    </TableSortLabel>
-                                  </th>
-                                  <th>
-                                    <TableSortLabel
-                                      active={orderBy === "startingDate"}
-                                      direction={
-                                        orderBy === "startingDate"
-                                          ? order
-                                          : "asc"
-                                      }
-                                      onClick={() => handleSort("startingDate")}
-                                    >
-                                      Start Date
-                                    </TableSortLabel>
-                                  </th>
-                                  <th>Status</th>
-                                  <th className="text-right">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {paginatedData.map((row, index) => (
-                                  <React.Fragment key={row.id}>
-                                    <tr>
-                                      <td className="text-center">
-                                        {page * rowsPerPage + index + 1}
-                                      </td>
-                                      <td>{row.name}</td>
-                                      <td>{row.courseName}</td>
-                                      <td>{row.enrolledDogCount}</td>
-                                      <td>
-                                        {new Date(
-                                          row.startingDate
-                                        ).toLocaleDateString()}
-                                      </td>
-                                      <td>
-                                        <span
-                                          className={`badge ${CLASS_STATUS[row.status]?.color || "badge-secondary"}`}
-                                        >
-                                          {CLASS_STATUS[row.status]?.label ||
-                                            "Unknown"}
-                                        </span>
-                                      </td>
-                                      <td className="td-actions text-right">
-                                        <button
-                                          type="button"
-                                          className="btn btn-primary btn-sm"
-                                          onClick={() =>
-                                            toggleRowExpansion(row.id)
-                                          }
-                                        >
-                                          <i
-                                            className="material-icons"
-                                            style={{
-                                              transition: "transform 0.3s",
-                                            }}
-                                          >
-                                            {expandedRows.has(row.id)
-                                              ? "keyboard_arrow_up"
-                                              : "keyboard_arrow_down"}
-                                          </i>
-                                        </button>
-                                        <Link
-                                          to={`/staff/classes/details/${row.id}`}
-                                        >
-                                          <button
-                                            type="button"
-                                            rel="tooltip"
-                                            className="btn btn-info btn-sm"
-                                            style={{ marginLeft: "8px" }}
-                                          >
-                                            <i className="material-icons">
-                                              more_vert
-                                            </i>
-                                          </button>
-                                        </Link>
-                                      </td>
-                                    </tr>
-                                    {expandedRows.has(row.id) && (
-                                      <tr>
-                                        <td colSpan="7">
-                                          <div style={{ padding: "20px" }}>
-                                            <p>
-                                              Expanded content for {row.name}
-                                            </p>
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </React.Fragment>
-                                ))}
-                              </tbody>
-                            </table>
-                            <TablePagination
-                              component="div"
+                                      <i className="material-icons">
+                                        more_vert
+                                      </i>
+                                    </button>
+                                  </Link>
+                                </>
+                              )}
+                              expandedContent={(row) => (
+                                <div style={{ padding: "20px" }}>
+                                  <p>Expanded content for {row.name}</p>
+                                </div>
+                              )}
+                              expandedRows={expandedRows}
+                            />
+                            <CustomPagination
                               count={filteredData.length}
+                              rowsPerPage={rowsPerPage}
                               page={page}
                               onPageChange={handleChangePage}
-                              rowsPerPage={rowsPerPage}
                               onRowsPerPageChange={handleChangeRowsPerPage}
-                              rowsPerPageOptions={[5, 10, 25]}
                             />
                           </div>
                         )}
@@ -522,7 +425,7 @@ const StaffClasses = () => {
                         <div className="card-icon">
                           <i className="material-icons">calendar_today</i>
                         </div>
-                        <h4 className="card-title">Class Schedule</h4>
+                        <h4 className="card-title">Class schedule</h4>
                       </div>
                       <div className="card-body">
                         {loading ? (
