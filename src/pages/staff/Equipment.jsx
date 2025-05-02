@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { showToast } from "../../utils/toastConfig";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -12,20 +13,7 @@ import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  TableSortLabel,
-  TextField,
-  Modal,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { TextField, Modal, Select, MenuItem } from "@mui/material";
 
 const StaffEquipments = () => {
   const { loading, setLoading } = useLoading();
@@ -75,9 +63,11 @@ const StaffEquipments = () => {
           description: "",
           equipmentCategoryId: "",
         });
+        showToast.success("Equipment created successfully!");
       }
     } catch (error) {
       console.error("Error creating equipment:", error);
+      showToast.error("Failed to create equipment. Please try again.");
     }
   };
 
@@ -91,9 +81,11 @@ const StaffEquipments = () => {
           )
         );
         setOpenEditModal(false);
+        showToast.success("Equipment updated successfully!");
       }
     } catch (error) {
       console.error("Error updating equipment:", error);
+      showToast.error("Failed to update equipment. Please try again.");
     }
   };
 
@@ -241,6 +233,9 @@ const StaffEquipments = () => {
                           <i className="material-icons">fitness_center</i>
                         </div>
                         <h4 className="card-title">Equipment List</h4>
+                        <p class="card-category text-muted">
+                          Insert new equipments, view and edit existing ones.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -355,7 +350,7 @@ const StaffEquipments = () => {
             width: "400px",
           }}
         >
-          <h2>Create New Equipment</h2>
+          <h3>Create New Equipment</h3>
           <TextField
             fullWidth
             label="Name"

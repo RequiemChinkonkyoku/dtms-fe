@@ -30,6 +30,7 @@ import StaffBlogsDetails from "../pages/staff/BlogsDetails";
 import StaffSkills from "../pages/staff/Skills";
 import StaffEquipments from "../pages/staff/Equipment";
 import StaffStatistics from "../pages/staff/Statistics";
+import StaffTransactions from "../pages/staff/Transactions";
 
 export const routes = createBrowserRouter([
   {
@@ -63,6 +64,10 @@ export const routes = createBrowserRouter([
       {
         path: "statistics",
         element: <StaffStatistics />,
+      },
+      {
+        path: "transactions",
+        element: <StaffTransactions />,
       },
       {
         path: "dogs",

@@ -202,6 +202,9 @@ const Blogs = () => {
                           <i className="material-icons">feed</i>
                         </div>
                         <h4 className="card-title">Blog Management</h4>
+                        <p class="card-category text-muted">
+                          Create new blogs, view details and manage them.
+                        </p>
                       </div>
                       <div className="card-body">
                         <div className="table-responsive">

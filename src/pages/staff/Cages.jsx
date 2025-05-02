@@ -7,22 +7,13 @@ import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
+import { showToast, dismissToast } from "../../utils/toastConfig";
 
 import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  TableSortLabel,
-  TextField,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 import {
   Dialog,
   DialogTitle,
@@ -64,13 +55,18 @@ const StaffCages = () => {
 
   const handleCreateCage = async () => {
     try {
+      const toastId = showToast.loading("Creating cage...");
       await axios.post("/api/cages", newCage);
       handleCloseModal();
 
       const response = await axios.get("/api/cages");
       setCages(response.data.objectList);
+
+      dismissToast(toastId);
+      showToast.success("Cage created successfully");
     } catch (error) {
-      console.error("Error creating cage:", error);
+      dismissToast();
+      showToast.error(error.response?.data?.message || "Failed to create cage");
     }
   };
 
@@ -91,12 +87,18 @@ const StaffCages = () => {
 
   const handleEditCage = async () => {
     try {
+      const toastId = showToast.loading("Updating cage...");
       await axios.put("/api/cages", editCage);
       handleCloseEditModal();
+
       const response = await axios.get("/api/cages");
       setCages(response.data.objectList);
+
+      dismissToast(toastId);
+      showToast.success("Cage updated successfully");
     } catch (error) {
-      console.error("Error updating cage:", error);
+      dismissToast();
+      showToast.error(error.response?.data?.message || "Failed to update cage");
     }
   };
 
@@ -406,7 +408,7 @@ const StaffCages = () => {
                   >
                     warning
                   </i>{" "}
-                  Only change status when the cage is empty and needs
+                  Only change status when the cage is available and needs
                   maintenance
                 </p>
               </div>

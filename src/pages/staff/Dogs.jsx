@@ -12,24 +12,12 @@ import { Link } from "react-router-dom";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomTable from "../../assets/components/common/CustomTable";
 import CustomPagination from "../../assets/components/common/CustomPagination";
+import { showToast, dismissToast } from "../../utils/toastConfig";
 
 import "react-datepicker/dist/react-datepicker.css";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TablePagination,
-  IconButton,
-  Collapse,
-  Box,
-  Typography,
   TextField,
-  TableSortLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -69,12 +57,20 @@ const StaffDogs = () => {
   const handleBreedSubmit = async (e) => {
     e.preventDefault();
     try {
+      const toastId = showToast.loading("Creating breed...");
       const response = await axios.post("/api/dogBreeds", breedFormData);
-      setDogBreeds([...dogBreeds, response.data]);
+
+      // Add to beginning of array for most recent first
+      setDogBreeds([response.data, ...dogBreeds]);
       setIsBreedModalOpen(false);
       setBreedFormData({ name: "", description: "" });
+      dismissToast(toastId);
+      showToast.success("Breed created successfully");
     } catch (error) {
-      console.error("Error creating breed:", error);
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to create breed"
+      );
     }
   };
 
@@ -90,6 +86,7 @@ const StaffDogs = () => {
   const handleBreedUpdate = async (e) => {
     e.preventDefault();
     try {
+      const toastId = showToast.loading("Updating breed...");
       await axios.put(`/api/dogBreeds/${editingBreed.id}`, updateBreedFormData);
       const updatedBreeds = dogBreeds.map((breed) =>
         breed.id === editingBreed.id
@@ -98,8 +95,13 @@ const StaffDogs = () => {
       );
       setDogBreeds(updatedBreeds);
       setEditingBreed(null);
+      dismissToast(toastId);
+      showToast.success("Breed updated successfully");
     } catch (error) {
-      console.error("Error updating breed:", error);
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to update breed"
+      );
     }
   };
 
@@ -137,29 +139,23 @@ const StaffDogs = () => {
     );
 
     return filtered.sort((a, b) => {
-      if (breedOrderBy === "dogNames") {
-        return breedOrder === "asc"
-          ? a.dogNames.length - b.dogNames.length
-          : b.dogNames.length - a.dogNames.length;
-      }
+      // if (breedOrderBy === "dogNames") {
+      //   return breedOrder === "asc"
+      //     ? (a.dogNames || []).length - (b.dogNames || []).length
+      //     : (b.dogNames || []).length - (a.dogNames || []).length;
+      // }
 
       if (breedOrderBy === "createdTime") {
-        const [datePartA] = a[breedOrderBy].split(" ");
-        const [dayA, monthA, yearA] = datePartA.split("/");
-        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
-
-        const [datePartB] = b[breedOrderBy].split(" ");
-        const [dayB, monthB, yearB] = datePartB.split("/");
-        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-
+        const dateA = new Date(a.createdTime);
+        const dateB = new Date(b.createdTime);
         return breedOrder === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      if (breedOrder === "asc") {
-        return a[breedOrderBy] < b[breedOrderBy] ? -1 : 1;
-      } else {
-        return b[breedOrderBy] < a[breedOrderBy] ? -1 : 1;
-      }
+      return breedOrder === "asc"
+        ? a[breedOrderBy]?.toString().localeCompare(b[breedOrderBy]?.toString())
+        : b[breedOrderBy]
+            ?.toString()
+            .localeCompare(a[breedOrderBy]?.toString());
     });
   }, [dogBreeds, breedSearchTerm, breedOrder, breedOrderBy]);
 
@@ -173,10 +169,11 @@ const StaffDogs = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const [datePart] = dateString.split(" ");
-    const [day, month, year] = datePart.split("/");
-    return new Date(`${year}-${month}-${day}`).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const handleSort = (property) => {
@@ -423,7 +420,7 @@ const StaffDogs = () => {
                               {
                                 key: "dogNames",
                                 label: "Dogs Count",
-                                render: (value) => value.length,
+                                render: (value) => (value ? value.length : 0),
                               },
                               {
                                 key: "status",

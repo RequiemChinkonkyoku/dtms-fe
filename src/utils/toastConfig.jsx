@@ -5,6 +5,11 @@ export const showToast = {
   error: (message) => toast.error(message),
   info: (message) => toast.info(message),
   warning: (message) => toast.warning(message),
+  loading: (message) => toast.loading(message),
+};
+
+export const dismissToast = (toastId) => {
+  toast.dismiss(toastId);
 };
 
 export const toastConfig = {

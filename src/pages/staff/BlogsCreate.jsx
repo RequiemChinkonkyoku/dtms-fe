@@ -9,6 +9,7 @@ import Navbar from "../../assets/components/staff/Navbar";
 import Swal from "sweetalert2";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { dismissToast, showToast } from "../../utils/toastConfig";
 
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -29,13 +30,7 @@ const StaffBlogsCreate = () => {
 
   const handleSaveAsDraft = async () => {
     try {
-      Swal.fire({
-        title: "Saving draft...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      const toastId = showToast.loading("Saving draft...");
 
       let imageUrl = "";
       if (blogImage) {
@@ -58,21 +53,12 @@ const StaffBlogsCreate = () => {
 
       await axios.post("/api/blogs", blogData);
 
-      await Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Blog saved as draft",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-
+      dismissToast(toastId);
+      showToast.success("Blog saved as draft");
       navigate("/staff/blogs");
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to save draft",
-      });
+      dismissToast();
+      showToast.error(error.response?.data?.message || "Failed to save draft");
     }
   };
 
@@ -89,13 +75,7 @@ const StaffBlogsCreate = () => {
       });
 
       if (result.isConfirmed) {
-        Swal.fire({
-          title: "Publishing blog...",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
+        const toastId = showToast.loading("Publishing blog...");
 
         let imageUrl = "";
         if (blogImage) {
@@ -121,22 +101,17 @@ const StaffBlogsCreate = () => {
 
         await axios.put(`/api/blogs/publish/${blogId}`);
 
-        await Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "Blog published successfully",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        dismissToast(toastId);
+        showToast.success("Blog published successfully");
+        navigate("/staff/blogs");
       }
 
       navigate("/staff/blogs");
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to publish blog",
-      });
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to publish blog"
+      );
     }
   };
 
@@ -222,7 +197,9 @@ const StaffBlogsCreate = () => {
                           ></textarea>
                         </div>
                         <div className="form-group mt-4">
-                          <label className="bmd-label">Images</label>
+                          <label className="bmd-label">
+                            Images (landscape images is highly recommended)
+                          </label>
                           <div>
                             <div
                               style={{

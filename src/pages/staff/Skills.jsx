@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { showToast } from "../../utils/toastConfig";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -12,20 +13,7 @@ import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  TableSortLabel,
-  TextField,
-  Modal,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { TextField, Modal, Select, MenuItem } from "@mui/material";
 
 const StaffSkills = () => {
   const { loading, setLoading } = useLoading();
@@ -55,9 +43,11 @@ const StaffSkills = () => {
         setSkills([...skills, response.data.object]);
         setOpenCreateModal(false);
         setCreateFormData({ name: "", description: "" });
+        showToast.success("Skill created successfully!");
       }
     } catch (error) {
       console.error("Error creating skill:", error);
+      showToast.error("Failed to create skill. Please try again.");
     }
   };
 
@@ -71,9 +61,11 @@ const StaffSkills = () => {
           )
         );
         setOpenEditModal(false);
+        showToast.success("Skill updated successfully!");
       }
     } catch (error) {
       console.error("Error updating skill:", error);
+      showToast.error("Failed to update skill. Please try again.");
     }
   };
 
