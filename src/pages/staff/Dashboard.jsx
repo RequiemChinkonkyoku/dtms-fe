@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
+import { useAuth } from "../../contexts/AuthContext";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -24,7 +25,7 @@ function CustomDay(props) {
     <Badge
       key={day.toString()}
       overlap="circular"
-      badgeContent={isHighlighted ? "●" : undefined}
+      badgeContent={isHighlighted ? "+" : undefined}
       color="info"
     >
       <PickersDay
@@ -37,6 +38,8 @@ function CustomDay(props) {
 }
 
 const StaffDashboard = () => {
+  const { user } = useAuth();
+  const [accountDetails, setAccountDetails] = useState(null);
   const [counts, setCounts] = useState({
     classes: 0,
     accounts: 0,
@@ -47,10 +50,66 @@ const StaffDashboard = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [customerCount, setCustomerCount] = useState(0);
   const [highlightedDays, setHighlightedDays] = useState([]);
+  const [greeting, setGreeting] = useState("");
+  const [todayClasses, setTodayClasses] = useState([]);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) setGreeting("Good morning");
+    else if (hour >= 12 && hour < 17) setGreeting("Good afternoon");
+    else if (hour >= 17 && hour < 21) setGreeting("Good evening");
+    else setGreeting("Good night");
+  }, []);
+
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      try {
+        const response = await axios.get(`/api/accounts/${user.unique_name}`);
+        setAccountDetails(response.data);
+      } catch (error) {
+        console.error("Error fetching account info:", error);
+      }
+    };
+
+    if (user?.unique_name) {
+      fetchAccountInfo();
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchCounts();
+    fetchTodayClasses();
   }, []);
+
+  const fetchTodayClasses = async () => {
+    try {
+      const classesRes = await axios.get("/api/class");
+      const classes = classesRes.data.objectList || [];
+
+      const today = dayjs().format("YYYY-MM-DD");
+      const todayClasses = [];
+
+      for (const classItem of classes) {
+        const slotsRes = await axios.get(
+          `/api/class/get-class-slots/${classItem.id}`
+        );
+
+        const slots = slotsRes.data.object?.slots || [];
+        const hasSlotToday = slots.some((slot) => {
+          const slotDate = dayjs(slot.date).format("YYYY-MM-DD");
+          return slotDate === today;
+        });
+
+        if (hasSlotToday) {
+          todayClasses.push(classItem);
+        }
+      }
+
+      setTodayClasses(todayClasses);
+    } catch (error) {
+      console.error("Error fetching today's classes:", error);
+    }
+  };
 
   const fetchCounts = async () => {
     try {
@@ -124,6 +183,22 @@ const StaffDashboard = () => {
               <div className="container-fluid">
                 <div className="row">
                   <div className="col-md-8">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="card">
+                          <div class="card-header card-header-success card-header-icon">
+                            <h2 class="card-title">
+                              {greeting}, {accountDetails?.fullName || "Staff"}!{" "}
+                            </h2>
+                            <h4 class="card-categor text-muted">
+                              Here are the schedules and documents for you
+                              today.
+                            </h4>
+                          </div>
+                          <br />
+                        </div>
+                      </div>
+                    </div>
                     <div className="row">
                       <div className="col-md-4 col-sm-6">
                         <div className="card card-stats">
@@ -167,7 +242,6 @@ const StaffDashboard = () => {
                             </div>
                             <p className="card-category">Customers</p>
                             <h3 className="card-title">{customerCount}</h3>{" "}
-                            {/* Display customer count */}
                           </div>
                           <div className="card-footer">
                             <div className="stats">
@@ -178,16 +252,107 @@ const StaffDashboard = () => {
                         </div>
                       </div>
                     </div>
+                    <div class="row">
+                      <div class="col-md-8">
+                        <div class="card">
+                          <div className="card-header card-header-warning">
+                            <h4 className="card-title">Today's classes</h4>
+                            <p className="card-category">
+                              Classes scheduled for today
+                            </p>
+                          </div>
+                          <div className="card-body table-responsive">
+                            <table className="table table-hover">
+                              <thead className="text-warning">
+                                <tr>
+                                  <th>Class Name</th>
+                                  <th>Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {todayClasses.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="2" className="text-center">
+                                      No class for today
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  todayClasses.map((classItem) => (
+                                    <tr key={classItem.id}>
+                                      <td>
+                                        <strong>{classItem.name}</strong>
+                                        <br />
+                                        <small className="text-muted">
+                                          {classItem.courseName}
+                                        </small>
+                                      </td>
+                                      <td>
+                                        <button className="btn btn-info btn-sm">
+                                          View Details
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="card">
+                          <div className="card-header card-header-warning">
+                            <h4 className="card-title">Upcoming classes</h4>
+                            <p className="card-category">
+                              Starting date in 1 month
+                            </p>
+                          </div>
+                          <div className="card-body table-responsive">
+                            <table className="table table-hover">
+                              {/* <thead className="text-warning">
+                                <tr>
+                                  <th>Class Name</th>
+                                  <th>Action</th>
+                                </tr>
+                              </thead> */}
+                              <tbody>
+                                {upcomingClasses.length === 0 ? (
+                                  <tr>
+                                    <td className="text-center">
+                                      No upcoming classes
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  upcomingClasses.map((classItem) => (
+                                    <tr key={classItem.id}>
+                                      <td>
+                                        <p className="mb-0">
+                                          <strong>{classItem.name}</strong>
+                                        </p>
+                                        <small className="text-muted">
+                                          {classItem.courseName}
+                                        </small>
+                                        <br />
+                                        <small className="text-info">
+                                          Starts:{" "}
+                                          {new Date(
+                                            classItem.startingDate
+                                          ).toLocaleDateString()}
+                                        </small>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div className="col-md-4">
                     <div className="col-md-12">
                       <div className="card ">
-                        {/* <div className="card-header card-header-info card-header-icon">
-                          <div className="card-icon">
-                            <i className="material-icons">post_add</i>
-                          </div>
-                          <h4 className="card-title">Calendar</h4>
-                        </div> */}
                         <div className="card-body">
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateCalendar
