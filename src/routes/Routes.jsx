@@ -31,6 +31,7 @@ import StaffSkills from "../pages/staff/Skills";
 import StaffEquipments from "../pages/staff/Equipment";
 import StaffStatistics from "../pages/staff/Statistics";
 import StaffTransactions from "../pages/staff/Transactions";
+import TrainerClassesDetails from "../pages/trainer/ClassesDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -184,6 +185,10 @@ export const routes = createBrowserRouter([
       {
         path: "classes",
         element: <TrainerClasses />,
+      },
+      {
+        path: "classes/details/:id",
+        element: <TrainerClassesDetails />,
       },
     ],
   },

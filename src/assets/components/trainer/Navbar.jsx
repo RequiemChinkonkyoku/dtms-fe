@@ -62,8 +62,17 @@ const Navbar = () => {
           case "classes":
             title.push("CLASSES");
             break;
+          case "lessons":
+            title.push("LESSONS");
+            break;
+          case "courses":
+            title.push("COURSES");
+            break;
           case "create":
             title.push("CREATE");
+            break;
+          case "details":
+            title.push("DETAILS");
             break;
         }
       });

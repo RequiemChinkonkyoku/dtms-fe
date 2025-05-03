@@ -423,7 +423,7 @@ const StaffClassesDetails = () => {
                             headerToolbar={{
                               left: "prev,next today",
                               center: "title",
-                              right: "dayGridMonth,timeGridWeek",
+                              right: "dayGridMonth",
                             }}
                             events={classDetails.classSlots.map((slot) => ({
                               title: `${slot.startTime.substring(0, 5)} - ${slot.endTime.substring(0, 5)}`,

@@ -212,7 +212,7 @@ const TrainerClasses = () => {
                             order={order}
                             onSort={handleSort}
                             renderActions={(row) => (
-                              <Link to={`/trainer/classes/${row.id}`}>
+                              <Link to={`/trainer/classes/details/${row.id}`}>
                                 <button className="btn btn-info btn-sm">
                                   <i className="material-icons">visibility</i>
                                 </button>
@@ -263,11 +263,11 @@ const TrainerClasses = () => {
                             timeGridPlugin,
                             interactionPlugin,
                           ]}
-                          initialView="timeGridWeek"
+                          initialView="dayGridMonth"
                           headerToolbar={{
                             left: "prev,next today",
                             center: "title",
-                            right: "dayGridMonth,timeGridWeek,timeGridDay",
+                            right: "dayGridMonth",
                           }}
                           slotMinTime="08:00:00"
                           slotMaxTime="18:00:00"
