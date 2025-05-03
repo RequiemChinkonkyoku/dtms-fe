@@ -39,21 +39,56 @@ const StaffStatistics = () => {
   const [monthlyDogs, setMonthlyDogs] = useState(
     getLast12Months().map((month) => ({ month, count: 0 }))
   );
-  const [totalRevenue, setTotalRevenue] = useState(125000);
-  const [monthlyRevenue, setMonthlyRevenue] = useState([
-    { month: "05/24", revenue: 8.5 },
-    { month: "06/24", revenue: 9.2 },
-    { month: "07/24", revenue: 10.5 },
-    { month: "08/24", revenue: 9.8 },
-    { month: "09/24", revenue: 11.2 },
-    { month: "10/24", revenue: 10.8 },
-    { month: "11/24", revenue: 12.5 },
-    { month: "12/24", revenue: 13.2 },
-    { month: "01/25", revenue: 11.8 },
-    { month: "02/25", revenue: 12.8 },
-    { month: "03/25", revenue: 13.5 },
-    { month: "04/25", revenue: 10.8 },
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await axios.get("/api/transactions");
+        if (response.data.success) {
+          const transactionList = response.data.objectList;
+          setTransactions(transactionList);
+
+          // Calculate total revenue
+          const total = transactionList.reduce(
+            (sum, transaction) => sum + transaction.totalAmount,
+            0
+          );
+          setTotalRevenue(total);
+
+          // Calculate monthly revenue
+          const today = new Date();
+          const last12Months = getLast12Months();
+
+          const monthlyData = last12Months.map((monthStr) => {
+            const [month, year] = monthStr.split("/");
+            const monthlyTotal = transactionList
+              .filter((transaction) => {
+                const transDate = new Date(transaction.paymentTime);
+                return (
+                  transDate.getMonth() + 1 === parseInt(month) &&
+                  transDate.getFullYear().toString().slice(-2) === year
+                );
+              })
+              .reduce((sum, transaction) => sum + transaction.totalAmount, 0);
+
+            return {
+              month: monthStr,
+              revenue: monthlyTotal / 1000000, // Convert to millions
+            };
+          });
+
+          setMonthlyRevenue(monthlyData);
+        }
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   useEffect(() => {
     const fetchDogs = async () => {
@@ -164,8 +199,10 @@ const StaffStatistics = () => {
                       </div>
                       <div class="card-footer">
                         <div class="stats">
-                          <i class="material-icons">access_time</i> updated 4
-                          minutes ago
+                          <i class="material-icons">access_time</i> Last updated{" "}
+                          {monthlyRevenue.length > 0
+                            ? monthlyRevenue[monthlyRevenue.length - 1].month
+                            : "Loading..."}
                         </div>
                       </div>
                     </div>
@@ -178,49 +215,62 @@ const StaffStatistics = () => {
                       </div>
                       <div className="card-body">
                         <h3>
-                          {monthlyRevenue[
-                            monthlyRevenue.length - 1
-                          ].revenue.toLocaleString()}
-                          M VND
-                          {(() => {
-                            const currentRevenue =
-                              monthlyRevenue[monthlyRevenue.length - 1].revenue;
-                            const previousRevenue =
-                              monthlyRevenue[monthlyRevenue.length - 2].revenue;
-                            const percentChange = (
-                              ((currentRevenue - previousRevenue) /
-                                previousRevenue) *
-                              100
-                            ).toFixed(1);
-                            const isIncrease = currentRevenue > previousRevenue;
+                          {monthlyRevenue.length > 0 ? (
+                            <>
+                              {monthlyRevenue[
+                                monthlyRevenue.length - 1
+                              ].revenue.toLocaleString()}
+                              M VND
+                              {(() => {
+                                const currentRevenue =
+                                  monthlyRevenue[monthlyRevenue.length - 1]
+                                    .revenue;
+                                const previousRevenue =
+                                  monthlyRevenue[monthlyRevenue.length - 2]
+                                    .revenue;
+                                const percentChange = (
+                                  ((currentRevenue - previousRevenue) /
+                                    previousRevenue) *
+                                  100
+                                ).toFixed(1);
+                                const isIncrease =
+                                  currentRevenue > previousRevenue;
 
-                            return (
-                              <span
-                                style={{
-                                  color: isIncrease ? "#4caf50" : "#f44336",
-                                  fontSize: "inherit",
-                                  marginLeft: "10px",
-                                }}
-                              >
-                                <i
-                                  className="material-icons"
-                                  style={{
-                                    fontSize: "24px",
-                                    verticalAlign: "middle",
-                                  }}
-                                >
-                                  {isIncrease ? "trending_up" : "trending_down"}
-                                </i>
-                                {Math.abs(percentChange)}%
-                              </span>
-                            );
-                          })()}
+                                return (
+                                  <span
+                                    style={{
+                                      color: isIncrease ? "#4caf50" : "#f44336",
+                                      fontSize: "inherit",
+                                      marginLeft: "10px",
+                                    }}
+                                  >
+                                    <i
+                                      className="material-icons"
+                                      style={{
+                                        fontSize: "24px",
+                                        verticalAlign: "middle",
+                                      }}
+                                    >
+                                      {isIncrease
+                                        ? "trending_up"
+                                        : "trending_down"}
+                                    </i>
+                                    {Math.abs(percentChange)}%
+                                  </span>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            "Loading..."
+                          )}
                         </h3>
                       </div>
                       <div class="card-footer">
                         <div class="stats">
-                          <i class="material-icons">access_time</i> updated 4
-                          minutes ago
+                          <i class="material-icons">access_time</i> Last updated{" "}
+                          {monthlyRevenue.length > 0
+                            ? monthlyRevenue[monthlyRevenue.length - 1].month
+                            : "Loading..."}
                         </div>
                       </div>
                     </div>
