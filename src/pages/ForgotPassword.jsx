@@ -11,26 +11,34 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../assets/components/auth/Navbar";
 import Footer from "../assets/components/auth/Footer";
 
+import { showToast, dismissToast } from "../utils/toastConfig";
+
 const ForgotPassword = () => {
+  const [email, setEmail] = useState("");
   const { loading, setLoading } = useLoading();
   const navigate = useNavigate();
-  const { login } = useAuth();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Your API calls here
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setLoading(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const toastId = showToast.loading("Sending OTP to your email...");
+    try {
+      const response = await axios.post(
+        `/api/accounts/forgotPassword?email=${email}`
+      );
+      if (response.status === 200) {
+        showToast.success("OTP has been sent to your email", { id: toastId });
+        setTimeout(() => {
+          dismissToast();
+          navigate("/reset-password");
+        }, 1500);
       }
-    };
-
-    fetchData();
-  }, [setLoading]);
+    } catch (error) {
+      console.error("Error:", error);
+      showToast.error(error.response?.data?.message || "Failed to send OTP", {
+        id: toastId,
+      });
+    }
+  };
 
   return (
     <div>
@@ -68,20 +76,6 @@ const ForgotPassword = () => {
                         </div>
                       </div>
                       <div className="card-body ">
-                        {/* <span className="bmd-form-group">
-                          <div className="input-group">
-                            <div className="input-group-prepend">
-                              <span className="input-group-text">
-                                <i className="material-icons">face</i>
-                              </span>
-                            </div>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Username..."
-                            />
-                          </div>
-                        </span> */}
                         <span className="bmd-form-group">
                           <div className="input-group">
                             <div className="input-group-prepend">
@@ -95,33 +89,20 @@ const ForgotPassword = () => {
                               placeholder="Email..."
                               autoComplete="new-email"
                               name="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
                             />
                           </div>
                         </span>
-                        {/* <span className="bmd-form-group">
-                          <div className="input-group">
-                            <div className="input-group-prepend">
-                              <span className="input-group-text">
-                                <i className="material-icons">lock_outline</i>
-                              </span>
-                            </div>
-                            <input
-                              type="password"
-                              className="form-control"
-                              placeholder="Password..."
-                              autoComplete="new-password"
-                              name="password"
-                            />
-                          </div>
-                        </span> */}
                       </div>
                       <div className="card-footer justify-content-center">
-                        <a
-                          href="#pablo"
+                        <button
                           className="btn btn-warning btn-link btn-lg"
+                          onClick={handleSubmit}
+                          disabled={loading}
                         >
-                          SEND
-                        </a>
+                          {loading ? "SENDING..." : "SEND"}
+                        </button>
                       </div>
                     </div>
                   </form>

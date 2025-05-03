@@ -32,6 +32,7 @@ import StaffEquipments from "../pages/staff/Equipment";
 import StaffStatistics from "../pages/staff/Statistics";
 import StaffTransactions from "../pages/staff/Transactions";
 import TrainerClassesDetails from "../pages/trainer/ClassesDetails";
+import ResetPassword from "../pages/ResetPassword";
 
 export const routes = createBrowserRouter([
   {
@@ -51,6 +52,14 @@ export const routes = createBrowserRouter([
     element: (
       <AuthProvider>
         <Login />
+      </AuthProvider>
+    ),
+  },
+  {
+    path: "/reset-password",
+    element: (
+      <AuthProvider>
+        <ResetPassword />
       </AuthProvider>
     ),
   },
