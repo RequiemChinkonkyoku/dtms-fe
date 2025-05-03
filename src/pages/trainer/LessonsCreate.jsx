@@ -6,6 +6,7 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
+import { showToast, dismissToast } from "../../utils/toastConfig";
 
 import { useLoading } from "../../contexts/LoadingContext";
 import Dialog from "@mui/material/Dialog";
@@ -131,21 +132,16 @@ const TrainerLessonsCreate = () => {
     e.preventDefault();
 
     try {
+      const toastId = showToast.loading("Creating lesson...");
       const response = await axios.post("/api/lessons", formData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Lesson created successfully",
-        showConfirmButton: false,
-        timer: 1500,
-      }).then(() => {
-        navigate("/trainer/lessons");
-      });
+      dismissToast(toastId);
+      showToast.success("Lesson created successfully");
+      navigate("/trainer/lessons");
 
       setFormData({
         lessonTitle: "",
@@ -158,11 +154,10 @@ const TrainerLessonsCreate = () => {
         lessonEquipmentDTOs: [],
       });
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to create lesson: " + error.message,
-      });
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to create lesson"
+      );
       console.error("Failed to create lesson. " + error.message);
     }
   };
@@ -427,7 +422,11 @@ const TrainerLessonsCreate = () => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-info btn-sm"
+                              className={`btn btn-sm ${
+                                formData.skillId === skill.id
+                                  ? "btn-success"
+                                  : "btn-info"
+                              }`}
                               onClick={() => {
                                 setFormData((prev) => ({
                                   ...prev,
@@ -593,7 +592,9 @@ const TrainerLessonsCreate = () => {
                           <td className="td-actions text-right">
                             <button
                               type="button"
-                              className="btn btn-info btn-sm"
+                              className={`btn btn-sm ${
+                                isSelected ? "btn-danger" : "btn-info"
+                              }`}
                               onClick={() =>
                                 handleEquipmentSelection(equipment.id)
                               }
