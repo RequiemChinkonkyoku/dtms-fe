@@ -82,9 +82,6 @@ const Navbar = () => {
                   <Link className="dropdown-item" to="/admin/profile">
                     Profile
                   </Link>
-                  <Link className="dropdown-item" to="/admin/settings">
-                    Settings
-                  </Link>
                   <div className="dropdown-divider" />
                   <a className="dropdown-item" href="#" onClick={handleLogout}>
                     Log out
