@@ -13,6 +13,11 @@ import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+
 import { TextField } from "@mui/material";
 import {
   Dialog,
@@ -24,8 +29,10 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
+import { useAuth } from "../../contexts/AuthContext";
 
 const StaffCages = () => {
+  const { user } = useAuth();
   const [cages, setCages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,6 +53,7 @@ const StaffCages = () => {
     status: 1,
     cageCategoryId: "",
   });
+  const [cageDetails, setCageDetails] = useState([]);
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => {
@@ -179,6 +187,24 @@ const StaffCages = () => {
     return categories[categoryId] || "N/A";
   };
 
+  useEffect(() => {
+    const fetchCageDetails = async () => {
+      try {
+        const staffId = user?.unique_name;
+        const response = await axios.get(
+          `/api/cages/get-cage-by-staff-id/${staffId}`
+        );
+        if (response.data.success) {
+          setCageDetails(response.data.objectList || []);
+        }
+      } catch (error) {
+        console.error("Error fetching cage details:", error);
+      }
+    };
+
+    fetchCageDetails();
+  }, []);
+
   return (
     <>
       <Head />
@@ -190,6 +216,72 @@ const StaffCages = () => {
             <Navbar />
             <div className="content">
               <div className="container-fluid">
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="card">
+                      <div className="card-header card-header-info card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">calendar_today</i>
+                        </div>
+                        <h4 className="card-title">Cage Calendar</h4>
+                        <p class="card-category text-muted">
+                          View cages assigned to you and its details: occupying
+                          dogs and their schedules.
+                        </p>
+                      </div>
+                      <div className="card-body">
+                        <FullCalendar
+                          plugins={[
+                            dayGridPlugin,
+                            timeGridPlugin,
+                            interactionPlugin,
+                          ]}
+                          initialView="dayGridMonth"
+                          headerToolbar={{
+                            left: "prev,next today",
+                            center: "title",
+                            right: "dayGridMonth,timeGridWeek",
+                          }}
+                          allDaySlot={false}
+                          slotMinTime="08:00:00"
+                          slotMaxTime="18:00:00"
+                          events={cageDetails.flatMap((cage) =>
+                            (cage.cageSlots || []).map((slot) => ({
+                              title: `Cage ${cage.number} - ${cage.location}`,
+                              start: `${slot.slotDate}T${slot.startTime}`,
+                              end: `${slot.slotDate}T${slot.endTime}`,
+                              extendedProps: {
+                                dogName: cage.dogName,
+                                categoryName: cage.categoryName,
+                              },
+                            }))
+                          )}
+                          eventContent={(eventInfo) => (
+                            <div>
+                              <b>{eventInfo.event.title}</b>
+                              <div>
+                                Dog: {eventInfo.event.extendedProps.dogName}
+                              </div>
+                              <small>
+                                {eventInfo.event.start.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                -
+                                {eventInfo.event.end.toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </small>
+                            </div>
+                          )}
+                          height="auto"
+                          aspectRatio={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="row">
                   <div className="col-md-12">
                     <div className="card">

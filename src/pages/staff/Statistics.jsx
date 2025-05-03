@@ -61,18 +61,33 @@ const StaffStatistics = () => {
         const response = await axios.get("/api/dogs");
         setDogs(response.data);
 
-        // Calculate dogs registered in the last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
 
-        const recentDogs = response.data.filter(
-          (dog) => new Date(dog.registrationTime) >= thirtyDaysAgo
-        );
+        // Initialize last 12 months with 0 counts
+        const newMonthlyDogs = Array.from({ length: 12 }, (_, i) => {
+          const date = new Date(currentYear, currentMonth - 11 + i, 1);
+          return {
+            month: date.toLocaleString("default", { month: "short" }),
+            count: 0,
+          };
+        });
 
-        // Update monthly data
-        const currentMonth = new Date().getMonth();
-        const newMonthlyDogs = [...monthlyDogs];
-        newMonthlyDogs[currentMonth].count = recentDogs.length;
+        response.data.forEach((dog) => {
+          const dogDate = new Date(dog.registrationTime);
+          const dogYear = dogDate.getFullYear();
+          const dogMonth = dogDate.getMonth();
+
+          const monthDiff =
+            (currentYear - dogYear) * 12 + (currentMonth - dogMonth);
+
+          if (monthDiff >= 0 && monthDiff < 12) {
+            const index = 11 - monthDiff;
+            newMonthlyDogs[index].count++;
+          }
+        });
+
         setMonthlyDogs(newMonthlyDogs);
       } catch (error) {
         console.error("Error fetching dogs:", error);
@@ -89,20 +104,34 @@ const StaffStatistics = () => {
         const customerAccounts = response.data.filter((account) =>
           customerRoleIds.includes(account.roleId)
         );
+
         setAccounts(customerAccounts);
 
-        // Calculate accounts registered in the last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        // Initialize 12 months of data (last 12 months including current)
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const newMonthlyAccounts = Array.from({ length: 12 }, (_, i) => {
+          const date = new Date(currentYear, currentMonth - 11 + i, 1);
+          return {
+            month: date.toLocaleString("default", { month: "short" }),
+            count: 0,
+          };
+        });
 
-        const recentAccounts = customerAccounts.filter(
-          (account) => new Date(account.registrationTime) >= thirtyDaysAgo
-        );
+        customerAccounts.forEach((account) => {
+          const accountDate = new Date(account.registrationTime);
+          const accountYear = accountDate.getFullYear();
+          const accountMonth = accountDate.getMonth();
+          const monthDiff =
+            (currentYear - accountYear) * 12 + (currentMonth - accountMonth);
 
-        // Update monthly data
-        const currentMonth = new Date().getMonth();
-        const newMonthlyAccounts = [...monthlyAccounts];
-        newMonthlyAccounts[currentMonth].count = recentAccounts.length;
+          if (monthDiff >= 0 && monthDiff < 12) {
+            const monthIndex = 11 - monthDiff;
+            newMonthlyAccounts[monthIndex].count++;
+          }
+        });
+
         setMonthlyAccounts(newMonthlyAccounts);
       } catch (error) {
         console.error("Error fetching accounts:", error);
