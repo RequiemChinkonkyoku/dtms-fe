@@ -10,6 +10,8 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 
 import { TablePagination } from "@mui/material";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomPagination from "../../assets/components/common/CustomPagination";
 
 const StaffAccountsCustomerDetails = () => {
   const { id } = useParams();
@@ -228,75 +230,65 @@ const StaffAccountsCustomerDetails = () => {
                       </div>
                       <div className="card-body">
                         <div className="table-responsive">
-                          <table className="table table-hover">
-                            <thead>
-                              <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Date of Birth</th>
-                                <th>Gender</th>
-                                <th>Status</th>
-                                <th>Breed</th>
-                                <th>Registered Time</th>
-                                <th className="text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {dogs
-                                .slice(
-                                  page * rowsPerPage,
-                                  page * rowsPerPage + rowsPerPage
-                                )
-                                .map((dog) => (
-                                  <tr key={dog.id}>
-                                    <td>
-                                      <img
-                                        src={dog.imageUrl}
-                                        alt={dog.name}
-                                        style={{
-                                          width: "50px",
-                                          height: "50px",
-                                          borderRadius: "50%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    </td>
-                                    <td>{dog.name}</td>
-                                    <td>{dog.dateOfBirth}</td>
-                                    <td>
-                                      {dog.gender === 0 ? "Male" : "Female"}
-                                    </td>
-                                    <td>
-                                      {dog.status === 1 ? "Active" : "Inactive"}
-                                    </td>
-                                    <td>{dog.dogBreedName}</td>
-                                    <td>
-                                      {dog.registrationTime.split(" ")[0]}
-                                    </td>
-                                    <td className="td-actions text-right">
-                                      <Link
-                                        to={`/staff/dogs/details/${dog.id}`}
-                                        className="btn btn-info btn-sm"
-                                        data-original-title="View Details"
-                                        title="View Details"
-                                      >
-                                        <i className="material-icons">
-                                          more_vert
-                                        </i>
-                                      </Link>
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                          <TablePagination
-                            component="div"
+                          <CustomTable
+                            columns={[
+                              {
+                                key: "imageUrl",
+                                label: "Image",
+                                render: (value, row) => (
+                                  <img
+                                    src={value}
+                                    alt={row.name}
+                                    style={{
+                                      width: "50px",
+                                      height: "50px",
+                                      borderRadius: "50%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                ),
+                              },
+                              { key: "name", label: "Name" },
+                              { key: "dateOfBirth", label: "Date of Birth" },
+                              {
+                                key: "gender",
+                                label: "Gender",
+                                render: (value) =>
+                                  value === 0 ? "Male" : "Female",
+                              },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value) =>
+                                  value === 1 ? "Active" : "Inactive",
+                              },
+                              { key: "dogBreedName", label: "Breed" },
+                              {
+                                key: "registrationTime",
+                                label: "Registered Time",
+                                render: (value) => value.split(" ")[0],
+                              },
+                            ]}
+                            data={dogs}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            renderActions={(row) => (
+                              <Link
+                                to={`/staff/dogs/details/${row.id}`}
+                                className="btn btn-info btn-sm"
+                                data-original-title="View Details"
+                                title="View Details"
+                              >
+                                <i className="material-icons">more_vert</i>
+                              </Link>
+                            )}
+                          />
+                          <CustomPagination
                             count={dogs.length}
                             page={page}
-                            onPageChange={handleChangePage}
                             rowsPerPage={rowsPerPage}
+                            onPageChange={handleChangePage}
                             onRowsPerPageChange={handleChangeRowsPerPage}
-                            rowsPerPageOptions={[5, 10, 25]}
                           />
                         </div>
                       </div>

@@ -50,8 +50,35 @@ const Navbar = () => {
           case "classes":
             title.push("CLASSES");
             break;
+          case "accounts":
+            title.push("ACCOUNTS");
+            break;
+          case "statistics":
+            title.push("STATISTICS");
+            break;
+          case "dogs":
+            title.push("DOGS");
+            break;
+          case "cages":
+            title.push("CAGES");
+            break;
+          case "blogs":
+            title.push("BLOGS");
+            break;
+          case "skills":
+            title.push("SKILLS");
+            break;
+          case "equipments":
+            title.push("EQUIPMENTS");
+            break;
+          case "transactions":
+            title.push("TRANSACTIONS");
+            break;
           case "create":
             title.push("CREATE");
+            break;
+          case "details":
+            title.push("DETAILS");
             break;
         }
       });

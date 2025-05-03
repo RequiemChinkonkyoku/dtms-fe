@@ -28,6 +28,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
+import { showToast, dismissToast } from "../../utils/toastConfig";
 
 const TrainerCoursesCreate = () => {
   const navigate = useNavigate();
@@ -122,38 +123,32 @@ const TrainerCoursesCreate = () => {
     }
 
     if (missingFields.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Required Fields Missing",
-        html: `Please fill in the following fields:<br/><br/>
-          ${missingFields.map(([_, label]) => `- ${label}`).join("<br/>")}`,
-      });
+      showToast.error(
+        `Required Fields Missing:\n${missingFields
+          .map(([_, label]) => `• ${label}`)
+          .join("\n")}`
+      );
 
-      missingFields.forEach(([key]) => {
-        const element = document.querySelector(`[name="${key}"]`);
-        if (element) {
-          element.style.border = "1px solid red";
-          element.addEventListener(
-            "input",
-            function () {
-              this.style.border = "";
-            },
-            { once: true }
-          );
-        }
-      });
+      // missingFields.forEach(([key]) => {
+      //   const element = document.querySelector(`[name="${key}"]`);
+      //   if (element) {
+      //     element.style.border = "1px solid red";
+      //     element.addEventListener(
+      //       "input",
+      //       function () {
+      //         this.style.border = "";
+      //       },
+      //       { once: true }
+      //     );
+      //   }
+      // });
 
       return;
     }
 
     try {
-      Swal.fire({
-        title: "Creating course...",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+      const toastId = showToast.loading("Creating course...");
+      // const formDataToSend = new FormData();
 
       let imageUrl = "";
       if (courseImage) {
@@ -188,22 +183,15 @@ const TrainerCoursesCreate = () => {
           });
         }
 
-        await Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "Course created successfully",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-
+        dismissToast(toastId);
+        showToast.success("Course created successfully");
         navigate("/trainer/courses");
       }
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to create course",
-      });
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to create course"
+      );
       console.error("Error creating course:", error);
     }
   };
@@ -387,6 +375,16 @@ const TrainerCoursesCreate = () => {
       .sort(comparator);
   }, [lessons, lessonOrder, lessonOrderBy, lessonSearchTerm]);
 
+  const calculateTotalDuration = () => {
+    const selectedLessonObjects = lessons.filter((lesson) =>
+      selectedLessons.includes(lesson.id)
+    );
+    return selectedLessonObjects.reduce(
+      (total, lesson) => total + lesson.duration,
+      0
+    );
+  };
+
   return (
     <>
       <Head />
@@ -553,6 +551,37 @@ const TrainerCoursesCreate = () => {
                             </div>
                           </div>
                         </div>
+                        {selectedLessons.length > 0 && (
+                          <small
+                            className={(() => {
+                              const totalLessonDuration =
+                                calculateTotalDuration();
+                              const totalSlots =
+                                formData.durationInWeeks *
+                                formData.daysPerWeek *
+                                formData.slotsPerDay;
+                              return totalSlots < totalLessonDuration
+                                ? "text-danger"
+                                : "text-warning";
+                            })()}
+                            style={{ marginTop: "8px", display: "block" }}
+                          >
+                            {(() => {
+                              const totalLessonDuration =
+                                calculateTotalDuration();
+                              const totalSlots =
+                                formData.durationInWeeks *
+                                formData.daysPerWeek *
+                                formData.slotsPerDay;
+                              if (totalSlots < totalLessonDuration) {
+                                return `Error: Total course duration (${totalSlots} slots) is less than total lesson duration (${totalLessonDuration} slots).`;
+                              }
+                              return totalSlots > totalLessonDuration
+                                ? `Warning: Total course duration (${totalSlots} slots) exceed total lesson duration (${totalLessonDuration} slots).`
+                                : "";
+                            })()}
+                          </small>
+                        )}
                         <div class="row mt-4">
                           <div class="col-md-4">
                             <div class="form-group">
@@ -914,7 +943,11 @@ const TrainerCoursesCreate = () => {
                             <button
                               type="button"
                               rel="tooltip"
-                              className="btn btn-info btn-sm mr-2"
+                              className={`btn btn-sm mr-2 ${
+                                selectedLessons.includes(lesson.id)
+                                  ? "btn-danger"
+                                  : "btn-info"
+                              }`}
                               onClick={() => handleSelectLesson(lesson.id)}
                             >
                               <i className="material-icons">
@@ -1063,7 +1096,11 @@ const TrainerCoursesCreate = () => {
                             <button
                               type="button"
                               rel="tooltip"
-                              className="btn btn-info btn-sm mr-2"
+                              className={`btn btn-sm mr-2 ${
+                                selectedBreeds.includes(breed.id)
+                                  ? "btn-danger"
+                                  : "btn-info"
+                              }`}
                               onClick={() => handleSelectBreed(breed.id)}
                             >
                               <i className="material-icons">
@@ -1071,16 +1108,6 @@ const TrainerCoursesCreate = () => {
                                   ? "remove"
                                   : "add"}
                               </i>
-                            </button>
-                            <button
-                              type="button"
-                              rel="tooltip"
-                              className="btn btn-primary btn-sm"
-                              onClick={() => {
-                                console.log("View details of breed:", breed.id);
-                              }}
-                            >
-                              <i className="material-icons">info</i>
                             </button>
                           </td>
                         </tr>
@@ -1150,15 +1177,6 @@ const TrainerCoursesCreate = () => {
                       value={prereqSearchTerm}
                       onChange={(e) => setPrereqSearchTerm(e.target.value)}
                     />
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() =>
-                        window.open("/trainer/courses/create", "_blank")
-                      }
-                    >
-                      <i className="material-icons">add</i> Create New Course
-                    </Button>
                   </div>
                   <Button
                     variant="outlined"
@@ -1258,7 +1276,11 @@ const TrainerCoursesCreate = () => {
                             <button
                               type="button"
                               rel="tooltip"
-                              className="btn btn-info btn-sm mr-2"
+                              className={`btn btn-sm mr-2 ${
+                                selectedPrereqs.includes(prereq.id)
+                                  ? "btn-danger"
+                                  : "btn-info"
+                              }`}
                               onClick={() => handleSelectPrereq(prereq.id)}
                             >
                               <i className="material-icons">

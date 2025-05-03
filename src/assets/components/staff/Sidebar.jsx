@@ -62,7 +62,14 @@ const Sidebar = () => {
           </div>
           <ul className="nav">
             <li
-              className={`nav-item ${location.pathname === "/staff/accounts" ? "active" : ""}`}
+              className={`nav-item ${
+                location.pathname === "/staff/accounts" ||
+                location.pathname.startsWith(
+                  "/staff/accounts/customer/details/"
+                )
+                  ? "active"
+                  : ""
+              }`}
             >
               <Link className="nav-link" to="/staff/accounts">
                 <i className="material-icons">person</i>

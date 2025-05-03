@@ -49,6 +49,13 @@ const Navbar = () => {
                 <i className="material-icons">lock_open</i> Forgot Password
               </Link>
             </li>
+            <li
+              className={`nav-item ${location.pathname === "/reset-password" ? "active" : ""}`}
+            >
+              <Link to="/reset-password" className="nav-link">
+                <i className="material-icons">key</i> Reset Password
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
