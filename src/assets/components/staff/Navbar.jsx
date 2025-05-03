@@ -156,11 +156,8 @@ const Navbar = () => {
                   aria-labelledby="navbarDropdownProfile"
                   className="dropdown-menu dropdown-menu-right show"
                 >
-                  <Link className="dropdown-item" to="/admin/profile">
+                  <Link className="dropdown-item" to="/staff/profile">
                     Profile
-                  </Link>
-                  <Link className="dropdown-item" to="/admin/settings">
-                    Settings
                   </Link>
                   <div className="dropdown-divider" />
                   <a className="dropdown-item" href="#" onClick={handleLogout}>

@@ -31,7 +31,7 @@ const ResetPassword = () => {
     const toastId = showToast.loading("Resetting password...");
     try {
       const response = await axios.put(
-        `/api/accounts/forgotPassword?email=${encodeURIComponent(
+        `/api/accounts/resetPassword?email=${encodeURIComponent(
           formData.email
         )}&otpCode=${encodeURIComponent(
           formData.otpCode

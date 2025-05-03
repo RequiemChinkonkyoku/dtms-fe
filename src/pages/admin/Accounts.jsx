@@ -9,9 +9,9 @@ import {
 } from "@mui/material";
 
 import Loader from "../../assets/components/common/Loader";
-import Sidebar from "../../assets/components/staff/Sidebar";
+import Sidebar from "../../assets/components/admin/Sidebar";
 import Head from "../../assets/components/common/Head";
-import Navbar from "../../assets/components/staff/Navbar";
+import Navbar from "../../assets/components/admin/Navbar";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
@@ -20,7 +20,7 @@ import CustomFilter from "../../assets/components/common/CustomFilter";
 import { useNavigate } from "react-router-dom";
 import { useLoading } from "../../contexts/LoadingContext";
 
-const Accounts = () => {
+const AdminAccounts = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const { loading, setLoading } = useLoading();
@@ -632,4 +632,4 @@ const Accounts = () => {
   );
 };
 
-export default Accounts;
+export default AdminAccounts;

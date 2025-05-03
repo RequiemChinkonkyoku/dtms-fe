@@ -129,20 +129,6 @@ const TrainerCoursesCreate = () => {
           .join("\n")}`
       );
 
-      // missingFields.forEach(([key]) => {
-      //   const element = document.querySelector(`[name="${key}"]`);
-      //   if (element) {
-      //     element.style.border = "1px solid red";
-      //     element.addEventListener(
-      //       "input",
-      //       function () {
-      //         this.style.border = "";
-      //       },
-      //       { once: true }
-      //     );
-      //   }
-      // });
-
       return;
     }
 

@@ -52,6 +52,7 @@ const StaffDashboard = () => {
   const [highlightedDays, setHighlightedDays] = useState([]);
   const [greeting, setGreeting] = useState("");
   const [todayClasses, setTodayClasses] = useState([]);
+  const [cageDetails, setCageDetails] = useState([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -169,6 +170,24 @@ const StaffDashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchCageDetails = async () => {
+      try {
+        const staffId = user?.unique_name;
+        const response = await axios.get(
+          `/api/cages/get-cage-by-staff-id/${staffId}`
+        );
+        if (response.data.success) {
+          setCageDetails(response.data.objectList || []);
+        }
+      } catch (error) {
+        console.error("Error fetching cage details:", error);
+      }
+    };
+
+    fetchCageDetails();
+  }, []);
 
   return (
     <>
@@ -369,6 +388,87 @@ const StaffDashboard = () => {
                             />
                           </LocalizationProvider>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="card">
+                      <div className="card-header card-header-info">
+                        <h4 className="card-title">Cages Today</h4>
+                        <p className="card-category">
+                          Cages that need tending to today
+                        </p>
+                      </div>
+                      <div className="card-body table-responsive">
+                        <table className="table table-hover">
+                          <thead className="text-info">
+                            <tr>
+                              <th>Cage Number</th>
+                              <th>Location</th>
+                              <th>Time</th>
+                              <th>Dog Name</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const todayCages = cageDetails.flatMap((cage) =>
+                                cage.cageSlots
+                                  .filter((slot) => {
+                                    const slotDate = new Date(slot.slotDate);
+                                    return (
+                                      slotDate.toDateString() ===
+                                      new Date().toDateString()
+                                    );
+                                  })
+                                  .map((slot) => ({
+                                    id: cage.cageId,
+                                    number: cage.number,
+                                    location: cage.location,
+                                    dogName: cage.dogName,
+                                    startTime: slot.startTime,
+                                    endTime: slot.endTime,
+                                  }))
+                              );
+
+                              if (todayCages.length === 0) {
+                                return (
+                                  <tr>
+                                    <td colSpan="4" className="text-center">
+                                      No cages need tending to today
+                                    </td>
+                                  </tr>
+                                );
+                              }
+
+                              return todayCages.map((cageSlot) => (
+                                <tr
+                                  key={`${cageSlot.id}-${cageSlot.startTime}`}
+                                >
+                                  <td>
+                                    <strong>Cage {cageSlot.number}</strong>
+                                  </td>
+                                  <td>{cageSlot.location}</td>
+                                  <td>
+                                    {new Date(
+                                      `2000-01-01T${cageSlot.startTime}`
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                    {" - "}
+                                    {new Date(
+                                      `2000-01-01T${cageSlot.endTime}`
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </td>
+                                  <td>{cageSlot.dogName}</td>
+                                </tr>
+                              ));
+                            })()}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>

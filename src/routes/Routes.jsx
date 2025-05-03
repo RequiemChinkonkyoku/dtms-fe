@@ -33,6 +33,8 @@ import StaffStatistics from "../pages/staff/Statistics";
 import StaffTransactions from "../pages/staff/Transactions";
 import TrainerClassesDetails from "../pages/trainer/ClassesDetails";
 import ResetPassword from "../pages/ResetPassword";
+import AdminAccounts from "../pages/admin/Accounts";
+import StaffProfile from "../pages/staff/Profile";
 
 export const routes = createBrowserRouter([
   {
@@ -71,6 +73,10 @@ export const routes = createBrowserRouter([
       </AuthProvider>
     ),
     children: [
+      {
+        path: "profile",
+        element: <StaffProfile />,
+      },
       {
         path: "statistics",
         element: <StaffStatistics />,
@@ -152,6 +158,10 @@ export const routes = createBrowserRouter([
       {
         path: "dashboard",
         element: <AdminDashboard />,
+      },
+      {
+        path: "accounts",
+        element: <AdminAccounts />,
       },
     ],
   },

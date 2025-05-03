@@ -287,7 +287,7 @@ const StaffDogs = () => {
                         </div>
                         <h4 className="card-title">Dog management</h4>
                         <p class="card-category text-muted">
-                          Create new dogs, view and manage their details.
+                          View and manage dogs' details.
                         </p>
                       </div>
                       <div className="card-body">
