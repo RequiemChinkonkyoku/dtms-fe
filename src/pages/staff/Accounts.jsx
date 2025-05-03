@@ -38,6 +38,13 @@ const Accounts = () => {
     trainers: 0,
     staff: 0,
   });
+  const [pendingDocuments, setPendingDocuments] = useState([]);
+  const [documentPage, setDocumentPage] = useState(0);
+  const [documentRowsPerPage, setDocumentRowsPerPage] = useState(5);
+  const [documentOrderBy, setDocumentOrderBy] = useState("latestTime");
+  const [documentOrder, setDocumentOrder] = useState("desc");
+  const [documentSearchTerm, setDocumentSearchTerm] = useState("");
+  const [customerDetails, setCustomerDetails] = useState({});
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
@@ -192,8 +199,8 @@ const Accounts = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case -1:
-        return "Disabled";
+      case 2:
+        return "Deactivated";
       case 0:
         return "Inactive";
       case 1:
@@ -205,7 +212,7 @@ const Accounts = () => {
 
   const getStatusClass = (status) => {
     switch (status) {
-      case -1:
+      case 2:
         return "text-danger";
       case 0:
         return "text-warning";
@@ -214,6 +221,67 @@ const Accounts = () => {
       default:
         return "";
     }
+  };
+
+  useEffect(() => {
+    const fetchLegalDocuments = async () => {
+      try {
+        const response = await axios.get("/api/legalDocument");
+        if (response.data.success) {
+          const documents = response.data.objectList;
+
+          const customerDocuments = documents
+            .filter((doc) => doc.status === 0)
+            .reduce((acc, doc) => {
+              const existing = acc.find((item) => item[0] === doc.customerId);
+              if (existing) {
+                existing[1]++;
+                if (new Date(doc.createdTime) > new Date(existing[2])) {
+                  existing[2] = doc.createdTime;
+                }
+              } else {
+                acc.push([doc.customerId, 1, doc.createdTime]);
+              }
+              return acc;
+            }, []);
+
+          setPendingDocuments(customerDocuments);
+        }
+      } catch (error) {
+        console.error("Error fetching legal documents:", error);
+      }
+    };
+
+    fetchLegalDocuments();
+  }, []);
+
+  useEffect(() => {
+    const fetchCustomerDetails = async () => {
+      try {
+        const promises = pendingDocuments.map(([customerId]) =>
+          axios.get(`/api/accounts/${customerId}`)
+        );
+        const responses = await Promise.all(promises);
+        const details = {};
+        responses.forEach((response, index) => {
+          const customerId = pendingDocuments[index][0];
+          details[customerId] = response.data;
+        });
+        setCustomerDetails(details);
+      } catch (error) {
+        console.error("Error fetching customer details:", error);
+      }
+    };
+
+    if (pendingDocuments.length > 0) {
+      fetchCustomerDetails();
+    }
+  }, [pendingDocuments]);
+
+  const handleDocumentSort = (property) => {
+    const isAsc = documentOrderBy === property && documentOrder === "asc";
+    setDocumentOrder(isAsc ? "desc" : "asc");
+    setDocumentOrderBy(property);
   };
 
   return (
@@ -432,6 +500,125 @@ const Accounts = () => {
                             />
                           </div>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="card">
+                      <div className="card-header card-header-warning card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">description</i>
+                        </div>
+                        <h4 className="card-title">Pending Legal Documents</h4>
+                        <p className="card-category text-muted">
+                          Documents requiring review and approval.
+                        </p>
+                      </div>
+                      <div className="card-body">
+                        <div
+                          style={{
+                            padding: "16px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "16px",
+                          }}
+                        >
+                          <CustomSearch
+                            value={documentSearchTerm}
+                            onChange={setDocumentSearchTerm}
+                            placeholder="Search customer..."
+                            setPage={setDocumentPage}
+                          />
+                        </div>
+                        <div className="table-responsive">
+                          <CustomTable
+                            columns={[
+                              {
+                                key: "username",
+                                label: "Username",
+                                render: (value, row) =>
+                                  customerDetails[row.customerId]?.username ||
+                                  "Loading...",
+                              },
+                              {
+                                key: "fullName",
+                                label: "Full Name",
+                                render: (value, row) =>
+                                  customerDetails[row.customerId]?.fullName ||
+                                  "Loading...",
+                              },
+                              {
+                                key: "count",
+                                label: "Pending Documents",
+                                render: (value) => `${value} document(s)`,
+                              },
+                              {
+                                key: "latestTime",
+                                label: "Latest Submission",
+                                render: (value) =>
+                                  new Date(value).toLocaleString(),
+                              },
+                            ]}
+                            data={pendingDocuments
+                              .filter((doc) => {
+                                const customer = customerDetails[doc[0]];
+                                if (!customer) return true; // Show while loading
+                                return (
+                                  customer.username
+                                    .toLowerCase()
+                                    .includes(
+                                      documentSearchTerm.toLowerCase()
+                                    ) ||
+                                  customer.fullName
+                                    .toLowerCase()
+                                    .includes(documentSearchTerm.toLowerCase())
+                                );
+                              })
+                              .map(([customerId, count, latestTime]) => ({
+                                customerId,
+                                count,
+                                latestTime,
+                              }))}
+                            page={documentPage}
+                            rowsPerPage={documentRowsPerPage}
+                            orderBy={documentOrderBy}
+                            order={documentOrder}
+                            onSort={handleDocumentSort}
+                            renderActions={(row) => (
+                              <button
+                                type="button"
+                                rel="tooltip"
+                                className="btn btn-info btn-sm"
+                                data-original-title="View Details"
+                                title="View Details"
+                                onClick={() =>
+                                  navigate(
+                                    `/staff/accounts/customer/details/${row.customerId}`
+                                  )
+                                }
+                              >
+                                <i className="material-icons">more_vert</i>
+                              </button>
+                            )}
+                          />
+                          <CustomPagination
+                            count={pendingDocuments.length}
+                            rowsPerPage={documentRowsPerPage}
+                            page={documentPage}
+                            onPageChange={(e, newPage) =>
+                              setDocumentPage(newPage)
+                            }
+                            onRowsPerPageChange={(e) => {
+                              setDocumentRowsPerPage(
+                                parseInt(e.target.value, 10)
+                              );
+                              setDocumentPage(0);
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
