@@ -730,6 +730,13 @@ const StaffClassesCreate = () => {
                                       trainer.id
                                     )}
                                     onChange={(e) => {
+                                      if (
+                                        e.target.checked &&
+                                        selectedTrainerIds.length >=
+                                          selectedCourse?.maxTrainers
+                                      ) {
+                                        return;
+                                      }
                                       setSelectedTrainerIds((prev) =>
                                         e.target.checked
                                           ? [...prev, trainer.id]
@@ -738,6 +745,13 @@ const StaffClassesCreate = () => {
                                             )
                                       );
                                     }}
+                                    disabled={
+                                      !selectedTrainerIds.includes(
+                                        trainer.id
+                                      ) &&
+                                      selectedTrainerIds.length >=
+                                        selectedCourse?.maxTrainers
+                                    }
                                   />
                                   {trainer.name}
                                   <span className="form-check-sign">
@@ -748,6 +762,14 @@ const StaffClassesCreate = () => {
                             </div>
                           ))}
                         </div>
+                        <small
+                          className="text-info"
+                          style={{ marginTop: "8px", display: "block" }}
+                        >
+                          * This course requires between{" "}
+                          {selectedCourse?.minTrainers} and{" "}
+                          {selectedCourse?.maxTrainers} trainer(s)
+                        </small>
                       </div>
                     </div>
                   </div>

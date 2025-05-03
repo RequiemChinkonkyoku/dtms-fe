@@ -263,7 +263,7 @@ const TrainerLessonsCreate = () => {
                                   name="duration"
                                   class="form-control"
                                   min="1"
-                                  max="4"
+                                  max="50"
                                   value={formData.duration}
                                   onChange={(e) => {
                                     const value = Math.min(
