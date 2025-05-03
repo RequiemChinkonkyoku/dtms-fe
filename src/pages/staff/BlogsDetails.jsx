@@ -8,6 +8,7 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
+import { dismissToast, showToast } from "../../utils/toastConfig";
 
 import Swal from "sweetalert2";
 import { Modal, TextField } from "@mui/material";
@@ -51,6 +52,7 @@ const StaffBlogsDetails = () => {
 
   const handleEdit = async () => {
     try {
+      const toastId = showToast.loading("Updating blog...");
       const response = await axios.put(`/api/blogs/${id}`, {
         title: editTitle,
         content: editContent,
@@ -59,22 +61,13 @@ const StaffBlogsDetails = () => {
       });
       if (response.data.success) {
         setOpenModal(false);
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "Blog updated successfully",
-          timer: 1500,
-          showConfirmButton: false,
-        }).then(() => {
-          window.location.reload();
-        });
+        dismissToast(toastId);
+        showToast.success("Blog updated successfully");
+        window.location.reload();
       }
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to update blog",
-      });
+      dismissToast();
+      showToast.error(error.response?.data?.message || "Failed to update blog");
     }
   };
 
@@ -91,26 +84,19 @@ const StaffBlogsDetails = () => {
       });
 
       if (result.isConfirmed) {
+        const toastId = showToast.loading("Publishing blog...");
         const response = await axios.put(`/api/blogs/publish/${id}`);
         if (response.data.success) {
+          dismissToast(toastId);
+          showToast.success("Blog published successfully");
           navigate("/staff/blogs");
-          Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: "Blog published successfully",
-            timer: 1500,
-            showConfirmButton: false,
-          });
         }
       }
-
-      navigate("/staff/blogs");
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to publish blog",
-      });
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to publish blog"
+      );
     }
   };
 
@@ -127,26 +113,23 @@ const StaffBlogsDetails = () => {
       });
 
       if (result.isConfirmed) {
-        const response = await axios.delete(`/api/blogs/${id}`);
-        if (response.data.success) {
+        const toastId = showToast.loading("Archiving blog...");
+        try {
+          await axios.delete(`/api/blogs/${id}`);
+          dismissToast(toastId);
+          showToast.success("Blog archived successfully");
           navigate("/staff/blogs");
-          Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: "Blog archived successfully",
-            timer: 1500,
-            showConfirmButton: false,
-          });
+        } catch (error) {
+          dismissToast(toastId);
+          if (error.response?.status === 404) {
+            showToast.error("Blog not found");
+          } else {
+            showToast.error("Failed to archive blog");
+          }
         }
       }
-
-      navigate("/staff/blogs");
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.response?.data?.message || "Failed to archive blog",
-      });
+      showToast.error("An unexpected error occurred");
     }
   };
 

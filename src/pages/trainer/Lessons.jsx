@@ -9,6 +9,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
 import { useLoading } from "../../contexts/LoadingContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import {
   Dialog,
   DialogActions,
@@ -189,7 +193,10 @@ const TrainerLessons = () => {
                       <div className="card-icon">
                         <i className="material-icons">pets</i>
                       </div>
-                      <h4 className="card-title">Lesson List</h4>
+                      <h4 className="card-title">Lesson management</h4>
+                      <p class="card-category text-muted">
+                        Create new lesson, view details and manage them.
+                      </p>
                     </div>
                     <div className="card-body">
                       {loading ? (
@@ -214,13 +221,13 @@ const TrainerLessons = () => {
                               gap: "16px",
                             }}
                           >
-                            <TextField
-                              label="Search lesson..."
-                              variant="outlined"
-                              size="small"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                            <div style={{ display: "flex", gap: "16px" }}>
+                              <CustomSearch
+                                value={searchTerm}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                              />
+                            </div>
                             <button
                               className="btn btn-warning"
                               onClick={() =>
@@ -231,101 +238,73 @@ const TrainerLessons = () => {
                               Lesson
                             </button>
                           </div>
-                          <table className="table table-hover">
-                            <thead>
-                              <tr>
-                                <th className="text-center">#</th>
-                                {[
-                                  ["lessonTitle", "Title"],
-                                  ["environment", "Environment"],
-                                  ["skillId", "Skill"],
-                                  ["duration", "Duration (slots)"],
-                                  ["status", "Status"],
-                                  ["createdTime", "Created Date"],
-                                ].map(([key, label]) => (
-                                  <th key={key}>
-                                    <TableSortLabel
-                                      active={orderBy === key}
-                                      direction={
-                                        orderBy === key ? order : "asc"
-                                      }
-                                      onClick={() => handleSort(key)}
-                                    >
-                                      {label}
-                                    </TableSortLabel>
-                                  </th>
-                                ))}
-                                <th className="text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {sortedLessons
-                                .slice(
-                                  page * rowsPerPage,
-                                  page * rowsPerPage + rowsPerPage
-                                )
-                                .map((lesson, index) => (
-                                  <tr key={lesson.id}>
-                                    <td className="text-center">
-                                      {page * rowsPerPage + index + 1}
-                                    </td>
-                                    <td>{lesson.lessonTitle}</td>
-                                    <td>{lesson.environment}</td>
-                                    <td>
-                                      {skillDetails[lesson.skillId] ||
-                                        "Loading..."}
-                                    </td>
-                                    <td>{lesson.duration}</td>
-                                    <td
-                                      className={getStatusClass(lesson.status)}
-                                    >
-                                      {getStatusText(lesson.status)}
-                                    </td>
-                                    <td>{formatDate(lesson.createdTime)}</td>
-                                    <td className="td-actions text-right">
-                                      <button
-                                        type="button"
-                                        rel="tooltip"
-                                        className={`btn ${lesson.status === 0 ? "btn-warning" : "btn-success"} btn-sm`}
-                                        onClick={() =>
-                                          handleStatusChange(lesson)
-                                        }
-                                        title={
-                                          lesson.status === 1
-                                            ? "Deactivate"
-                                            : "Activate"
-                                        }
-                                      >
-                                        <i className="material-icons">
-                                          {lesson.status === 0
-                                            ? "toggle_off"
-                                            : "toggle_on"}
-                                        </i>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        rel="tooltip"
-                                        className="btn btn-info btn-sm"
-                                        style={{ marginLeft: "8px" }}
-                                        onClick={() =>
-                                          navigate(
-                                            `/trainer/lessons/details/${lesson.id}`
-                                          )
-                                        }
-                                        title="View Details"
-                                      >
-                                        <i className="material-icons">
-                                          visibility
-                                        </i>
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                          <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
+                          <CustomTable
+                            columns={[
+                              { key: "lessonTitle", label: "Title" },
+                              { key: "environment", label: "Environment" },
+                              {
+                                key: "skillId",
+                                label: "Skill",
+                                render: (value, row) =>
+                                  skillDetails[row.skillId] || "Loading...",
+                              },
+                              { key: "duration", label: "Duration (slots)" },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value, row) => (
+                                  <span className={getStatusClass(row.status)}>
+                                    {getStatusText(row.status)}
+                                  </span>
+                                ),
+                              },
+                              {
+                                key: "createdTime",
+                                label: "Created Date",
+                                render: (value) => formatDate(value),
+                              },
+                            ]}
+                            data={sortedLessons}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            orderBy={orderBy}
+                            order={order}
+                            onSort={handleSort}
+                            renderActions={(row) => (
+                              <>
+                                <button
+                                  type="button"
+                                  rel="tooltip"
+                                  className={`btn ${row.status === 0 ? "btn-warning" : "btn-success"} btn-sm`}
+                                  onClick={() => handleStatusChange(row)}
+                                  title={
+                                    row.status === 1 ? "Deactivate" : "Activate"
+                                  }
+                                >
+                                  <i className="material-icons">
+                                    {row.status === 0
+                                      ? "toggle_off"
+                                      : "toggle_on"}
+                                  </i>
+                                </button>
+                                <button
+                                  type="button"
+                                  rel="tooltip"
+                                  className="btn btn-info btn-sm"
+                                  style={{ marginLeft: "8px" }}
+                                  onClick={() =>
+                                    navigate(
+                                      `/trainer/lessons/details/${row.id}`
+                                    )
+                                  }
+                                  title="View Details"
+                                >
+                                  <i className="material-icons">visibility</i>
+                                </button>
+                              </>
+                            )}
+                          />
+                          <CustomPagination
                             count={sortedLessons.length}
                             rowsPerPage={rowsPerPage}
                             page={page}

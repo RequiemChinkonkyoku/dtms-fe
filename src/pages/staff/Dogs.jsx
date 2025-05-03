@@ -9,23 +9,15 @@ import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
 import { Link } from "react-router-dom";
 
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import { showToast, dismissToast } from "../../utils/toastConfig";
+
 import "react-datepicker/dist/react-datepicker.css";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TablePagination,
-  IconButton,
-  Collapse,
-  Box,
-  Typography,
   TextField,
-  TableSortLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -34,35 +26,11 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const StaffDogs = () => {
   const [dogs, setDogs] = useState([]);
   const { loading, setLoading } = useLoading();
   const [error, setError] = useState(null);
-  const [responseMessage, setResponseMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    imageUrl: "",
-    dateOfBirth: "",
-    gender: 0,
-    customerProfileId: "",
-    dogBreedId: "",
-  });
-  const [imgUrl, setImgUrl] = useState("");
-  const [editingDog, setEditingDog] = useState(null);
-  const [updateFormData, setUpdateFormData] = useState({
-    name: "",
-    imageUrl: "",
-    breed: "",
-    dateOfBirth: "",
-    gender: 0,
-    status: 1,
-    customerProfileId: "",
-    dogBreedId: "",
-  });
   const [dogBreeds, setDogBreeds] = useState([]);
   const [breedPage, setBreedPage] = useState(0);
   const [breedOrderBy, setBreedOrderBy] = useState("createdTime");
@@ -74,7 +42,6 @@ const StaffDogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState("registrationTime");
   const [order, setOrder] = useState("desc");
-  const [openRows, setOpenRows] = useState({});
   const [isBreedModalOpen, setIsBreedModalOpen] = useState(false);
   const [breedFormData, setBreedFormData] = useState({
     name: "",
@@ -90,12 +57,20 @@ const StaffDogs = () => {
   const handleBreedSubmit = async (e) => {
     e.preventDefault();
     try {
+      const toastId = showToast.loading("Creating breed...");
       const response = await axios.post("/api/dogBreeds", breedFormData);
-      setDogBreeds([...dogBreeds, response.data]);
+
+      // Add to beginning of array for most recent first
+      setDogBreeds([response.data, ...dogBreeds]);
       setIsBreedModalOpen(false);
       setBreedFormData({ name: "", description: "" });
+      dismissToast(toastId);
+      showToast.success("Breed created successfully");
     } catch (error) {
-      console.error("Error creating breed:", error);
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to create breed"
+      );
     }
   };
 
@@ -111,6 +86,7 @@ const StaffDogs = () => {
   const handleBreedUpdate = async (e) => {
     e.preventDefault();
     try {
+      const toastId = showToast.loading("Updating breed...");
       await axios.put(`/api/dogBreeds/${editingBreed.id}`, updateBreedFormData);
       const updatedBreeds = dogBreeds.map((breed) =>
         breed.id === editingBreed.id
@@ -119,8 +95,13 @@ const StaffDogs = () => {
       );
       setDogBreeds(updatedBreeds);
       setEditingBreed(null);
+      dismissToast(toastId);
+      showToast.success("Breed updated successfully");
     } catch (error) {
-      console.error("Error updating breed:", error);
+      dismissToast();
+      showToast.error(
+        error.response?.data?.message || "Failed to update breed"
+      );
     }
   };
 
@@ -158,29 +139,23 @@ const StaffDogs = () => {
     );
 
     return filtered.sort((a, b) => {
-      if (breedOrderBy === "dogNames") {
-        return breedOrder === "asc"
-          ? a.dogNames.length - b.dogNames.length
-          : b.dogNames.length - a.dogNames.length;
-      }
+      // if (breedOrderBy === "dogNames") {
+      //   return breedOrder === "asc"
+      //     ? (a.dogNames || []).length - (b.dogNames || []).length
+      //     : (b.dogNames || []).length - (a.dogNames || []).length;
+      // }
 
       if (breedOrderBy === "createdTime") {
-        const [datePartA] = a[breedOrderBy].split(" ");
-        const [dayA, monthA, yearA] = datePartA.split("/");
-        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
-
-        const [datePartB] = b[breedOrderBy].split(" ");
-        const [dayB, monthB, yearB] = datePartB.split("/");
-        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-
+        const dateA = new Date(a.createdTime);
+        const dateB = new Date(b.createdTime);
         return breedOrder === "asc" ? dateA - dateB : dateB - dateA;
       }
 
-      if (breedOrder === "asc") {
-        return a[breedOrderBy] < b[breedOrderBy] ? -1 : 1;
-      } else {
-        return b[breedOrderBy] < a[breedOrderBy] ? -1 : 1;
-      }
+      return breedOrder === "asc"
+        ? a[breedOrderBy]?.toString().localeCompare(b[breedOrderBy]?.toString())
+        : b[breedOrderBy]
+            ?.toString()
+            .localeCompare(a[breedOrderBy]?.toString());
     });
   }, [dogBreeds, breedSearchTerm, breedOrder, breedOrderBy]);
 
@@ -194,23 +169,17 @@ const StaffDogs = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const [datePart] = dateString.split(" ");
-    const [day, month, year] = datePart.split("/");
-    return new Date(`${year}-${month}-${day}`).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const handleSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-  };
-
-  const handleRowClick = (id) => {
-    setOpenRows((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
   };
 
   const sortedDogs = React.useMemo(() => {
@@ -265,133 +234,6 @@ const StaffDogs = () => {
     fetchDogs();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    console.log("name", name);
-    console.log("value", value);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setResponseMessage("");
-    setErrorMessage("");
-
-    try {
-      const response = await axios.post("/api/dogs", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog created successfully!");
-      setDogs([...dogs, response.data]);
-      setFormData({
-        name: "",
-        imageUrl: "",
-        dateOfBirth: "",
-        gender: 0,
-        customerProfileId: "",
-        dogBreedId: "",
-      });
-      window.location.reload();
-    } catch (error) {
-      setErrorMessage("Failed to create the dog. " + error.message);
-    }
-  };
-
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("https://localhost:7256/api/uploadFile", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const imageUrl = await response.text();
-      setImgUrl(imageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        imageUrl: imageUrl,
-      }));
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to deactivate this dog?")) {
-      try {
-        await axios.delete(`/api/dogs/${id}`);
-        window.location.reload();
-      } catch (error) {
-        setErrorMessage("Failed to deactivate the dog. " + error.message);
-      }
-    }
-  };
-
-  const handleEdit = (dog) => {
-    setEditingDog(dog);
-    setUpdateFormData({
-      name: dog.name,
-      imageUrl: dog.imageUrl,
-      breed: dog.breed,
-      dateOfBirth: dog.dateOfBirth,
-      gender: dog.gender,
-      status: dog.status,
-      customerProfileId: dog.customerProfileId,
-      dogBreedId: dog.dogBreedId,
-    });
-  };
-
-  const handleUpdateChange = (e) => {
-    const { name, value } = e.target;
-    setUpdateFormData({
-      ...updateFormData,
-      [name]: value,
-    });
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`/api/dogs/${editingDog.id}`, updateFormData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setResponseMessage("Dog updated successfully!");
-      setEditingDog(null);
-      window.location.reload();
-    } catch (error) {
-      setErrorMessage("Failed to update the dog. " + error.message);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingDog(null);
-    setUpdateFormData({
-      name: "",
-      imageUrl: "",
-      dateOfBirth: "",
-      gender: "",
-      status: "",
-      customerProfileId: "",
-      dogBreedId: "",
-    });
-  };
-
   const getStatusText = (status) => {
     switch (status) {
       case -1:
@@ -443,7 +285,10 @@ const StaffDogs = () => {
                         <div className="card-icon">
                           <i className="material-icons">pets</i>
                         </div>
-                        <h4 className="card-title">Dogs List</h4>
+                        <h4 className="card-title">Dog management</h4>
+                        <p class="card-category text-muted">
+                          Create new dogs, view and manage their details.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
@@ -467,121 +312,61 @@ const StaffDogs = () => {
                                 alignItems: "center",
                               }}
                             >
-                              <TextField
-                                label="Search by name..."
-                                variant="outlined"
-                                size="small"
+                              <CustomSearch
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search by name..."
                               />
                               <button className="btn btn-info">
                                 <i className="material-icons">add</i> Create Dog
                               </button>
                             </div>
-                            <TableContainer>
-                              <Table className="table">
-                                <TableHead>
-                                  <TableRow>
-                                    <TableCell className="text-center">
-                                      #
-                                    </TableCell>
-                                    {[
-                                      ["name", "Name"],
-                                      ["dateOfBirth", "Date of Birth"],
-                                      ["gender", "Gender"],
-                                      ["dogBreedName", "Breed"],
-                                      ["status", "Status"],
-                                      ["registrationTime", "Registration Date"],
-                                    ].map(([key, label]) => (
-                                      <TableCell key={key}>
-                                        <TableSortLabel
-                                          active={orderBy === key}
-                                          direction={
-                                            orderBy === key ? order : "asc"
-                                          }
-                                          onClick={() => handleSort(key)}
-                                        >
-                                          {label}
-                                        </TableSortLabel>
-                                      </TableCell>
-                                    ))}
-                                    <th className="text-right">Actions</th>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {loading ? (
-                                    <TableRow>
-                                      <TableCell colSpan={7} align="center">
-                                        <Loader />
-                                      </TableCell>
-                                    </TableRow>
-                                  ) : (
-                                    sortedDogs
-                                      .slice(
-                                        page * rowsPerPage,
-                                        page * rowsPerPage + rowsPerPage
-                                      )
-                                      .map((dog, index) => (
-                                        <tr key={dog.id}>
-                                          <td className="text-center">
-                                            {page * rowsPerPage + index + 1}
-                                          </td>
-                                          <td>{dog.name}</td>
-                                          <td>{dog.dateOfBirth}</td>
-                                          <td>
-                                            {dog.gender === 0
-                                              ? "Male"
-                                              : "Female"}
-                                          </td>
-                                          <td>{dog.dogBreedName}</td>
-                                          <td
-                                            className={getStatusClass(
-                                              dog.status
-                                            )}
-                                          >
-                                            {getStatusText(dog.status)}
-                                          </td>
-                                          <td>
-                                            {formatDate(dog.registrationTime)}
-                                          </td>
-                                          <td className="td-actions text-right">
-                                            <button
-                                              type="button"
-                                              className="btn btn-primary btn-sm"
-                                              onClick={() =>
-                                                handleRowClick(dog.id)
-                                              }
-                                            >
-                                              <i
-                                                className="material-icons"
-                                                style={{
-                                                  transition: "transform 0.3s",
-                                                }}
-                                              >
-                                                {openRows[dog.id]
-                                                  ? "keyboard_arrow_up"
-                                                  : "keyboard_arrow_down"}
-                                              </i>
-                                            </button>
-                                            <Link
-                                              to={`/staff/dogs/details/${dog.id}`}
-                                              className="btn btn-info btn-sm"
-                                              style={{ marginLeft: "8px" }}
-                                            >
-                                              <i className="material-icons">
-                                                more_vert
-                                              </i>
-                                            </Link>
-                                          </td>
-                                        </tr>
-                                      ))
-                                  )}
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                            <TablePagination
-                              rowsPerPageOptions={[5, 10, 25]}
-                              component="div"
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                { key: "dateOfBirth", label: "Date of Birth" },
+                                {
+                                  key: "gender",
+                                  label: "Gender",
+                                  render: (value) =>
+                                    value === 0 ? "Male" : "Female",
+                                },
+                                { key: "dogBreedName", label: "Breed" },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "registrationTime",
+                                  label: "Registration Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedDogs}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) => (
+                                <>
+                                  <Link
+                                    to={`/staff/dogs/details/${row.id}`}
+                                    className="btn btn-info btn-sm"
+                                    style={{ marginLeft: "8px" }}
+                                  >
+                                    <i className="material-icons">more_vert</i>
+                                  </Link>
+                                </>
+                              )}
+                            />
+                            <CustomPagination
                               count={sortedDogs.length}
                               rowsPerPage={rowsPerPage}
                               page={page}
@@ -601,7 +386,10 @@ const StaffDogs = () => {
                         <div className="card-icon">
                           <i className="material-icons">pets</i>
                         </div>
-                        <h4 className="card-title">Dog Breeds</h4>
+                        <h4 className="card-title">Dog breed management</h4>
+                        <p class="card-category text-muted">
+                          Insert new dog breeds, view and edit existing ones.
+                        </p>
                       </div>
                       <div className="card-body">
                         <div className="table-responsive">
@@ -613,14 +401,11 @@ const StaffDogs = () => {
                               alignItems: "center",
                             }}
                           >
-                            <TextField
-                              label="Search breeds..."
-                              variant="outlined"
-                              size="small"
+                            <CustomSearch
                               value={breedSearchTerm}
-                              onChange={(e) =>
-                                setBreedSearchTerm(e.target.value)
-                              }
+                              onChange={setBreedSearchTerm}
+                              setPage={setBreedPage}
+                              placeholder="Search breeds..."
                             />
                             <button
                               className="btn btn-info"
@@ -629,78 +414,47 @@ const StaffDogs = () => {
                               <i className="material-icons">add</i> Add Breed
                             </button>
                           </div>
-                          <TableContainer>
-                            <Table className="table">
-                              <TableHead>
-                                <TableRow>
-                                  <TableCell className="text-center">
-                                    #
-                                  </TableCell>
-                                  {[
-                                    ["name", "Name"],
-                                    ["dogNames", "Dogs Count"],
-                                    ["status", "Status"],
-                                    ["createdTime", "Created Date"],
-                                  ].map(([key, label]) => (
-                                    <TableCell key={key}>
-                                      <TableSortLabel
-                                        active={breedOrderBy === key}
-                                        direction={
-                                          breedOrderBy === key
-                                            ? breedOrder
-                                            : "asc"
-                                        }
-                                        onClick={() => handleBreedSort(key)}
-                                      >
-                                        {label}
-                                      </TableSortLabel>
-                                    </TableCell>
-                                  ))}
-                                  <TableCell className="text-right">
-                                    Actions
-                                  </TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {filteredBreeds
-                                  .slice(
-                                    breedPage * breedRowsPerPage,
-                                    breedPage * breedRowsPerPage +
-                                      breedRowsPerPage
-                                  )
-                                  .map((breed, index) => (
-                                    <TableRow key={breed.id}>
-                                      <td className="text-center">
-                                        {breedPage * breedRowsPerPage +
-                                          index +
-                                          1}
-                                      </td>
-                                      <td>{breed.name}</td>
-                                      <td>{breed.dogNames.length}</td>
-                                      <td
-                                        className={getStatusClass(breed.status)}
-                                      >
-                                        {getStatusText(breed.status)}
-                                      </td>
-                                      <td>{formatDate(breed.createdTime)}</td>
-                                      <td className="td-actions text-right">
-                                        <button
-                                          type="button"
-                                          className="btn btn-info btn-sm"
-                                          title="Edit"
-                                          onClick={() => handleBreedEdit(breed)}
-                                        >
-                                          <i className="material-icons">edit</i>
-                                        </button>
-                                      </td>
-                                    </TableRow>
-                                  ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                          <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
+                          <CustomTable
+                            columns={[
+                              { key: "name", label: "Name" },
+                              {
+                                key: "dogNames",
+                                label: "Dogs Count",
+                                render: (value) => (value ? value.length : 0),
+                              },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value) => (
+                                  <span className={getStatusClass(value)}>
+                                    {getStatusText(value)}
+                                  </span>
+                                ),
+                              },
+                              {
+                                key: "createdTime",
+                                label: "Created Date",
+                                render: (value) => formatDate(value),
+                              },
+                            ]}
+                            data={filteredBreeds}
+                            page={breedPage}
+                            rowsPerPage={breedRowsPerPage}
+                            orderBy={breedOrderBy}
+                            order={breedOrder}
+                            onSort={handleBreedSort}
+                            renderActions={(row) => (
+                              <button
+                                type="button"
+                                className="btn btn-info btn-sm"
+                                title="Edit"
+                                onClick={() => handleBreedEdit(row)}
+                              >
+                                <i className="material-icons">edit</i>
+                              </button>
+                            )}
+                          />
+                          <CustomPagination
                             count={filteredBreeds.length}
                             rowsPerPage={breedRowsPerPage}
                             page={breedPage}

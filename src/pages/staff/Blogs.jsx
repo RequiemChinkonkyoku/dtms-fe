@@ -10,6 +10,10 @@ import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/staff/Navbar";
 import { useAuth } from "../../contexts/AuthContext";
 
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+
 import { TablePagination, TextField, TableSortLabel } from "@mui/material";
 
 const Blogs = () => {
@@ -198,118 +202,94 @@ const Blogs = () => {
                           <i className="material-icons">feed</i>
                         </div>
                         <h4 className="card-title">Blog Management</h4>
+                        <p class="card-category text-muted">
+                          Create new blogs, view details and manage them.
+                        </p>
                       </div>
                       <div className="card-body">
-                        <div
-                          className="toolbar"
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "20px",
-                          }}
-                        >
-                          <TextField
-                            label="Search..."
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                          <Link
-                            className="btn btn-primary"
-                            to={"/staff/blogs/create"}
-                          >
-                            <i className="material-icons">add</i> New Blog
-                          </Link>
-                        </div>
                         <div className="table-responsive">
-                          <table className="table table-hover">
-                            <thead>
-                              <tr>
-                                <th className="text-center">#</th>
-                                {[
-                                  ["title", "Title"],
-                                  ["status", "Status"],
-                                  ["timePublished", "Published Date"],
-                                  ["createdTime", "Created Date"],
-                                  ["lastUpdatedTime", "Last Updated"],
-                                ].map(([key, label]) => (
-                                  <th key={key}>
-                                    <TableSortLabel
-                                      active={orderBy === key}
-                                      direction={
-                                        orderBy === key ? order : "asc"
-                                      }
-                                      onClick={() => handleSort(key)}
-                                    >
-                                      {label}
-                                    </TableSortLabel>
-                                  </th>
-                                ))}
-                                <th className="text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredBlogs
-                                .slice(
-                                  page * rowsPerPage,
-                                  page * rowsPerPage + rowsPerPage
-                                )
-                                .map((blog, index) => (
-                                  <tr key={blog.id}>
-                                    <td className="text-center">
-                                      {page * rowsPerPage + index + 1}
-                                    </td>
-                                    <td>{blog.title}</td>
-                                    <td className={getStatusClass(blog.status)}>
-                                      {getStatusText(blog.status)}
-                                    </td>
-                                    <td>{formatDate(blog.timePublished)}</td>
-                                    <td>{formatDate(blog.createdTime)}</td>
-                                    <td>{formatDate(blog.lastUpdatedTime)}</td>
-                                    <td className="td-actions text-right">
-                                      {blog.staffId === user?.unique_name ? (
-                                        <button
-                                          type="button"
-                                          rel="tooltip"
-                                          className="btn btn-warning btn-sm"
-                                          data-original-title=""
-                                          title="Edit"
-                                          onClick={() =>
-                                            navigate(
-                                              `/staff/blogs/details/${blog.id}`
-                                            )
-                                          }
-                                        >
-                                          <i className="material-icons">edit</i>
-                                        </button>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          rel="tooltip"
-                                          className="btn btn-info btn-sm"
-                                          data-original-title=""
-                                          title="View"
-                                          onClick={() =>
-                                            navigate(
-                                              `/staff/blogs/details/${blog.id}`
-                                            )
-                                          }
-                                        >
-                                          <i className="material-icons">
-                                            visibility
-                                          </i>
-                                        </button>
-                                      )}
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                          <TablePagination
-                            rowsPerPageOptions={[5, 10, 25]}
-                            component="div"
+                          <div
+                            style={{
+                              padding: "16px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CustomSearch
+                              value={searchTerm}
+                              onChange={setSearchTerm}
+                              setPage={setPage}
+                              placeholder="Search blogs..."
+                            />
+                            <Link
+                              className="btn btn-primary"
+                              to={"/staff/blogs/create"}
+                            >
+                              <i className="material-icons">add</i> New Blog
+                            </Link>
+                          </div>
+                          <CustomTable
+                            columns={[
+                              { key: "title", label: "Title" },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value) => (
+                                  <span className={getStatusClass(value)}>
+                                    {getStatusText(value)}
+                                  </span>
+                                ),
+                              },
+                              {
+                                key: "timePublished",
+                                label: "Published Date",
+                                render: (value) => formatDate(value),
+                              },
+                              {
+                                key: "createdTime",
+                                label: "Created Date",
+                                render: (value) => formatDate(value),
+                              },
+                              {
+                                key: "lastUpdatedTime",
+                                label: "Last Updated",
+                                render: (value) => formatDate(value),
+                              },
+                            ]}
+                            data={filteredBlogs}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            orderBy={orderBy}
+                            order={order}
+                            onSort={handleSort}
+                            renderActions={(row) =>
+                              row.staffId === user?.unique_name ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-warning btn-sm"
+                                  title="Edit"
+                                  onClick={() =>
+                                    navigate(`/staff/blogs/details/${row.id}`)
+                                  }
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  title="View"
+                                  onClick={() =>
+                                    navigate(`/staff/blogs/details/${row.id}`)
+                                  }
+                                >
+                                  <i className="material-icons">visibility</i>
+                                </button>
+                              )
+                            }
+                          />
+                          <CustomPagination
                             count={filteredBlogs.length}
                             rowsPerPage={rowsPerPage}
                             page={page}

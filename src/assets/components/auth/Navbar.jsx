@@ -8,8 +8,16 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top text-white">
       <div className="container">
         <div className="navbar-wrapper">
-          <Link className="navbar-brand" to="#">
-            DOG TRAINING MANAGEMENT SYSTEM
+          <Link className="navbar-brand d-flex align-items-center" to="#">
+            <img
+              src="/pawicon.png"
+              alt="PAW Logo"
+              style={{
+                height: "60px",
+                marginRight: "10px",
+              }}
+            />
+            <span>PUPPY ADVANCEMENT WORKSHOP</span>
           </Link>
         </div>
         <button

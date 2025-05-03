@@ -10,7 +10,7 @@ const Sidebar = () => {
       <div
         className="sidebar"
         data-background-color="black"
-        data-color="orange"
+        data-color="azure"
         style={{
           backgroundImage: `url(${sidebarBg})`,
           backgroundSize: "cover",
@@ -18,8 +18,19 @@ const Sidebar = () => {
         }}
       >
         <div className="logo">
-          <a className="simple-text logo-mini">P</a>
-          <a className="simple-text logo-normal">DTMS</a>
+          <a className="simple-text logo-mini">
+            <img
+              src="/pawicon.ico"
+              alt="PAW"
+              style={{ height: "40px", width: "40px" }}
+            />
+          </a>
+          <a
+            className="simple-text logo-normal"
+            style={{ display: "flex", alignItems: "center", height: "50px" }}
+          >
+            P.A.W
+          </a>
         </div>
         <div
           className="sidebar-wrapper ps-container ps-theme-default"
@@ -35,6 +46,14 @@ const Sidebar = () => {
                     <Link className="nav-link" to="/staff/dashboard">
                       <i className="material-icons">dashboard</i>
                       <p> Dashboard </p>
+                    </Link>
+                  </li>
+                  <li
+                    className={`nav-item ${location.pathname === "/staff/statistics" ? "active" : ""}`}
+                  >
+                    <Link className="nav-link" to="/staff/statistics">
+                      <i className="material-icons">analytics</i>
+                      <p> Statisics </p>
                     </Link>
                   </li>
                 </ul>
@@ -96,6 +115,14 @@ const Sidebar = () => {
               <Link className="nav-link" to="/staff/equipments">
                 <i className="material-icons">fitness_center</i>
                 <p>Equipments</p>
+              </Link>
+            </li>
+            <li
+              className={`nav-item ${location.pathname === "/staff/transactions" ? "active" : ""}`}
+            >
+              <Link className="nav-link" to="/staff/transactions">
+                <i className="material-icons">payments</i>
+                <p> Transactions </p>
               </Link>
             </li>
           </ul>

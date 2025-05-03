@@ -48,16 +48,49 @@ const Navbar = () => {
     if (isProfileOpen) setIsProfileOpen(false);
   };
 
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.startsWith("/trainer")) {
+      const segments = path.replace("/trainer/", "").split("/");
+      let title = [];
+
+      segments.forEach((segment, index) => {
+        switch (segment) {
+          case "dashboard":
+            title.push("DASHBOARD");
+            break;
+          case "classes":
+            title.push("CLASSES");
+            break;
+          case "create":
+            title.push("CREATE");
+            break;
+        }
+      });
+
+      return title.map((segment, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+              navigate_next
+            </i>
+          )}
+          <span>{segment}</span>
+        </React.Fragment>
+      ));
+    }
+    return "TRAINER";
+  };
+
   return (
     <nav className="navbar navbar-expand-lg navbar-transparent navbar-absolute">
       <div className="container-fluid">
-        <div className="navbar-wrapper">
-          <div className="navbar-minimize">
-            {/* Commented out minimize button */}
-          </div>
-          {/* <a className="navbar-brand" href="#pablo">
-            ...PAGENAME...
-          </a> */}
+        <div className="navbar-brand d-flex align-items-center">
+          <i className="material-icons mr-1">home</i>
+          <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+            navigate_next
+          </i>
+          {getPageTitle()}
         </div>
         <button
           aria-controls="navigation-index"

@@ -10,6 +10,10 @@ import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/trainer/Sidebar";
 import Head from "../../assets/components/common/Head";
 import Navbar from "../../assets/components/trainer/Navbar";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomSearch from "../../assets/components/common/CustomSearch";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import CustomFilter from "../../assets/components/common/CustomFilter";
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -34,6 +38,7 @@ const TrainerClasses = () => {
   const [orderBy, setOrderBy] = useState("name");
   const [order, setOrder] = useState("asc");
   const [filterText, setFilterText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -93,11 +98,14 @@ const TrainerClasses = () => {
   };
 
   const filteredData = classes
-    .filter((row) =>
-      Object.values(row).some((value) =>
-        value?.toString().toLowerCase().includes(filterText.toLowerCase())
-      )
-    )
+    .filter((row) => {
+      const matchesSearch = row.name
+        .toLowerCase()
+        .includes(filterText.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || row.status === parseInt(statusFilter);
+      return matchesSearch && matchesStatus;
+    })
     .sort((a, b) => {
       if (order === "asc") {
         return a[orderBy] > b[orderBy] ? 1 : -1;
@@ -124,10 +132,13 @@ const TrainerClasses = () => {
               <div className="row">
                 <div className="col-md-12">
                   <div className="card">
-                    <div className="card-header card-header-primary">
-                      <h4 className="card-title">My Classes</h4>
-                      <p className="card-category">
-                        Classes you are assigned to
+                    <div className="card-header card-header-primary card-header-icon">
+                      <div className="card-icon">
+                        <i className="material-icons">category</i>
+                      </div>
+                      <h4 className="card-title">Your classes</h4>
+                      <p class="card-category text-muted">
+                        Check out the classes you are assigned to.
                       </p>
                     </div>
                     <div className="card-body">
@@ -144,75 +155,76 @@ const TrainerClasses = () => {
                         </div>
                       ) : (
                         <div className="table-responsive">
-                          <div style={{ padding: "16px" }}>
-                            <TextField
-                              label="Search classes..."
-                              variant="outlined"
-                              size="small"
+                          <div
+                            style={{
+                              padding: "16px",
+                              display: "flex",
+                              gap: "16px",
+                            }}
+                          >
+                            <CustomSearch
                               value={filterText}
-                              onChange={(e) => setFilterText(e.target.value)}
+                              onChange={setFilterText}
+                              placeholder="Search classes..."
+                              setPage={setPage}
+                            />
+                            <CustomFilter
+                              value={statusFilter}
+                              onChange={setStatusFilter}
+                              setPage={setPage}
+                              label="Status"
+                              options={[
+                                { value: "all", label: "All Status" },
+                                { value: "0", label: "Inactive" },
+                                { value: "1", label: "Active" },
+                                { value: "2", label: "Ongoing" },
+                                { value: "3", label: "Closed" },
+                                { value: "4", label: "Completed" },
+                              ]}
                             />
                           </div>
-                          <table className="table">
-                            <thead>
-                              <tr>
-                                <th>
-                                  <TableSortLabel
-                                    active={orderBy === "name"}
-                                    direction={
-                                      orderBy === "name" ? order : "asc"
-                                    }
-                                    onClick={() => handleSort("name")}
+                          <CustomTable
+                            columns={[
+                              { key: "name", label: "Class Name" },
+                              { key: "courseName", label: "Course" },
+                              {
+                                key: "startingDate",
+                                label: "Start Date",
+                                render: (value) =>
+                                  new Date(value).toLocaleDateString(),
+                              },
+                              {
+                                key: "status",
+                                label: "Status",
+                                render: (value) => (
+                                  <span
+                                    className={`badge ${CLASS_STATUS[value]?.color}`}
                                   >
-                                    Class Name
-                                  </TableSortLabel>
-                                </th>
-                                <th>Course</th>
-                                <th>Start Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {paginatedData.map((classItem) => (
-                                <tr key={classItem.id}>
-                                  <td>{classItem.name}</td>
-                                  <td>{classItem.courseName}</td>
-                                  <td>
-                                    {new Date(
-                                      classItem.startingDate
-                                    ).toLocaleDateString()}
-                                  </td>
-                                  <td>
-                                    <span
-                                      className={`badge ${CLASS_STATUS[classItem.status]?.color}`}
-                                    >
-                                      {CLASS_STATUS[classItem.status]?.label}
-                                    </span>
-                                  </td>
-                                  <td>
-                                    <Link
-                                      to={`/trainer/classes/${classItem.id}`}
-                                    >
-                                      <button className="btn btn-info btn-sm">
-                                        <i className="material-icons">
-                                          visibility
-                                        </i>
-                                      </button>
-                                    </Link>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          <TablePagination
-                            component="div"
+                                    {CLASS_STATUS[value]?.label}
+                                  </span>
+                                ),
+                              },
+                            ]}
+                            data={filteredData}
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            orderBy={orderBy}
+                            order={order}
+                            onSort={handleSort}
+                            renderActions={(row) => (
+                              <Link to={`/trainer/classes/${row.id}`}>
+                                <button className="btn btn-info btn-sm">
+                                  <i className="material-icons">visibility</i>
+                                </button>
+                              </Link>
+                            )}
+                          />
+                          <CustomPagination
                             count={filteredData.length}
+                            rowsPerPage={rowsPerPage}
                             page={page}
                             onPageChange={handleChangePage}
-                            rowsPerPage={rowsPerPage}
                             onRowsPerPageChange={handleChangeRowsPerPage}
-                            rowsPerPageOptions={[5, 10, 25]}
                           />
                         </div>
                       )}
@@ -223,9 +235,14 @@ const TrainerClasses = () => {
               <div className="row mt-4">
                 <div className="col-md-12">
                   <div className="card">
-                    <div className="card-header card-header-info">
-                      <h4 className="card-title">Class Schedule</h4>
-                      <p className="card-category">Your upcoming classes</p>
+                    <div className="card-header card-header-info card-header-icon">
+                      <div className="card-icon">
+                        <i className="material-icons">calendar_today</i>
+                      </div>
+                      <h4 className="card-title">Your class schedule</h4>
+                      <p class="card-category text-muted">
+                        View all of your class schedule.
+                      </p>
                     </div>
                     <div className="card-body">
                       {loading ? (
