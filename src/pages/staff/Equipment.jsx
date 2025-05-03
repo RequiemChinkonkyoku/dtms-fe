@@ -232,7 +232,7 @@ const StaffEquipments = () => {
                         <div className="card-icon">
                           <i className="material-icons">fitness_center</i>
                         </div>
-                        <h4 className="card-title">Equipment List</h4>
+                        <h4 className="card-title">Equipment management</h4>
                         <p class="card-category text-muted">
                           Insert new equipments, view and edit existing ones.
                         </p>

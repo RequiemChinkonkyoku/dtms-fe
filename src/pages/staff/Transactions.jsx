@@ -162,16 +162,6 @@ const StaffTransactions = () => {
                               orderBy={orderBy}
                               order={order}
                               onSort={handleSort}
-                              renderActions={(row) => (
-                                <Link
-                                  to={`/staff/transactions/details/${row.id}`}
-                                  className="btn btn-info btn-sm"
-                                  data-original-title="View Details"
-                                  title="View Details"
-                                >
-                                  <i className="material-icons">more_vert</i>
-                                </Link>
-                              )}
                             />
                             <CustomPagination
                               count={filteredData.length}

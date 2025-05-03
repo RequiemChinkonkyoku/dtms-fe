@@ -188,7 +188,10 @@ const StaffSkills = () => {
                         <div className="card-icon">
                           <i className="material-icons">psychology</i>
                         </div>
-                        <h4 className="card-title">Skills List</h4>
+                        <h4 className="card-title">Skills management</h4>
+                        <p class="card-category text-muted">
+                          Insert new skills, view and edit existing ones.
+                        </p>
                       </div>
                       <div className="card-body">
                         {loading ? (
