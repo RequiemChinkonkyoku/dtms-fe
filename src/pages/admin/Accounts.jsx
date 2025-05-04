@@ -39,11 +39,6 @@ const AdminAccounts = () => {
     staff: 0,
   });
   const [pendingDocuments, setPendingDocuments] = useState([]);
-  const [documentPage, setDocumentPage] = useState(0);
-  const [documentRowsPerPage, setDocumentRowsPerPage] = useState(5);
-  const [documentOrderBy, setDocumentOrderBy] = useState("latestTime");
-  const [documentOrder, setDocumentOrder] = useState("desc");
-  const [documentSearchTerm, setDocumentSearchTerm] = useState("");
   const [customerDetails, setCustomerDetails] = useState({});
 
   const formatDate = (dateString) => {
@@ -54,17 +49,15 @@ const AdminAccounts = () => {
     const { role } = getRoleAndSubRole(account.roleId);
     switch (role.toLowerCase()) {
       case "customer":
-        navigate(`/staff/accounts/customer/details/${account.id}`);
+        navigate(`/admin/accounts/customer/details/${account.id}`);
         break;
       case "trainer":
-        navigate(`/staff/accounts/trainer/details/${account.id}`);
+        navigate(`/admin/accounts/trainer/details/${account.id}`);
         break;
       case "staff":
-        // Will be implemented later
         alert("Staff details page coming soon");
         break;
       case "admin":
-        // Will be implemented later
         alert("Admin details page coming soon");
         break;
       default:
@@ -103,7 +96,7 @@ const AdminAccounts = () => {
   };
 
   const handleSort = (property) => {
-    setPage(0); // Reset to first page
+    setPage(0);
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -116,7 +109,6 @@ const AdminAccounts = () => {
         const dateB = new Date(b[orderBy]).getTime();
         return order === "asc" ? dateA - dateB : dateB - dateA;
       }
-      // Handle virtual columns
       if (orderBy === "role") {
         const roleA = getRoleAndSubRole(a.roleId).role;
         const roleB = getRoleAndSubRole(b.roleId).role;
@@ -131,7 +123,6 @@ const AdminAccounts = () => {
           ? posA.localeCompare(posB)
           : posB.localeCompare(posA);
       }
-      // Default sorting for other columns
       if (order === "asc") {
         return a[orderBy] < b[orderBy] ? -1 : 1;
       } else {
@@ -277,12 +268,6 @@ const AdminAccounts = () => {
       fetchCustomerDetails();
     }
   }, [pendingDocuments]);
-
-  const handleDocumentSort = (property) => {
-    const isAsc = documentOrderBy === property && documentOrder === "asc";
-    setDocumentOrder(isAsc ? "desc" : "asc");
-    setDocumentOrderBy(property);
-  };
 
   return (
     <>
@@ -500,125 +485,6 @@ const AdminAccounts = () => {
                             />
                           </div>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-md-12">
-                    <div className="card">
-                      <div className="card-header card-header-warning card-header-icon">
-                        <div className="card-icon">
-                          <i className="material-icons">description</i>
-                        </div>
-                        <h4 className="card-title">Pending Legal Documents</h4>
-                        <p className="card-category text-muted">
-                          Documents requiring review and approval.
-                        </p>
-                      </div>
-                      <div className="card-body">
-                        <div
-                          style={{
-                            padding: "16px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "16px",
-                          }}
-                        >
-                          <CustomSearch
-                            value={documentSearchTerm}
-                            onChange={setDocumentSearchTerm}
-                            placeholder="Search customer..."
-                            setPage={setDocumentPage}
-                          />
-                        </div>
-                        <div className="table-responsive">
-                          <CustomTable
-                            columns={[
-                              {
-                                key: "username",
-                                label: "Username",
-                                render: (value, row) =>
-                                  customerDetails[row.customerId]?.username ||
-                                  "Loading...",
-                              },
-                              {
-                                key: "fullName",
-                                label: "Full Name",
-                                render: (value, row) =>
-                                  customerDetails[row.customerId]?.fullName ||
-                                  "Loading...",
-                              },
-                              {
-                                key: "count",
-                                label: "Pending Documents",
-                                render: (value) => `${value} document(s)`,
-                              },
-                              {
-                                key: "latestTime",
-                                label: "Latest Submission",
-                                render: (value) =>
-                                  new Date(value).toLocaleString(),
-                              },
-                            ]}
-                            data={pendingDocuments
-                              .filter((doc) => {
-                                const customer = customerDetails[doc[0]];
-                                if (!customer) return true; // Show while loading
-                                return (
-                                  customer.username
-                                    .toLowerCase()
-                                    .includes(
-                                      documentSearchTerm.toLowerCase()
-                                    ) ||
-                                  customer.fullName
-                                    .toLowerCase()
-                                    .includes(documentSearchTerm.toLowerCase())
-                                );
-                              })
-                              .map(([customerId, count, latestTime]) => ({
-                                customerId,
-                                count,
-                                latestTime,
-                              }))}
-                            page={documentPage}
-                            rowsPerPage={documentRowsPerPage}
-                            orderBy={documentOrderBy}
-                            order={documentOrder}
-                            onSort={handleDocumentSort}
-                            renderActions={(row) => (
-                              <button
-                                type="button"
-                                rel="tooltip"
-                                className="btn btn-info btn-sm"
-                                data-original-title="View Details"
-                                title="View Details"
-                                onClick={() =>
-                                  navigate(
-                                    `/staff/accounts/customer/details/${row.customerId}`
-                                  )
-                                }
-                              >
-                                <i className="material-icons">more_vert</i>
-                              </button>
-                            )}
-                          />
-                          <CustomPagination
-                            count={pendingDocuments.length}
-                            rowsPerPage={documentRowsPerPage}
-                            page={documentPage}
-                            onPageChange={(e, newPage) =>
-                              setDocumentPage(newPage)
-                            }
-                            onRowsPerPageChange={(e) => {
-                              setDocumentRowsPerPage(
-                                parseInt(e.target.value, 10)
-                              );
-                              setDocumentPage(0);
-                            }}
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
