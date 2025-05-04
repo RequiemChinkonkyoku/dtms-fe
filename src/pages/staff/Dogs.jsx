@@ -60,7 +60,6 @@ const StaffDogs = () => {
       const toastId = showToast.loading("Creating breed...");
       const response = await axios.post("/api/dogBreeds", breedFormData);
 
-      // Add to beginning of array for most recent first
       setDogBreeds([response.data, ...dogBreeds]);
       setIsBreedModalOpen(false);
       setBreedFormData({ name: "", description: "" });
@@ -139,12 +138,6 @@ const StaffDogs = () => {
     );
 
     return filtered.sort((a, b) => {
-      // if (breedOrderBy === "dogNames") {
-      //   return breedOrder === "asc"
-      //     ? (a.dogNames || []).length - (b.dogNames || []).length
-      //     : (b.dogNames || []).length - (a.dogNames || []).length;
-      // }
-
       if (breedOrderBy === "createdTime") {
         const dateA = new Date(a.createdTime);
         const dateB = new Date(b.createdTime);
@@ -154,8 +147,8 @@ const StaffDogs = () => {
       return breedOrder === "asc"
         ? a[breedOrderBy]?.toString().localeCompare(b[breedOrderBy]?.toString())
         : b[breedOrderBy]
-            ?.toString()
-            .localeCompare(a[breedOrderBy]?.toString());
+          ?.toString()
+          .localeCompare(a[breedOrderBy]?.toString());
     });
   }, [dogBreeds, breedSearchTerm, breedOrder, breedOrderBy]);
 

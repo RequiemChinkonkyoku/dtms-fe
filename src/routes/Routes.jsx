@@ -7,6 +7,19 @@ import Login from "../pages/Login";
 import ForgotPassword from "../pages/ForgotPassword";
 import Accounts from "../pages/staff/Accounts";
 import AdminDashboard from "../pages/admin/Dashboard";
+import AdminAccounts from "../pages/admin/Accounts";
+import AdminAccountsCustomerDetails from "../pages/admin/AccountsCustomerDetails";
+import AccountsTrainerDetails from "../pages/admin/AccountsTrainerDetails";
+import AdminDog from "../pages/admin/Dogs";
+import AdminDogsDetails from "../pages/admin/DogsDetails";
+import AdminClasses from "../pages/admin/Classes";
+import AdminClassesDetails from "../pages/admin/ClassesDetails";
+import AdminCages from "../pages/admin/Cages";
+import AdminBlogs from "../pages/admin/Blogs";
+import AdminBlogsDetails from "../pages/admin/BlogsDetails";
+import AdminSkills from "../pages/admin/Skills";
+import AdminEquipments from "../pages/admin/Equipment";
+import AdminTransactions from "../pages/admin/Transactions";
 import StaffDashboard from "../pages/staff/Dashboard";
 import TrainerDashboard from "../pages/trainer/Dashboard";
 import TrainerLessons from "../pages/trainer/Lessons";
@@ -33,8 +46,8 @@ import StaffStatistics from "../pages/staff/Statistics";
 import StaffTransactions from "../pages/staff/Transactions";
 import TrainerClassesDetails from "../pages/trainer/ClassesDetails";
 import ResetPassword from "../pages/ResetPassword";
-import AdminAccounts from "../pages/admin/Accounts";
 import StaffProfile from "../pages/staff/Profile";
+import { AdbOutlined } from "@mui/icons-material";
 
 export const routes = createBrowserRouter([
   {
@@ -162,6 +175,54 @@ export const routes = createBrowserRouter([
       {
         path: "accounts",
         element: <AdminAccounts />,
+      },
+      {
+        path: "dogs",
+        element: <AdminDog />,
+      },
+      {
+        path: "dogs/details/:id",
+        element: <AdminDogsDetails />,
+      },
+      {
+        path: "classes",
+        element: <AdminClasses />,
+      },
+      {
+        path: "classes/details/:id",
+        element: <AdminClassesDetails />,
+      },
+      {
+        path: "cages",
+        element: <AdminCages />,
+      },
+      {
+        path: "blogs",
+        element: <AdminBlogs />,
+      },
+      {
+        path: "blogs/details/:id",
+        element: <AdminBlogsDetails />,
+      },
+      {
+        path: "skills",
+        element: <AdminSkills />,
+      },
+      {
+        path: "equipments",
+        element: <AdminEquipments />,
+      },
+      {
+        path: "transactions",
+        element: <AdminTransactions />,
+      },
+      {
+        path: "accounts/customer/details/:id",
+        element: <AdminAccountsCustomerDetails />,
+      },
+      {
+        path: "accounts/trainer/details/:id",
+        element: <AccountsTrainerDetails />,
       },
     ],
   },
