@@ -162,10 +162,10 @@ const TrainerCoursesCreate = () => {
       const courseResponse = await axios.post("/api/courses", courseData);
       if (courseResponse.data.success) {
         const courseId = courseResponse.data.object.id;
-        for (const prerequisiteCourseId of selectedPrereqs) {
+        if (selectedPrereqs.length > 0) {
           await axios.post("/api/prerequisites", {
             courseId: courseId,
-            prerequisiteCourseId: prerequisiteCourseId,
+            prerequisiteCourseIds: selectedPrereqs,
           });
         }
 

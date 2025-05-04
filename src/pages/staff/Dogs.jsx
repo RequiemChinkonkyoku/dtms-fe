@@ -312,9 +312,6 @@ const StaffDogs = () => {
                                 setPage={setPage}
                                 placeholder="Search by name..."
                               />
-                              <button className="btn btn-info">
-                                <i className="material-icons">add</i> Create Dog
-                              </button>
                             </div>
                             <CustomTable
                               columns={[

@@ -84,6 +84,23 @@ const TrainerCoursesDetails = () => {
   const [breedOrderBy, setBreedOrderBy] = useState("name");
   const [breedOrder, setBreedOrder] = useState("asc");
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
+  const [openPrereqModal, setOpenPrereqModal] = useState(false);
+  const [prerequisites, setPrerequisites] = useState([]);
+  const [availablePrereqs, setAvailablePrereqs] = useState([]);
+  const [selectedPrereqs, setSelectedPrereqs] = useState([]);
+  const [prereqPage, setPrereqPage] = useState(0);
+  const [prereqRowsPerPage, setPrereqRowsPerPage] = useState(5);
+  const [prereqOrderBy, setPrereqOrderBy] = useState("name");
+  const [prereqOrder, setPrereqOrder] = useState("asc");
+  const [prereqSearchTerm, setPrereqSearchTerm] = useState("");
+
+  const handleSelectPrereq = (prereqId) => {
+    setSelectedPrereqs((prev) =>
+      prev.includes(prereqId)
+        ? prev.filter((id) => id !== prereqId)
+        : [...prev, prereqId]
+    );
+  };
 
   const handleBreedSort = (property) => {
     const isAsc = breedOrderBy === property && breedOrder === "asc";
@@ -267,6 +284,13 @@ const TrainerCoursesDetails = () => {
     try {
       const response = await axios.put("/api/courses", updateFormData);
       if (response.data.success) {
+        // Update prerequisites if there are any changes
+        if (updateFormData.prerequisiteCourseIds) {
+          await axios.post("/api/prerequisites", {
+            courseId: id,
+            prerequisiteCourseIds: updateFormData.prerequisiteCourseIds,
+          });
+        }
         setOpenUpdateModal(false);
         showToast.success("Course updated successfully!");
         window.location.reload();
@@ -479,6 +503,12 @@ const TrainerCoursesDetails = () => {
                                                   <button
                                                     className="btn btn-info btn-sm"
                                                     title="View Details"
+                                                    onClick={() => {
+                                                      window.open(
+                                                        `/trainer/lessons/details/${lesson.id}`,
+                                                        "_blank"
+                                                      );
+                                                    }}
                                                   >
                                                     <i className="material-icons">
                                                       visibility
@@ -775,7 +805,40 @@ const TrainerCoursesDetails = () => {
                 >
                   <i className="material-icons">pets</i> Manage Dog Breeds
                 </button>
-                <button className="btn btn-primary">
+                <button
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    try {
+                      const [prereqResponse, coursesResponse] =
+                        await Promise.all([
+                          axios.get(`/api/prerequisites/course/${id}`),
+                          axios.get("/api/courses"),
+                        ]);
+
+                      if (
+                        prereqResponse.data.success &&
+                        coursesResponse.data.success
+                      ) {
+                        const currentPrereqs =
+                          prereqResponse.data.objectList.map(
+                            (p) => p.prerequisiteCourseId
+                          );
+                        setSelectedPrereqs(currentPrereqs);
+
+                        // Filter out the current course and inactive courses
+                        const availableCourses =
+                          coursesResponse.data.objectList.filter(
+                            (course) => course.id !== id && course.status === 1
+                          );
+                        setAvailablePrereqs(availableCourses);
+                        setOpenPrereqModal(true);
+                      }
+                    } catch (error) {
+                      console.error("Error fetching prerequisites:", error);
+                      showToast.error("Failed to fetch prerequisites");
+                    }
+                  }}
+                >
                   <i className="material-icons">check_circle</i> Manage
                   Prerequisites
                 </button>
@@ -1140,6 +1203,127 @@ const TrainerCoursesDetails = () => {
           >
             Save Changes
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openPrereqModal}
+        onClose={() => setOpenPrereqModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Manage Prerequisites</DialogTitle>
+        <DialogContent>
+          <div className="table-responsive">
+            <div
+              style={{
+                padding: "16px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "16px",
+              }}
+            >
+              <TextField
+                label="Search prerequisite..."
+                variant="outlined"
+                size="small"
+                value={prereqSearchTerm}
+                onChange={(e) => setPrereqSearchTerm(e.target.value)}
+              />
+            </div>
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={
+                        availablePrereqs.length > 0 &&
+                        selectedPrereqs.length === availablePrereqs.length
+                      }
+                      onChange={() => {
+                        if (
+                          selectedPrereqs.length === availablePrereqs.length
+                        ) {
+                          setSelectedPrereqs([]);
+                        } else {
+                          setSelectedPrereqs(
+                            availablePrereqs.map((course) => course.id)
+                          );
+                        }
+                      }}
+                    />
+                  </th>
+                  <th>Name</th>
+                  <th>Duration</th>
+                  <th>Complexity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {availablePrereqs
+                  .filter((course) =>
+                    course.name
+                      .toLowerCase()
+                      .includes(prereqSearchTerm.toLowerCase())
+                  )
+                  .slice(
+                    prereqPage * prereqRowsPerPage,
+                    prereqPage * prereqRowsPerPage + prereqRowsPerPage
+                  )
+                  .map((course) => (
+                    <tr key={course.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedPrereqs.includes(course.id)}
+                          onChange={() => handleSelectPrereq(course.id)}
+                        />
+                      </td>
+                      <td>{course.name}</td>
+                      <td>{course.durationInWeeks} weeks</td>
+                      <td>
+                        <Rating
+                          value={course.complexity}
+                          readOnly
+                          size="small"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+            <TablePagination
+              component="div"
+              count={availablePrereqs.length}
+              page={prereqPage}
+              onPageChange={(e, newPage) => setPrereqPage(newPage)}
+              rowsPerPage={prereqRowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setPrereqRowsPerPage(parseInt(e.target.value, 10));
+                setPrereqPage(0);
+              }}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setOpenPrereqModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setUpdateFormData((prev) => ({
+                ...prev,
+                prerequisiteCourseIds: selectedPrereqs,
+              }));
+              setOpenPrereqModal(false);
+            }}
+          >
+            Save Changes
+          </button>
         </DialogActions>
       </Dialog>
     </>
