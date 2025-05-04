@@ -30,11 +30,12 @@ import {
   InputLabel,
 } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
+import { softDelay } from "../../utils/softDelay";
 
 const StaffCages = () => {
+  const { loading, setLoading } = useLoading();
   const { user } = useAuth();
   const [cages, setCages] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -116,6 +117,7 @@ const StaffCages = () => {
       try {
         const response = await axios.get("/api/cages");
         setCages(response.data.objectList);
+        await softDelay();
       } catch (err) {
         setError("Failed to fetch cages");
       } finally {
@@ -189,6 +191,7 @@ const StaffCages = () => {
 
   useEffect(() => {
     const fetchCageDetails = async () => {
+      setLoading(true);
       try {
         const staffId = user?.unique_name;
         const response = await axios.get(
@@ -197,8 +200,11 @@ const StaffCages = () => {
         if (response.data.success) {
           setCageDetails(response.data.objectList || []);
         }
+        await softDelay();
       } catch (error) {
         console.error("Error fetching cage details:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -230,54 +236,70 @@ const StaffCages = () => {
                         </p>
                       </div>
                       <div className="card-body">
-                        <FullCalendar
-                          plugins={[
-                            dayGridPlugin,
-                            timeGridPlugin,
-                            interactionPlugin,
-                          ]}
-                          initialView="dayGridMonth"
-                          headerToolbar={{
-                            left: "prev,next today",
-                            center: "title",
-                            right: "dayGridMonth,timeGridWeek",
-                          }}
-                          allDaySlot={false}
-                          slotMinTime="08:00:00"
-                          slotMaxTime="18:00:00"
-                          events={cageDetails.flatMap((cage) =>
-                            (cage.cageSlots || []).map((slot) => ({
-                              title: `Cage ${cage.number} - ${cage.location}`,
-                              start: `${slot.slotDate}T${slot.startTime}`,
-                              end: `${slot.slotDate}T${slot.endTime}`,
-                              extendedProps: {
-                                dogName: cage.dogName,
-                                categoryName: cage.categoryName,
-                              },
-                            }))
-                          )}
-                          eventContent={(eventInfo) => (
-                            <div>
-                              <b>{eventInfo.event.title}</b>
+                        {loading ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              minHeight: "300px",
+                            }}
+                          >
+                            <Loader />
+                          </div>
+                        ) : (
+                          <FullCalendar
+                            plugins={[
+                              dayGridPlugin,
+                              timeGridPlugin,
+                              interactionPlugin,
+                            ]}
+                            initialView="dayGridMonth"
+                            headerToolbar={{
+                              left: "prev,next today",
+                              center: "title",
+                              right: "dayGridMonth,timeGridWeek",
+                            }}
+                            allDaySlot={false}
+                            slotMinTime="08:00:00"
+                            slotMaxTime="18:00:00"
+                            events={cageDetails.flatMap((cage) =>
+                              (cage.cageSlots || []).map((slot) => ({
+                                title: `Cage ${cage.number} - ${cage.location}`,
+                                start: `${slot.slotDate}T${slot.startTime}`,
+                                end: `${slot.slotDate}T${slot.endTime}`,
+                                extendedProps: {
+                                  dogName: cage.dogName,
+                                  categoryName: cage.categoryName,
+                                },
+                              }))
+                            )}
+                            eventContent={(eventInfo) => (
                               <div>
-                                Dog: {eventInfo.event.extendedProps.dogName}
+                                <b>{eventInfo.event.title}</b>
+                                <div>
+                                  Dog: {eventInfo.event.extendedProps.dogName}
+                                </div>
+                                <small>
+                                  {eventInfo.event.start.toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
+                                  -
+                                  {eventInfo.event.end.toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </small>
                               </div>
-                              <small>
-                                {eventInfo.event.start.toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                                -
-                                {eventInfo.event.end.toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </small>
-                            </div>
-                          )}
-                          height="auto"
-                          aspectRatio={2}
-                        />
+                            )}
+                            height="auto"
+                            aspectRatio={2}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

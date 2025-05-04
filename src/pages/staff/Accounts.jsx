@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
-import {
-  TablePagination,
-  TableSortLabel,
-  TextField,
-  MenuItem,
-} from "@mui/material";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -19,6 +13,7 @@ import CustomFilter from "../../assets/components/common/CustomFilter";
 
 import { useNavigate } from "react-router-dom";
 import { useLoading } from "../../contexts/LoadingContext";
+import { softDelay } from "../../utils/softDelay";
 
 const Accounts = () => {
   const navigate = useNavigate();
@@ -169,7 +164,6 @@ const Accounts = () => {
   useEffect(() => {
     const fetchAccounts = async () => {
       setLoading(true);
-      const startTime = Date.now();
 
       try {
         const response = await axios.get("/api/accounts");
@@ -191,9 +185,7 @@ const Accounts = () => {
         ).length;
 
         setCounts({ total, admin, customers, trainers, staff });
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await softDelay();
       } catch (error) {
         console.error("Error fetching accounts:", error);
       } finally {
@@ -232,6 +224,7 @@ const Accounts = () => {
 
   useEffect(() => {
     const fetchLegalDocuments = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("/api/legalDocument");
         if (response.data.success) {
@@ -254,8 +247,11 @@ const Accounts = () => {
 
           setPendingDocuments(customerDocuments);
         }
+        await softDelay();
       } catch (error) {
         console.error("Error fetching legal documents:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -264,6 +260,7 @@ const Accounts = () => {
 
   useEffect(() => {
     const fetchCustomerDetails = async () => {
+      setLoading(true);
       try {
         const promises = pendingDocuments.map(([customerId]) =>
           axios.get(`/api/accounts/${customerId}`)
@@ -275,8 +272,11 @@ const Accounts = () => {
           details[customerId] = response.data;
         });
         setCustomerDetails(details);
+        await softDelay();
       } catch (error) {
         console.error("Error fetching customer details:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -528,108 +528,123 @@ const Accounts = () => {
                         </p>
                       </div>
                       <div className="card-body">
-                        <div
-                          style={{
-                            padding: "16px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "16px",
-                          }}
-                        >
-                          <CustomSearch
-                            value={documentSearchTerm}
-                            onChange={setDocumentSearchTerm}
-                            placeholder="Search customer..."
-                            setPage={setDocumentPage}
-                          />
-                        </div>
-                        <div className="table-responsive">
-                          <CustomTable
-                            columns={[
-                              {
-                                key: "username",
-                                label: "Username",
-                                render: (value, row) =>
-                                  customerDetails[row.customerId]?.username ||
-                                  "Loading...",
-                              },
-                              {
-                                key: "fullName",
-                                label: "Full Name",
-                                render: (value, row) =>
-                                  customerDetails[row.customerId]?.fullName ||
-                                  "Loading...",
-                              },
-                              {
-                                key: "count",
-                                label: "Pending Documents",
-                                render: (value) => `${value} document(s)`,
-                              },
-                              {
-                                key: "latestTime",
-                                label: "Latest Submission",
-                                render: (value) =>
-                                  new Date(value).toLocaleString(),
-                              },
-                            ]}
-                            data={pendingDocuments
-                              .filter((doc) => {
-                                const customer = customerDetails[doc[0]];
-                                if (!customer) return true; // Show while loading
-                                return (
-                                  customer.username
-                                    .toLowerCase()
-                                    .includes(
-                                      documentSearchTerm.toLowerCase()
-                                    ) ||
-                                  customer.fullName
-                                    .toLowerCase()
-                                    .includes(documentSearchTerm.toLowerCase())
-                                );
-                              })
-                              .map(([customerId, count, latestTime]) => ({
-                                customerId,
-                                count,
-                                latestTime,
-                              }))}
-                            page={documentPage}
-                            rowsPerPage={documentRowsPerPage}
-                            orderBy={documentOrderBy}
-                            order={documentOrder}
-                            onSort={handleDocumentSort}
-                            renderActions={(row) => (
-                              <button
-                                type="button"
-                                rel="tooltip"
-                                className="btn btn-info btn-sm"
-                                data-original-title="View Details"
-                                title="View Details"
-                                onClick={() =>
-                                  navigate(
-                                    `/staff/accounts/customer/details/${row.customerId}`
-                                  )
-                                }
-                              >
-                                <i className="material-icons">more_vert</i>
-                              </button>
-                            )}
-                          />
-                          <CustomPagination
-                            count={pendingDocuments.length}
-                            rowsPerPage={documentRowsPerPage}
-                            page={documentPage}
-                            onPageChange={(e, newPage) =>
-                              setDocumentPage(newPage)
-                            }
-                            onRowsPerPageChange={(e) => {
-                              setDocumentRowsPerPage(
-                                parseInt(e.target.value, 10)
-                              );
-                              setDocumentPage(0);
+                        {loading ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              minHeight: "300px",
                             }}
-                          />
-                        </div>
+                          >
+                            <Loader />
+                          </div>
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: "16px",
+                              }}
+                            >
+                              <CustomSearch
+                                value={documentSearchTerm}
+                                onChange={setDocumentSearchTerm}
+                                placeholder="Search customer..."
+                                setPage={setDocumentPage}
+                              />
+                            </div>
+                            <CustomTable
+                              columns={[
+                                {
+                                  key: "username",
+                                  label: "Username",
+                                  render: (value, row) =>
+                                    customerDetails[row.customerId]?.username ||
+                                    "Loading...",
+                                },
+                                {
+                                  key: "fullName",
+                                  label: "Full Name",
+                                  render: (value, row) =>
+                                    customerDetails[row.customerId]?.fullName ||
+                                    "Loading...",
+                                },
+                                {
+                                  key: "count",
+                                  label: "Pending Documents",
+                                  render: (value) => `${value} document(s)`,
+                                },
+                                {
+                                  key: "latestTime",
+                                  label: "Latest Submission",
+                                  render: (value) =>
+                                    new Date(value).toLocaleString(),
+                                },
+                              ]}
+                              data={pendingDocuments
+                                .filter((doc) => {
+                                  const customer = customerDetails[doc[0]];
+                                  if (!customer) return true; // Show while loading
+                                  return (
+                                    customer.username
+                                      .toLowerCase()
+                                      .includes(
+                                        documentSearchTerm.toLowerCase()
+                                      ) ||
+                                    customer.fullName
+                                      .toLowerCase()
+                                      .includes(
+                                        documentSearchTerm.toLowerCase()
+                                      )
+                                  );
+                                })
+                                .map(([customerId, count, latestTime]) => ({
+                                  customerId,
+                                  count,
+                                  latestTime,
+                                }))}
+                              page={documentPage}
+                              rowsPerPage={documentRowsPerPage}
+                              orderBy={documentOrderBy}
+                              order={documentOrder}
+                              onSort={handleDocumentSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  rel="tooltip"
+                                  className="btn btn-info btn-sm"
+                                  data-original-title="View Details"
+                                  title="View Details"
+                                  onClick={() =>
+                                    navigate(
+                                      `/staff/accounts/customer/details/${row.customerId}`
+                                    )
+                                  }
+                                >
+                                  <i className="material-icons">more_vert</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
+                              count={pendingDocuments.length}
+                              rowsPerPage={documentRowsPerPage}
+                              page={documentPage}
+                              onPageChange={(e, newPage) =>
+                                setDocumentPage(newPage)
+                              }
+                              onRowsPerPageChange={(e) => {
+                                setDocumentRowsPerPage(
+                                  parseInt(e.target.value, 10)
+                                );
+                                setDocumentPage(0);
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -12,6 +12,7 @@ import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 import CustomFilter from "../../assets/components/common/CustomFilter";
+import { softDelay } from "../../utils/softDelay";
 
 const StaffTransactions = () => {
   const { loading, setLoading } = useLoading();
@@ -30,6 +31,7 @@ const StaffTransactions = () => {
         if (response.data.success) {
           setTransactions(response.data.objectList);
         }
+        await softDelay();
       } catch (error) {
         console.error("Error fetching transactions:", error);
       } finally {
