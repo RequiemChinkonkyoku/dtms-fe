@@ -3,8 +3,8 @@ import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
 import Loader from "../../assets/components/common/Loader";
 import Head from "../../assets/components/common/Head";
-import Sidebar from "../../assets/components/staff/Sidebar";
-import Navbar from "../../assets/components/staff/Navbar";
+import Sidebar from "../../assets/components/admin/Sidebar";
+import Navbar from "../../assets/components/admin/Navbar";
 import DatePicker from "react-datepicker";
 import { useLoading } from "../../contexts/LoadingContext";
 import { Link } from "react-router-dom";
@@ -27,7 +27,7 @@ import {
   FormControl,
 } from "@mui/material";
 
-const StaffDogs = () => {
+const AdminDogs = () => {
   const [dogs, setDogs] = useState([]);
   const { loading, setLoading } = useLoading();
   const [error, setError] = useState(null);
@@ -311,9 +311,6 @@ const StaffDogs = () => {
                                 setPage={setPage}
                                 placeholder="Search by name..."
                               />
-                              <button className="btn btn-info">
-                                <i className="material-icons">add</i> Create Dog
-                              </button>
                             </div>
                             <CustomTable
                               columns={[
@@ -350,7 +347,7 @@ const StaffDogs = () => {
                               renderActions={(row) => (
                                 <>
                                   <Link
-                                    to={`/staff/dogs/details/${row.id}`}
+                                    to={`/admin/dogs/details/${row.id}`}
                                     className="btn btn-info btn-sm"
                                     style={{ marginLeft: "8px" }}
                                   >
@@ -602,4 +599,4 @@ const StaffDogs = () => {
   );
 };
 
-export default StaffDogs;
+export default AdminDogs;

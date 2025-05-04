@@ -1,12 +1,15 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import axios from "../../../utils/axiosConfig";
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [accountInfo, setAccountInfo] = useState(null);
+  const location = useLocation();
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -16,6 +19,82 @@ const Navbar = () => {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  };
+
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      try {
+        const response = await axios.get(`/api/accounts/${user.unique_name}`);
+        setAccountInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching account info:", error);
+      }
+    };
+
+    if (user?.unique_name) {
+      fetchAccountInfo();
+    }
+  }, [user]);
+
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.startsWith("/admin")) {
+      const segments = path.replace("/admin/", "").split("/");
+      let title = [];
+
+      segments.forEach((segment, index) => {
+        switch (segment) {
+          case "dashboard":
+            title.push("DASHBOARD");
+            break;
+          case "classes":
+            title.push("CLASSES");
+            break;
+          case "accounts":
+            title.push("ACCOUNTS");
+            break;
+          case "statistics":
+            title.push("STATISTICS");
+            break;
+          case "dogs":
+            title.push("DOGS");
+            break;
+          case "cages":
+            title.push("CAGES");
+            break;
+          case "blogs":
+            title.push("BLOGS");
+            break;
+          case "skills":
+            title.push("SKILLS");
+            break;
+          case "equipments":
+            title.push("EQUIPMENTS");
+            break;
+          case "transactions":
+            title.push("TRANSACTIONS");
+            break;
+          case "create":
+            title.push("CREATE");
+            break;
+          case "details":
+            title.push("DETAILS");
+            break;
+        }
+      });
+
+      return title.map((segment, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+              navigate_next
+            </i>
+          )}
+          <span>{segment}</span>
+        </React.Fragment>
+      ));
+    }
+    return "ADMIN";
   };
 
   const toggleProfileDropdown = (e) => {
@@ -33,13 +112,12 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-transparent navbar-absolute">
       <div className="container-fluid">
-        <div className="navbar-wrapper">
-          <div className="navbar-minimize">
-            {/* Commented out minimize button */}
-          </div>
-          {/* <a className="navbar-brand" href="#pablo">
-            ...PAGENAME...
-          </a> */}
+        <div className="navbar-brand d-flex align-items-center">
+          <i className="material-icons mr-1">home</i>
+          <i className="material-icons mx-1" style={{ fontSize: "30px" }}>
+            navigate_next
+          </i>
+          {getPageTitle()}
         </div>
         <button
           aria-controls="navigation-index"
@@ -55,13 +133,12 @@ const Navbar = () => {
           <span className="navbar-toggler-icon icon-bar" />
         </button>
         <div className="collapse navbar-collapse justify-content-end">
+          {accountInfo && (
+            <span className="ml-3 text-dark">
+              Welcome back, {accountInfo.username}
+            </span>
+          )}
           <ul className="navbar-nav">
-            {/* <li className="nav-item">
-              <a className="nav-link" href="#pablo">
-                <i className="material-icons">dashboard</i>
-                <p className="d-lg-none d-md-block">Stats</p>
-              </a>
-            </li> */}
             <li className="nav-item dropdown">
               <a
                 aria-expanded={isProfileOpen}
@@ -79,10 +156,10 @@ const Navbar = () => {
                   aria-labelledby="navbarDropdownProfile"
                   className="dropdown-menu dropdown-menu-right show"
                 >
-                  <Link className="dropdown-item" to="/admin/profile">
+                  {/* <Link className="dropdown-item" to="/admin/profile">
                     Profile
                   </Link>
-                  <div className="dropdown-divider" />
+                  <div className="dropdown-divider" /> */}
                   <a className="dropdown-item" href="#" onClick={handleLogout}>
                     Log out
                   </a>
