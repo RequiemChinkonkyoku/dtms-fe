@@ -46,6 +46,13 @@ const Accounts = () => {
   const [documentSearchTerm, setDocumentSearchTerm] = useState("");
   const [customerDetails, setCustomerDetails] = useState({});
 
+  const [currentDate] = useState(
+    new Date().toLocaleDateString("en-US", {
+      month: "2-digit",
+      year: "numeric",
+    })
+  );
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -307,7 +314,8 @@ const Accounts = () => {
                       </div>
                       <div className="card-footer">
                         <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                          <i className="material-icons">calendar_today</i> Last
+                          updated {currentDate}
                         </div>
                       </div>
                     </div>
@@ -327,7 +335,8 @@ const Accounts = () => {
                       </div>
                       <div className="card-footer">
                         <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                          <i className="material-icons">calendar_today</i> Last
+                          updated {currentDate}
                         </div>
                       </div>
                     </div>
@@ -343,7 +352,8 @@ const Accounts = () => {
                       </div>
                       <div className="card-footer">
                         <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                          <i className="material-icons">calendar_today</i> Last
+                          updated {currentDate}
                         </div>
                       </div>
                     </div>
@@ -359,7 +369,8 @@ const Accounts = () => {
                       </div>
                       <div className="card-footer">
                         <div className="stats">
-                          <i className="material-icons">update</i> Just Updated
+                          <i className="material-icons">calendar_today</i> Last
+                          updated {currentDate}
                         </div>
                       </div>
                     </div>

@@ -305,7 +305,6 @@ const StaffClassesCreate = () => {
                       </div>
                     </div>
                   </div>
-
                   <div className="col-md-12">
                     <div className="card">
                       <div className="card-header card-header-info">

@@ -25,10 +25,6 @@ const StaffClassesDetails = () => {
   const [classDetails, setClassDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showOpenRegModal, setShowOpenRegModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showOpenClassModal, setShowOpenClassModal] = useState(false);
-  const [showConcludeModal, setShowConcludeModal] = useState(false);
 
   useEffect(() => {
     fetchClassDetails();
@@ -39,7 +35,30 @@ const StaffClassesDetails = () => {
       setLoading(true);
       const response = await axios.get(`/api/class/${id}`);
       if (response.data.success) {
-        setClassDetails(response.data.object);
+        const classData = response.data.object;
+
+        // Fetch course details
+        const courseResponse = await axios.get(
+          `/api/courses/${classData.courseId}`
+        );
+        if (courseResponse.data.success) {
+          const courseData = courseResponse.data.object;
+          setClassDetails({
+            ...classData,
+            courseDescription: courseData.description,
+            courseDurationInWeeks: courseData.durationInWeeks,
+            courseDaysPerWeek: courseData.daysPerWeek,
+            courseSlotsPerDay: courseData.slotsPerDay,
+            coursePrice: courseData.price,
+            courseMinTrainers: courseData.minTrainers,
+            courseMaxTrainers: courseData.maxTrainers,
+            courseComplexity: courseData.complexity,
+            courseCategoryName: courseData.categoryName,
+            coursePrerequisites: courseData.coursePrerequisites,
+            courseLessons: courseData.courseLessons,
+            courseDogBreeds: courseData.courseDogBreeds,
+          });
+        }
         setError(null);
       } else {
         setError("Failed to fetch class details");
@@ -63,6 +82,17 @@ const StaffClassesDetails = () => {
       }
     } catch (error) {
       console.error("Error updating class status:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(`/api/class/${id}`);
+      if (response.data.success) {
+        window.location.href = "/staff/classes";
+      }
+    } catch (error) {
+      console.error("Error deleting class:", error);
     }
   };
 
@@ -146,265 +176,226 @@ const StaffClassesDetails = () => {
                               </tbody>
                             </table>
                           </div>
+                          {classDetails.status === 1 && (
+                            <div className="d-flex justify-content-between align-items-center mt-3">
+                              <div>
+                                <button
+                                  className="btn"
+                                  disabled={
+                                    classDetails.classEnrollments?.length > 0
+                                  }
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        "Are you sure you want to delete this class?"
+                                      )
+                                    ) {
+                                      handleDelete();
+                                    }
+                                  }}
+                                >
+                                  <i className="material-icons">cancel</i>{" "}
+                                  Cancel Class
+                                </button>
+                                {classDetails.classEnrollments?.length > 0 && (
+                                  <small className="text-danger d-block mt-2">
+                                    *Cannot cancel class with enrolled dogs.
+                                  </small>
+                                )}
+                              </div>
+                              <div>
+                                <div>
+                                  <button
+                                    className="btn btn-success mr-2"
+                                    disabled={
+                                      new Date().toDateString() !==
+                                      new Date(
+                                        classDetails.startingDate
+                                      ).toDateString()
+                                    }
+                                    onClick={() => handleStatusUpdate(2)}
+                                  >
+                                    <i className="material-icons">play_arrow</i>{" "}
+                                    Open Class
+                                  </button>
+                                  <button
+                                    className="btn btn-danger"
+                                    disabled={
+                                      new Date().toDateString() !==
+                                      new Date(
+                                        classDetails.startingDate
+                                      ).toDateString()
+                                    }
+                                    onClick={() => handleStatusUpdate(3)}
+                                  >
+                                    <i className="material-icons">stop</i> Close
+                                    Class
+                                  </button>
+                                </div>
+                                {new Date().toDateString() !==
+                                  new Date(
+                                    classDetails.startingDate
+                                  ).toDateString() && (
+                                  <small className="text-danger d-block mt-2">
+                                    *Actions only available on the class
+                                    starting date.
+                                  </small>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div class="col-md-12">
-                      <div className="text-right mt-3">
-                        <div className="d-flex justify-content-end">
-                          {classDetails.status === 0 && (
-                            <>
-                              <button
-                                className="btn btn-warning d-flex align-items-center justify-content-center"
-                                onClick={() => setShowOpenRegModal(true)}
-                                style={{ width: "180px" }}
-                              >
-                                Open for Registration
-                              </button>
-                              <div
-                                className={`modal fade ${showOpenRegModal ? "show" : ""}`}
-                                style={{
-                                  display: showOpenRegModal ? "block" : "none",
-                                }}
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h5 className="modal-title">
-                                        Confirm Action
-                                      </h5>
-                                      <button
-                                        type="button"
-                                        className="close"
-                                        onClick={() =>
-                                          setShowOpenRegModal(false)
-                                        }
-                                      >
-                                        <span>&times;</span>
-                                      </button>
-                                    </div>
-                                    <div className="modal-body">
-                                      Are you sure you want to open this class
-                                      for registration?
-                                    </div>
-                                    <div className="modal-footer">
-                                      <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() =>
-                                          setShowOpenRegModal(false)
-                                        }
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn btn-warning"
-                                        onClick={() => {
-                                          handleStatusUpdate(1);
-                                          setShowOpenRegModal(false);
-                                        }}
-                                      >
-                                        Confirm
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                          {classDetails.status === 1 && (
-                            <>
-                              <button
-                                className="btn btn-danger d-flex align-items-center justify-content-center"
-                                onClick={() => setShowCancelModal(true)}
-                                style={{ width: "120px" }}
-                              >
-                                Cancel Class
-                              </button>
-                              <button
-                                className="btn btn-success d-flex align-items-center justify-content-center"
-                                onClick={() => setShowOpenClassModal(true)}
-                                style={{ width: "120px", marginLeft: "8px" }}
-                              >
-                                Open Class
-                              </button>
-                              <div
-                                className={`modal fade ${showCancelModal ? "show" : ""}`}
-                                style={{
-                                  display: showCancelModal ? "block" : "none",
-                                }}
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h5 className="modal-title">
-                                        Confirm Cancellation
-                                      </h5>
-                                      <button
-                                        type="button"
-                                        className="close"
-                                        onClick={() =>
-                                          setShowCancelModal(false)
-                                        }
-                                      >
-                                        <span>&times;</span>
-                                      </button>
-                                    </div>
-                                    <div className="modal-body">
-                                      Are you sure you want to cancel this
-                                      class? This action cannot be undone.
-                                    </div>
-                                    <div className="modal-footer">
-                                      <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() =>
-                                          setShowCancelModal(false)
-                                        }
-                                      >
-                                        No
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn btn-danger"
-                                        onClick={() => {
-                                          handleStatusUpdate(3);
-                                          setShowCancelModal(false);
-                                        }}
-                                      >
-                                        Yes, Cancel Class
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div
-                                className={`modal fade ${showOpenClassModal ? "show" : ""}`}
-                                style={{
-                                  display: showOpenClassModal
-                                    ? "block"
-                                    : "none",
-                                }}
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h5 className="modal-title">
-                                        Confirm Opening Class
-                                      </h5>
-                                      <button
-                                        type="button"
-                                        className="close"
-                                        onClick={() =>
-                                          setShowOpenClassModal(false)
-                                        }
-                                      >
-                                        <span>&times;</span>
-                                      </button>
-                                    </div>
-                                    <div className="modal-body">
-                                      Are you sure you want to open this class?
-                                      Make sure all preparations are complete.
-                                    </div>
-                                    <div className="modal-footer">
-                                      <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() =>
-                                          setShowOpenClassModal(false)
-                                        }
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn btn-success"
-                                        onClick={() => {
-                                          handleStatusUpdate(2);
-                                          setShowOpenClassModal(false);
-                                        }}
-                                      >
-                                        Yes, Open Class
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                          {classDetails.status === 2 && (
-                            <>
-                              <button
-                                className="btn btn-success d-flex align-items-center justify-content-center"
-                                onClick={() => setShowConcludeModal(true)}
-                                style={{ width: "120px" }}
-                              >
-                                Conclude Class
-                              </button>
-                              <div
-                                className={`modal fade ${showConcludeModal ? "show" : ""}`}
-                                style={{
-                                  display: showConcludeModal ? "block" : "none",
-                                }}
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h5 className="modal-title">
-                                        Confirm Conclusion
-                                      </h5>
-                                      <button
-                                        type="button"
-                                        className="close"
-                                        onClick={() =>
-                                          setShowConcludeModal(false)
-                                        }
-                                      >
-                                        <span>&times;</span>
-                                      </button>
-                                    </div>
-                                    <div className="modal-body">
-                                      Are you sure you want to conclude this
-                                      class? This will mark the class as
-                                      completed.
-                                    </div>
-                                    <div className="modal-footer">
-                                      <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() =>
-                                          setShowConcludeModal(false)
-                                        }
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn btn-success"
-                                        onClick={() => {
-                                          handleStatusUpdate(4);
-                                          setShowConcludeModal(false);
-                                        }}
-                                      >
-                                        Yes, Conclude Class
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </>
-                          )}
+                    <div className="col-md-12">
+                      <div className="card">
+                        <div className="card-header card-header-info">
+                          <h4 className="card-title">Course Information</h4>
+                          <p className="card-category">
+                            Course details and requirements
+                          </p>
                         </div>
-                        {new Date().toDateString() !==
-                          new Date(
-                            classDetails.startingDate
-                          ).toDateString() && (
-                          <small className="text-danger d-block mt-2">
-                            Warning: Starting date is not today, proceed with
-                            caution.
-                          </small>
-                        )}
+                        <div className="card-body">
+                          <div className="table-responsive">
+                            <table className="table">
+                              <tbody>
+                                <tr>
+                                  <td className="col-md-2">
+                                    <strong>Name</strong>
+                                  </td>
+                                  <td className="col-md-4">
+                                    {classDetails.courseName}
+                                  </td>
+                                  <td className="col-md-2">
+                                    <strong>Status</strong>
+                                  </td>
+                                  <td className="col-md-4">Active</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Description</strong>
+                                  </td>
+                                  <td colSpan="3">
+                                    {classDetails.courseDescription}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Duration</strong>
+                                  </td>
+                                  <td>
+                                    {classDetails.courseDurationInWeeks} week(s)
+                                  </td>
+                                  <td>
+                                    <strong>Price</strong>
+                                  </td>
+                                  <td>{classDetails.coursePrice} VND</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Schedule</strong>
+                                  </td>
+                                  <td>
+                                    {classDetails.courseDaysPerWeek}{" "}
+                                    day(s)/week,{" "}
+                                    {classDetails.courseSlotsPerDay} slot(s)/day
+                                  </td>
+                                  <td>
+                                    <strong>Trainers</strong>
+                                  </td>
+                                  <td>
+                                    {classDetails.courseMinTrainers} -{" "}
+                                    {classDetails.courseMaxTrainers} persons
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Complexity</strong>
+                                  </td>
+                                  <td style={{ verticalAlign: "middle" }}>
+                                    {[...Array(5)].map((_, index) => (
+                                      <i
+                                        key={index}
+                                        className="material-icons"
+                                        style={{ fontSize: "18px" }}
+                                      >
+                                        {index < classDetails.courseComplexity
+                                          ? "star"
+                                          : "star_border"}
+                                      </i>
+                                    ))}
+                                  </td>
+                                  <td>
+                                    <strong>Category</strong>
+                                  </td>
+                                  <td>{classDetails.courseCategoryName}</td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Prerequisites</strong>
+                                  </td>
+                                  <td colSpan="3">
+                                    {classDetails.coursePrerequisites?.length >
+                                    0
+                                      ? classDetails.coursePrerequisites.join(
+                                          ", "
+                                        )
+                                      : "None"}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Lessons</strong>
+                                  </td>
+                                  <td colSpan="3">
+                                    {classDetails.courseLessons?.length > 0
+                                      ? classDetails.courseLessons
+                                          .map((lesson) => lesson.name)
+                                          .join(", ")
+                                      : "None"}
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <strong>Dog Breeds</strong>
+                                  </td>
+                                  <td colSpan="3">
+                                    {classDetails.courseDogBreeds?.map(
+                                      (breed, index) => (
+                                        <span
+                                          key={index}
+                                          className="badge badge-pill badge-info"
+                                          style={{
+                                            fontSize: "12px",
+                                            padding: "6px 10px",
+                                            margin: "0 3px 3px 0",
+                                            display: "inline-block",
+                                          }}
+                                        >
+                                          <i
+                                            className="material-icons"
+                                            style={{
+                                              fontSize: "12px",
+                                              margin: "1px 3px 3px 0",
+                                              display: "inline-block",
+                                            }}
+                                          >
+                                            pets
+                                          </i>
+                                          {breed.name}
+                                        </span>
+                                      )
+                                    )}
+                                    {(!classDetails.courseDogBreeds ||
+                                      classDetails.courseDogBreeds.length ===
+                                        0) &&
+                                      "None"}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="col-md-12">
@@ -423,16 +414,48 @@ const StaffClassesDetails = () => {
                             headerToolbar={{
                               left: "prev,next today",
                               center: "title",
-                              right: "dayGridMonth",
+                              right: "dayGridMonth,timeGridWeek",
                             }}
+                            allDaySlot={false}
+                            slotMinTime="08:00:00"
+                            slotMaxTime="18:00:00"
                             events={classDetails.classSlots.map((slot) => ({
-                              title: `${slot.startTime.substring(0, 5)} - ${slot.endTime.substring(0, 5)}`,
-                              start: slot.slotDate,
+                              title: classDetails.name,
+                              start: `${slot.slotDate}T${slot.startTime}`,
+                              end: `${slot.slotDate}T${slot.endTime}`,
                               backgroundColor:
                                 CLASS_STATUS[
                                   classDetails.status
                                 ]?.color?.replace("badge-", "") || "#999",
+                              extendedProps: {
+                                course: classDetails.courseName,
+                                status:
+                                  CLASS_STATUS[classDetails.status]?.label,
+                                startTime: slot.startTime,
+                                endTime: slot.endTime,
+                              },
                             }))}
+                            eventContent={(eventInfo) => (
+                              <div>
+                                <b>{eventInfo.event.title}</b>
+                                <div>
+                                  {eventInfo.event.extendedProps.course}
+                                </div>
+                                <small>
+                                  {eventInfo.event.extendedProps.startTime?.substring(
+                                    0,
+                                    5
+                                  )}
+                                  -
+                                  {eventInfo.event.extendedProps.endTime?.substring(
+                                    0,
+                                    5
+                                  )}
+                                </small>
+                              </div>
+                            )}
+                            eventOverlap={false}
+                            slotEventOverlap={false}
                             height="auto"
                             aspectRatio={2}
                           />
