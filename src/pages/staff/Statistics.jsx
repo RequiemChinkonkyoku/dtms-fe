@@ -573,54 +573,6 @@ const StaffStatistics = () => {
                     </div>
                   </div>
                 </div>
-                <div className="row">
-                  <div className="col-md-12">
-                    <div className="card">
-                      <div className="card-header card-header-primary card-header-icon">
-                        <div className="card-icon">
-                          <i className="material-icons">verified</i>
-                        </div>
-                        <h4 className="card-title">Pass Rate Analysis</h4>
-                        <p className="card-category text-muted">
-                          Monthly pass rate for dog training courses.
-                        </p>
-                      </div>
-                      <div className="card-body">
-                        <LineChart
-                          xAxis={[
-                            {
-                              scaleType: "point",
-                              data: getLast12Months(),
-                            },
-                          ]}
-                          yAxis={[
-                            {
-                              min: 0,
-                              max: 100,
-                              tickFormatter: (value) => `${value}%`,
-                            },
-                          ]}
-                          series={[
-                            {
-                              data: [
-                                85, 88, 82, 90, 87, 91, 89, 92, 86, 88, 90, 93,
-                              ],
-                              color: "#9c27b0",
-                              valueFormatter: (value) => `${value}%`,
-                            },
-                          ]}
-                          height={400}
-                          width={1150}
-                          grid={{
-                            vertical: true,
-                            horizontal: true,
-                            strokeDasharray: "3 3",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

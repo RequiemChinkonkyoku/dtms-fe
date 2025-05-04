@@ -13,6 +13,7 @@ import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomTable from "../../assets/components/common/CustomTable";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 import { showToast, dismissToast } from "../../utils/toastConfig";
+import { softDelay } from "../../utils/softDelay";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -106,11 +107,15 @@ const StaffDogs = () => {
 
   useEffect(() => {
     const fetchDogBreeds = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("/api/dogBreeds");
         setDogBreeds(response.data);
+        await softDelay();
       } catch (error) {
         console.error("Error fetching dog breeds:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -147,8 +152,8 @@ const StaffDogs = () => {
       return breedOrder === "asc"
         ? a[breedOrderBy]?.toString().localeCompare(b[breedOrderBy]?.toString())
         : b[breedOrderBy]
-          ?.toString()
-          .localeCompare(a[breedOrderBy]?.toString());
+            ?.toString()
+            .localeCompare(a[breedOrderBy]?.toString());
     });
   }, [dogBreeds, breedSearchTerm, breedOrder, breedOrderBy]);
 
@@ -209,14 +214,10 @@ const StaffDogs = () => {
   useEffect(() => {
     const fetchDogs = async () => {
       setLoading(true);
-      const startTime = Date.now();
       try {
         const response = await axios.get("/api/dogs");
         setDogs(response.data);
-
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await softDelay();
       } catch (err) {
         setError("Failed to fetch data");
       } finally {
@@ -311,9 +312,6 @@ const StaffDogs = () => {
                                 setPage={setPage}
                                 placeholder="Search by name..."
                               />
-                              <button className="btn btn-info">
-                                <i className="material-icons">add</i> Create Dog
-                              </button>
                             </div>
                             <CustomTable
                               columns={[
@@ -385,76 +383,89 @@ const StaffDogs = () => {
                         </p>
                       </div>
                       <div className="card-body">
-                        <div className="table-responsive">
+                        {loading ? (
                           <div
                             style={{
-                              padding: "16px",
                               display: "flex",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
                               alignItems: "center",
+                              minHeight: "300px",
                             }}
                           >
-                            <CustomSearch
-                              value={breedSearchTerm}
-                              onChange={setBreedSearchTerm}
-                              setPage={setBreedPage}
-                              placeholder="Search breeds..."
-                            />
-                            <button
-                              className="btn btn-info"
-                              onClick={() => setIsBreedModalOpen(true)}
-                            >
-                              <i className="material-icons">add</i> Add Breed
-                            </button>
+                            <Loader />
                           </div>
-                          <CustomTable
-                            columns={[
-                              { key: "name", label: "Name" },
-                              {
-                                key: "dogNames",
-                                label: "Dogs Count",
-                                render: (value) => (value ? value.length : 0),
-                              },
-                              {
-                                key: "status",
-                                label: "Status",
-                                render: (value) => (
-                                  <span className={getStatusClass(value)}>
-                                    {getStatusText(value)}
-                                  </span>
-                                ),
-                              },
-                              {
-                                key: "createdTime",
-                                label: "Created Date",
-                                render: (value) => formatDate(value),
-                              },
-                            ]}
-                            data={filteredBreeds}
-                            page={breedPage}
-                            rowsPerPage={breedRowsPerPage}
-                            orderBy={breedOrderBy}
-                            order={breedOrder}
-                            onSort={handleBreedSort}
-                            renderActions={(row) => (
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CustomSearch
+                                value={breedSearchTerm}
+                                onChange={setBreedSearchTerm}
+                                setPage={setBreedPage}
+                                placeholder="Search breeds..."
+                              />
                               <button
-                                type="button"
-                                className="btn btn-info btn-sm"
-                                title="Edit"
-                                onClick={() => handleBreedEdit(row)}
+                                className="btn btn-info"
+                                onClick={() => setIsBreedModalOpen(true)}
                               >
-                                <i className="material-icons">edit</i>
+                                <i className="material-icons">add</i> Add Breed
                               </button>
-                            )}
-                          />
-                          <CustomPagination
-                            count={filteredBreeds.length}
-                            rowsPerPage={breedRowsPerPage}
-                            page={breedPage}
-                            onPageChange={handleBreedChangePage}
-                            onRowsPerPageChange={handleBreedChangeRowsPerPage}
-                          />
-                        </div>
+                            </div>
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                {
+                                  key: "dogNames",
+                                  label: "Dogs Count",
+                                  render: (value) => (value ? value.length : 0),
+                                },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={filteredBreeds}
+                              page={breedPage}
+                              rowsPerPage={breedRowsPerPage}
+                              orderBy={breedOrderBy}
+                              order={breedOrder}
+                              onSort={handleBreedSort}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  title="Edit"
+                                  onClick={() => handleBreedEdit(row)}
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
+                              count={filteredBreeds.length}
+                              rowsPerPage={breedRowsPerPage}
+                              page={breedPage}
+                              onPageChange={handleBreedChangePage}
+                              onRowsPerPageChange={handleBreedChangeRowsPerPage}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

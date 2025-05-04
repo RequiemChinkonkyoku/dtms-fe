@@ -14,13 +14,14 @@ import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
-import { TablePagination, TextField, TableSortLabel } from "@mui/material";
+import { useLoading } from "../../contexts/LoadingContext";
+import { softDelay } from "../../utils/softDelay";
 
 const Blogs = () => {
+  const { loading, setLoading } = useLoading();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [orderBy, setOrderBy] = useState("createdTime");
   const [order, setOrder] = useState("desc");
   const [counts, setCounts] = useState({
@@ -77,6 +78,7 @@ const Blogs = () => {
 
   useEffect(() => {
     const fetchBlogs = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("/api/blogs");
         if (response.data.success && response.data.objectList) {
@@ -89,6 +91,7 @@ const Blogs = () => {
 
           setCounts({ total, active, inactive });
         }
+        await softDelay();
       } catch (error) {
         console.error("Error fetching blogs:", error);
       } finally {
@@ -207,96 +210,109 @@ const Blogs = () => {
                         </p>
                       </div>
                       <div className="card-body">
-                        <div className="table-responsive">
+                        {loading ? (
                           <div
                             style={{
-                              padding: "16px",
                               display: "flex",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
                               alignItems: "center",
+                              minHeight: "300px",
                             }}
                           >
-                            <CustomSearch
-                              value={searchTerm}
-                              onChange={setSearchTerm}
-                              setPage={setPage}
-                              placeholder="Search blogs..."
-                            />
-                            <Link
-                              className="btn btn-primary"
-                              to={"/staff/blogs/create"}
-                            >
-                              <i className="material-icons">add</i> New Blog
-                            </Link>
+                            <Loader />
                           </div>
-                          <CustomTable
-                            columns={[
-                              { key: "title", label: "Title" },
-                              {
-                                key: "status",
-                                label: "Status",
-                                render: (value) => (
-                                  <span className={getStatusClass(value)}>
-                                    {getStatusText(value)}
-                                  </span>
-                                ),
-                              },
-                              {
-                                key: "timePublished",
-                                label: "Published Date",
-                                render: (value) => formatDate(value),
-                              },
-                              {
-                                key: "createdTime",
-                                label: "Created Date",
-                                render: (value) => formatDate(value),
-                              },
-                              {
-                                key: "lastUpdatedTime",
-                                label: "Last Updated",
-                                render: (value) => formatDate(value),
-                              },
-                            ]}
-                            data={filteredBlogs}
-                            page={page}
-                            rowsPerPage={rowsPerPage}
-                            orderBy={orderBy}
-                            order={order}
-                            onSort={handleSort}
-                            renderActions={(row) =>
-                              row.staffId === user?.unique_name ? (
-                                <button
-                                  type="button"
-                                  className="btn btn-warning btn-sm"
-                                  title="Edit"
-                                  onClick={() =>
-                                    navigate(`/staff/blogs/details/${row.id}`)
-                                  }
-                                >
-                                  <i className="material-icons">edit</i>
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="btn btn-info btn-sm"
-                                  title="View"
-                                  onClick={() =>
-                                    navigate(`/staff/blogs/details/${row.id}`)
-                                  }
-                                >
-                                  <i className="material-icons">visibility</i>
-                                </button>
-                              )
-                            }
-                          />
-                          <CustomPagination
-                            count={filteredBlogs.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                          />
-                        </div>
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CustomSearch
+                                value={searchTerm}
+                                onChange={setSearchTerm}
+                                setPage={setPage}
+                                placeholder="Search blogs..."
+                              />
+                              <Link
+                                className="btn btn-primary"
+                                to={"/staff/blogs/create"}
+                              >
+                                <i className="material-icons">add</i> New Blog
+                              </Link>
+                            </div>
+                            <CustomTable
+                              columns={[
+                                { key: "title", label: "Title" },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "timePublished",
+                                  label: "Published Date",
+                                  render: (value) => formatDate(value),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                                {
+                                  key: "lastUpdatedTime",
+                                  label: "Last Updated",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={filteredBlogs}
+                              page={page}
+                              rowsPerPage={rowsPerPage}
+                              orderBy={orderBy}
+                              order={order}
+                              onSort={handleSort}
+                              renderActions={(row) =>
+                                row.staffId === user?.unique_name ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-warning btn-sm"
+                                    title="Edit"
+                                    onClick={() =>
+                                      navigate(`/staff/blogs/details/${row.id}`)
+                                    }
+                                  >
+                                    <i className="material-icons">edit</i>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-info btn-sm"
+                                    title="View"
+                                    onClick={() =>
+                                      navigate(`/staff/blogs/details/${row.id}`)
+                                    }
+                                  >
+                                    <i className="material-icons">visibility</i>
+                                  </button>
+                                )
+                              }
+                            />
+                            <CustomPagination
+                              count={filteredBlogs.length}
+                              rowsPerPage={rowsPerPage}
+                              page={page}
+                              onPageChange={handleChangePage}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

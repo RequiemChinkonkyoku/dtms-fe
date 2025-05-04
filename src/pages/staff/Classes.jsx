@@ -3,6 +3,7 @@ import axios from "../../utils/axiosConfig";
 import { Link } from "react-router-dom";
 import "../../assets/css/material-dashboard.min.css";
 import { useLoading } from "../../contexts/LoadingContext";
+import { softDelay } from "../../utils/softDelay";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -67,7 +68,6 @@ const StaffClasses = () => {
 
   const fetchClasses = async () => {
     setLoading(true);
-    const startTime = Date.now();
     try {
       const response = await axios.get("/api/class");
       if (response.data.success) {
@@ -87,9 +87,7 @@ const StaffClasses = () => {
           classesData.map((classItem) => fetchClassDetails(classItem.id))
         );
 
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await softDelay();
       }
     } catch (error) {
       console.error("Error fetching classes:", error);

@@ -14,6 +14,7 @@ import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
 import { TextField, Modal, Select, MenuItem } from "@mui/material";
+import { softDelay } from "../../utils/softDelay";
 
 const StaffSkills = () => {
   const { loading, setLoading } = useLoading();
@@ -82,14 +83,11 @@ const StaffSkills = () => {
   useEffect(() => {
     const fetchSkills = async () => {
       setLoading(true);
-      const startTime = Date.now();
       try {
         const response = await axios.get("/api/skills");
         setSkills(response.data.objectList);
 
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await softDelay();
       } catch (error) {
         console.error("Error fetching skills:", error);
       } finally {

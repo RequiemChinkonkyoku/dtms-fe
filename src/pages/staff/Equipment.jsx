@@ -14,6 +14,7 @@ import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomPagination from "../../assets/components/common/CustomPagination";
 
 import { TextField, Modal, Select, MenuItem } from "@mui/material";
+import { softDelay } from "../../utils/softDelay";
 
 const StaffEquipments = () => {
   const { loading, setLoading } = useLoading();
@@ -42,11 +43,15 @@ const StaffEquipments = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("/api/equipmentCategories");
         setEquipmentCategories(response.data.objectList);
+        await softDelay();
       } catch (error) {
         console.error("Error fetching equipment categories:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCategories();
@@ -117,7 +122,6 @@ const StaffEquipments = () => {
   useEffect(() => {
     const fetchEquipments = async () => {
       setLoading(true);
-      const startTime = Date.now();
       try {
         const response = await axios.get("/api/equipments");
         setEquipments(response.data.objectList);
@@ -131,9 +135,7 @@ const StaffEquipments = () => {
           }
         });
 
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 2000 - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await softDelay();
       } catch (error) {
         console.error("Error fetching equipments:", error);
       } finally {

@@ -15,9 +15,19 @@ import { Badge } from "@mui/material";
 import { PickersDay } from "@mui/x-date-pickers";
 
 function CustomDay(props) {
-  const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
+  const {
+    highlightedDays = [],
+    endingDays = [],
+    day,
+    outsideCurrentMonth,
+    ...other
+  } = props;
 
-  const isHighlighted = highlightedDays.some(
+  const isStarting = highlightedDays.some(
+    (d) => d.format("YYYY-MM-DD") === day.format("YYYY-MM-DD")
+  );
+
+  const isEnding = endingDays.some(
     (d) => d.format("YYYY-MM-DD") === day.format("YYYY-MM-DD")
   );
 
@@ -25,8 +35,8 @@ function CustomDay(props) {
     <Badge
       key={day.toString()}
       overlap="circular"
-      badgeContent={isHighlighted ? "+" : undefined}
-      color="info"
+      badgeContent={isStarting ? "+" : isEnding ? "-" : undefined}
+      color={isStarting ? "info" : isEnding ? "warning" : "default"}
     >
       <PickersDay
         {...other}
@@ -53,6 +63,7 @@ const StaffDashboard = () => {
   const [greeting, setGreeting] = useState("");
   const [todayClasses, setTodayClasses] = useState([]);
   const [cageDetails, setCageDetails] = useState([]);
+  const [endingDays, setEndingDays] = useState([]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -86,23 +97,26 @@ const StaffDashboard = () => {
     try {
       const classesRes = await axios.get("/api/class");
       const classes = classesRes.data.objectList || [];
-
       const today = dayjs().format("YYYY-MM-DD");
       const todayClasses = [];
 
       for (const classItem of classes) {
-        const slotsRes = await axios.get(
-          `/api/class/get-class-slots/${classItem.id}`
-        );
+        const classDetailsRes = await axios.get(`/api/class/${classItem.id}`);
+        const classDetails = classDetailsRes.data.object;
 
-        const slots = slotsRes.data.object?.slots || [];
-        const hasSlotToday = slots.some((slot) => {
-          const slotDate = dayjs(slot.date).format("YYYY-MM-DD");
-          return slotDate === today;
-        });
+        if (classDetails) {
+          const hasSlotToday = classDetails.classSlots.some(
+            (slot) => dayjs(slot.slotDate).format("YYYY-MM-DD") === today
+          );
 
-        if (hasSlotToday) {
-          todayClasses.push(classItem);
+          if (hasSlotToday) {
+            todayClasses.push({
+              ...classDetails,
+              todaySlots: classDetails.classSlots.filter(
+                (slot) => dayjs(slot.slotDate).format("YYYY-MM-DD") === today
+              ),
+            });
+          }
         }
       }
 
@@ -145,13 +159,35 @@ const StaffDashboard = () => {
           return startDate > new Date() && startDate <= oneMonthFromNow;
         }) || [];
 
-      const classStartDates =
+      const classDetails = await Promise.all(
         classesRes.data.objectList?.map((classItem) =>
-          dayjs(classItem.startingDate)
-        ) || [];
-      setHighlightedDays(classStartDates);
+          axios.get(`/api/class/${classItem.id}`)
+        ) || []
+      );
 
-      // Count customers based on roleId
+      const startDates = [];
+      const endDates = [];
+
+      classDetails.forEach((response) => {
+        if (response.data.success && response.data.object) {
+          const classData = response.data.object;
+          startDates.push(dayjs(classData.startingDate));
+
+          const slots = classData.classSlots || [];
+          if (slots.length > 0) {
+            const lastSlot = slots.reduce((latest, current) =>
+              dayjs(current.slotDate).isAfter(dayjs(latest.slotDate))
+                ? current
+                : latest
+            );
+            endDates.push(dayjs(lastSlot.slotDate));
+          }
+        }
+      });
+
+      setHighlightedDays(startDates);
+      setEndingDays(endDates);
+
       const customerRoleIds = [
         "a4b5c67890d1e2f3a4b5c67890d1e2f3",
         "b5c67890d1e2f3a4b5c67890d1e2f3a4",
@@ -285,13 +321,14 @@ const StaffDashboard = () => {
                               <thead className="text-warning">
                                 <tr>
                                   <th>Class Name</th>
+                                  <th>Time</th>
                                   <th>Action</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {todayClasses.length === 0 ? (
                                   <tr>
-                                    <td colSpan="2" className="text-center">
+                                    <td colSpan="3" className="text-center">
                                       No class for today
                                     </td>
                                   </tr>
@@ -304,6 +341,19 @@ const StaffDashboard = () => {
                                         <small className="text-muted">
                                           {classItem.courseName}
                                         </small>
+                                      </td>
+                                      <td>
+                                        {classItem.todaySlots.map(
+                                          (slot, index) => (
+                                            <div key={slot.slotId}>
+                                              {slot.startTime.substring(0, 5)} -{" "}
+                                              {slot.endTime.substring(0, 5)}
+                                              {index <
+                                                classItem.todaySlots.length -
+                                                  1 && <br />}
+                                            </div>
+                                          )
+                                        )}
                                       </td>
                                       <td>
                                         <button className="btn btn-info btn-sm">
@@ -371,7 +421,7 @@ const StaffDashboard = () => {
                   </div>
                   <div className="col-md-4">
                     <div className="col-md-12">
-                      <div className="card ">
+                      <div className="card">
                         <div className="card-body">
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateCalendar
@@ -383,10 +433,60 @@ const StaffDashboard = () => {
                               slotProps={{
                                 day: {
                                   highlightedDays,
+                                  endingDays,
                                 },
                               }}
                             />
                           </LocalizationProvider>
+                          <h6 className="text-muted">Legend:</h6>
+                          <div className="d-flex align-items-center mb-2">
+                            <Badge
+                              overlap="circular"
+                              badgeContent="+"
+                              color="info"
+                            >
+                              <div
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  border: "1px solid #ddd",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                15
+                              </div>
+                            </Badge>
+                            <span className="ml-2">
+                              At least 1 class is starting on this day
+                            </span>
+                          </div>
+                          <div className="d-flex align-items-center">
+                            <Badge
+                              overlap="circular"
+                              badgeContent="-"
+                              color="warning"
+                            >
+                              <div
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  border: "1px solid #ddd",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                15
+                              </div>
+                            </Badge>
+                            <span className="ml-2">
+                              At least 1 class is ending on this day
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
