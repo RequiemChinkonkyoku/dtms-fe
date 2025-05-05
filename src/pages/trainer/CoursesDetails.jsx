@@ -286,8 +286,7 @@ const TrainerCoursesDetails = () => {
       if (response.data.success) {
         // Update prerequisites if there are any changes
         if (updateFormData.prerequisiteCourseIds) {
-          await axios.post("/api/prerequisites", {
-            courseId: id,
+          await axios.put(`/api/prerequisites/course/${updateFormData.id}`, {
             prerequisiteCourseIds: updateFormData.prerequisiteCourseIds,
           });
         }
@@ -727,9 +726,9 @@ const TrainerCoursesDetails = () => {
                     <Box sx={{ ml: 2, fontSize: "1rem" }}>
                       {
                         complexityLabels[
-                          complexityHover !== -1
-                            ? complexityHover
-                            : updateFormData.complexity
+                        complexityHover !== -1
+                          ? complexityHover
+                          : updateFormData.complexity
                         ]
                       }
                     </Box>
@@ -991,11 +990,10 @@ const TrainerCoursesDetails = () => {
                           <button
                             type="button"
                             rel="tooltip"
-                            className={`btn btn-sm mr-2 ${
-                              selectedLessons.includes(lesson.id)
-                                ? "btn-danger"
-                                : "btn-info"
-                            }`}
+                            className={`btn btn-sm mr-2 ${selectedLessons.includes(lesson.id)
+                              ? "btn-danger"
+                              : "btn-info"
+                              }`}
                             onClick={() => handleSelectLesson(lesson.id)}
                           >
                             <i className="material-icons">
@@ -1149,11 +1147,10 @@ const TrainerCoursesDetails = () => {
                           <button
                             type="button"
                             rel="tooltip"
-                            className={`btn btn-sm mr-2 ${
-                              selectedBreeds.includes(breed.id)
-                                ? "btn-danger"
-                                : "btn-info"
-                            }`}
+                            className={`btn btn-sm mr-2 ${selectedBreeds.includes(breed.id)
+                              ? "btn-danger"
+                              : "btn-info"
+                              }`}
                             onClick={() => handleSelectBreed(breed.id)}
                           >
                             <i className="material-icons">
