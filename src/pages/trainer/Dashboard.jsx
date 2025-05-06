@@ -26,21 +26,16 @@ const TrainerDashboard = () => {
   useEffect(() => {
     const fetchScheduleData = async () => {
       try {
-        console.log("Current user:", user);
         if (!user?.unique_name) {
           console.log("No user unique_name available, skipping API calls");
           setLoading(false);
           return;
         }
 
-        console.log("Making API calls...");
         const schedulesResponse = await axios.get("/api/schedules");
-        console.log("Schedules response:", schedulesResponse);
-
         const slotsResponse = await axios.get(
           `/api/slots/get-trainer-slots/${user.unique_name}`
         );
-        console.log("Slots response:", slotsResponse);
 
         if (schedulesResponse.data && slotsResponse.data.success) {
           setSchedules(schedulesResponse.data);
@@ -59,7 +54,6 @@ const TrainerDashboard = () => {
             return slotDate >= sunday && slotDate <= saturday;
           });
 
-          console.log("Filtered weekly slots:", weekSlots);
           setWeeklySlots(weekSlots);
         }
       } catch (error) {
@@ -77,7 +71,6 @@ const TrainerDashboard = () => {
     date.setDate(date.getDate() - date.getDay() + dayOffset);
     const dateStr = date.toISOString().split("T")[0];
     const slots = weeklySlots.filter((slot) => slot.slotDate === dateStr);
-    console.log(`Slots for ${dateStr}:`, slots);
     return slots;
   };
 

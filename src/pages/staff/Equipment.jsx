@@ -40,6 +40,23 @@ const StaffEquipments = () => {
     equipmentCategoryId: "",
   });
   const [categoryDetails, setCategoryDetails] = useState({});
+  const [openCategoryCreateModal, setOpenCategoryCreateModal] = useState(false);
+  const [openCategoryEditModal, setOpenCategoryEditModal] = useState(false);
+  const [categoryPage, setCategoryPage] = useState(0);
+  const [categoryRowsPerPage, setCategoryRowsPerPage] = useState(5);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
+  const [categoryOrderBy, setCategoryOrderBy] = useState("createdTime");
+  const [categoryOrder, setCategoryOrder] = useState("desc");
+  const [categoryEditFormData, setCategoryEditFormData] = useState({
+    id: "",
+    name: "",
+    description: "",
+    status: 1,
+  });
+  const [categoryCreateFormData, setCategoryCreateFormData] = useState({
+    name: "",
+    description: "",
+  });
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -56,6 +73,79 @@ const StaffEquipments = () => {
     };
     fetchCategories();
   }, []);
+
+  const handleCategoryCreate = async () => {
+    try {
+      const response = await axios.post(
+        "/api/equipmentCategories",
+        categoryCreateFormData
+      );
+      if (response.data.success) {
+        setEquipmentCategories([...equipmentCategories, response.data.object]);
+        setOpenCategoryCreateModal(false);
+        setCategoryCreateFormData({ name: "", description: "" });
+        showToast.success("Equipment category created successfully!");
+      }
+    } catch (error) {
+      console.error("Error creating equipment category:", error);
+      showToast.error("Failed to create equipment category. Please try again.");
+    }
+  };
+
+  const handleCategoryEdit = async () => {
+    try {
+      const response = await axios.put(
+        "/api/equipmentCategories",
+        categoryEditFormData
+      );
+      if (response.data.success) {
+        setEquipmentCategories(
+          equipmentCategories.map((category) =>
+            category.id === categoryEditFormData.id
+              ? response.data.object
+              : category
+          )
+        );
+        setOpenCategoryEditModal(false);
+        showToast.success("Equipment category updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating equipment category:", error);
+      showToast.error("Failed to update equipment category. Please try again.");
+    }
+  };
+
+  const openCategoryEdit = (category) => {
+    setCategoryEditFormData({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      status: category.status,
+    });
+    setOpenCategoryEditModal(true);
+  };
+
+  // Add this sorted categories memo
+  const sortedCategories = React.useMemo(() => {
+    const comparator = (a, b) => {
+      if (categoryOrderBy === "createdTime") {
+        const dateA = new Date(a[categoryOrderBy]);
+        const dateB = new Date(b[categoryOrderBy]);
+        return categoryOrder === "asc" ? dateA - dateB : dateB - dateA;
+      }
+      if (categoryOrder === "asc") {
+        return a[categoryOrderBy] < b[categoryOrderBy] ? -1 : 1;
+      } else {
+        return b[categoryOrderBy] < a[categoryOrderBy] ? -1 : 1;
+      }
+    };
+
+    return [...equipmentCategories]
+      .filter((category) =>
+        category.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
+      )
+      .sort(comparator);
+  }, [equipmentCategories, categoryOrder, categoryOrderBy, categorySearchTerm]);
 
   const handleCreate = async () => {
     try {
@@ -329,6 +419,118 @@ const StaffEquipments = () => {
                     </div>
                   </div>
                 </div>
+                <div className="row">
+                  <div className="col-md-12">
+                    <div className="card">
+                      <div className="card-header card-header-rose card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">category</i>
+                        </div>
+                        <h4 className="card-title">
+                          Equipment Category Management
+                        </h4>
+                        <p className="card-category text-muted">
+                          Manage equipment categories for better organization.
+                        </p>
+                      </div>
+                      <div className="card-body">
+                        {loading ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              minHeight: "300px",
+                            }}
+                          >
+                            <Loader />
+                          </div>
+                        ) : (
+                          <div className="table-responsive">
+                            <div
+                              style={{
+                                padding: "16px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CustomSearch
+                                value={categorySearchTerm}
+                                onChange={setCategorySearchTerm}
+                                setPage={setCategoryPage}
+                                placeholder="Search categories..."
+                              />
+                              <button
+                                className="btn btn-info"
+                                onClick={() => setOpenCategoryCreateModal(true)}
+                              >
+                                <i className="material-icons">add</i> Create
+                                Category
+                              </button>
+                            </div>
+                            <CustomTable
+                              columns={[
+                                { key: "name", label: "Name" },
+                                { key: "description", label: "Description" },
+                                {
+                                  key: "status",
+                                  label: "Status",
+                                  render: (value) => (
+                                    <span className={getStatusClass(value)}>
+                                      {getStatusText(value)}
+                                    </span>
+                                  ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) => formatDate(value),
+                                },
+                              ]}
+                              data={sortedCategories}
+                              page={categoryPage}
+                              rowsPerPage={categoryRowsPerPage}
+                              orderBy={categoryOrderBy}
+                              order={categoryOrder}
+                              onSort={(property) => {
+                                const isAsc =
+                                  categoryOrderBy === property &&
+                                  categoryOrder === "asc";
+                                setCategoryOrder(isAsc ? "desc" : "asc");
+                                setCategoryOrderBy(property);
+                              }}
+                              renderActions={(row) => (
+                                <button
+                                  type="button"
+                                  className="btn btn-info btn-sm"
+                                  title="Edit"
+                                  onClick={() => openCategoryEdit(row)}
+                                >
+                                  <i className="material-icons">edit</i>
+                                </button>
+                              )}
+                            />
+                            <CustomPagination
+                              count={sortedCategories.length}
+                              rowsPerPage={categoryRowsPerPage}
+                              page={categoryPage}
+                              onPageChange={(event, newPage) =>
+                                setCategoryPage(newPage)
+                              }
+                              onRowsPerPageChange={(event) => {
+                                setCategoryRowsPerPage(
+                                  parseInt(event.target.value, 10)
+                                );
+                                setCategoryPage(0);
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -498,6 +700,146 @@ const StaffEquipments = () => {
             <button
               className="btn btn-secondary ml-2"
               onClick={() => setOpenEditModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        open={openCategoryCreateModal}
+        onClose={() => setOpenCategoryCreateModal(false)}
+        aria-labelledby="create-category-modal"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            width: "400px",
+          }}
+        >
+          <h3>Create New Equipment Category</h3>
+          <TextField
+            fullWidth
+            label="Name"
+            value={categoryCreateFormData.name}
+            onChange={(e) =>
+              setCategoryCreateFormData({
+                ...categoryCreateFormData,
+                name: e.target.value,
+              })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            value={categoryCreateFormData.description}
+            onChange={(e) =>
+              setCategoryCreateFormData({
+                ...categoryCreateFormData,
+                description: e.target.value,
+              })
+            }
+            margin="normal"
+            multiline
+            rows={4}
+          />
+          <div style={{ marginTop: "20px" }}>
+            <button
+              className="btn btn-info"
+              onClick={handleCategoryCreate}
+              disabled={!categoryCreateFormData.name}
+            >
+              Create
+            </button>
+            <button
+              className="btn btn-secondary ml-2"
+              onClick={() => setOpenCategoryCreateModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={openCategoryEditModal}
+        onClose={() => setOpenCategoryEditModal(false)}
+        aria-labelledby="edit-category-modal"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            width: "400px",
+          }}
+        >
+          <h2>Edit Equipment Category</h2>
+          <TextField
+            fullWidth
+            label="Name"
+            value={categoryEditFormData.name}
+            onChange={(e) =>
+              setCategoryEditFormData({
+                ...categoryEditFormData,
+                name: e.target.value,
+              })
+            }
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            value={categoryEditFormData.description}
+            onChange={(e) =>
+              setCategoryEditFormData({
+                ...categoryEditFormData,
+                description: e.target.value,
+              })
+            }
+            margin="normal"
+            multiline
+            rows={4}
+          />
+          <Select
+            fullWidth
+            value={categoryEditFormData.status}
+            onChange={(e) =>
+              setCategoryEditFormData({
+                ...categoryEditFormData,
+                status: e.target.value,
+              })
+            }
+            margin="normal"
+            style={{ marginTop: "16px" }}
+          >
+            <MenuItem value={1}>Active</MenuItem>
+            <MenuItem value={0}>Inactive</MenuItem>
+          </Select>
+          <div style={{ marginTop: "20px" }}>
+            <button
+              className="btn btn-info"
+              onClick={handleCategoryEdit}
+              disabled={!categoryEditFormData.name}
+            >
+              Save Changes
+            </button>
+            <button
+              className="btn btn-secondary ml-2"
+              onClick={() => setOpenCategoryEditModal(false)}
             >
               Cancel
             </button>
