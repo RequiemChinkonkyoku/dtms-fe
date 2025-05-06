@@ -11,6 +11,10 @@ import { useLoading } from "../../contexts/LoadingContext";
 
 import { BarChart } from "@mui/x-charts/BarChart";
 import { LineChart } from "@mui/x-charts";
+import CustomTable from "../../assets/components/common/CustomTable";
+import CustomFilter from "../../assets/components/common/CustomFilter";
+import CustomPagination from "../../assets/components/common/CustomPagination";
+import CustomSearch from "../../assets/components/common/CustomSearch";
 
 const StaffStatistics = () => {
   const getLast12Months = () => {
@@ -42,6 +46,45 @@ const StaffStatistics = () => {
   const [transactions, setTransactions] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [wishlists, setWishlists] = useState([]);
+  const [wishlistPage, setWishlistPage] = useState(0);
+  const [wishlistRowsPerPage, setWishlistRowsPerPage] = useState(5);
+  const [wishlistSearch, setWishlistSearch] = useState("");
+  const [wishlistFilter, setWishlistFilter] = useState("all");
+
+  useEffect(() => {
+    const fetchWishlists = async () => {
+      try {
+        const response = await axios.get("/api/wishlists");
+        if (response.data.success) {
+          // Process wishlists to count course occurrences
+          const courseCount = response.data.objectList.reduce(
+            (acc, wishlist) => {
+              const key = `${wishlist.courseId}-${wishlist.courseName}`;
+              acc[key] = (acc[key] || 0) + 1;
+              return acc;
+            },
+            {}
+          );
+
+          // Convert to array and sort by count
+          const sortedWishlists = Object.entries(courseCount)
+            .map(([key, count]) => ({
+              id: key.split("-")[0],
+              courseName: key.split("-")[1],
+              count: count,
+            }))
+            .sort((a, b) => b.count - a.count);
+
+          setWishlists(sortedWishlists);
+        }
+      } catch (error) {
+        console.error("Error fetching wishlists:", error);
+      }
+    };
+
+    fetchWishlists();
+  }, []);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -567,6 +610,114 @@ const StaffStatistics = () => {
                             vertical: true,
                             horizontal: true,
                             strokeDasharray: "3 3",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="card">
+                      <div className="card-header card-header-info card-header-icon">
+                        <div className="card-icon">
+                          <i className="material-icons">favorite</i>
+                        </div>
+                        <h4 className="card-title">Top Wishlisted Courses</h4>
+                        <p className="card-category text-muted">
+                          Most popular courses based on wishlist count
+                        </p>
+                      </div>
+                      <div className="card-body">
+                        <div className="d-flex justify-content-between mb-3">
+                          <div className="d-flex gap-3">
+                            <CustomSearch
+                              value={wishlistSearch}
+                              onChange={setWishlistSearch}
+                              placeholder="Search courses..."
+                              setPage={setWishlistPage}
+                            />
+                            <CustomFilter
+                              value={wishlistFilter}
+                              onChange={setWishlistFilter}
+                              options={[
+                                { value: "all", label: "All Counts" },
+                                { value: "high", label: "High (>5)" },
+                                { value: "medium", label: "Medium (3-5)" },
+                                { value: "low", label: "Low (1-2)" },
+                              ]}
+                              label="Filter by Count"
+                              setPage={setWishlistPage}
+                            />
+                          </div>
+                        </div>
+                        <CustomTable
+                          columns={[
+                            { key: "courseName", label: "Course Name" },
+                            {
+                              key: "count",
+                              label: "Wishlist Count",
+                              render: (value) => (
+                                <span className="badge badge-info">
+                                  {value}
+                                </span>
+                              ),
+                            },
+                          ]}
+                          data={wishlists
+                            .filter((item) => {
+                              const matchesSearch = item.courseName
+                                .toLowerCase()
+                                .includes(wishlistSearch.toLowerCase());
+
+                              const matchesFilter =
+                                wishlistFilter === "all"
+                                  ? true
+                                  : wishlistFilter === "high"
+                                    ? item.count > 5
+                                    : wishlistFilter === "medium"
+                                      ? item.count >= 3 && item.count <= 5
+                                      : item.count <= 2;
+
+                              return matchesSearch && matchesFilter;
+                            })
+                            .slice(
+                              wishlistPage * wishlistRowsPerPage,
+                              wishlistPage * wishlistRowsPerPage +
+                                wishlistRowsPerPage
+                            )}
+                          page={wishlistPage}
+                          rowsPerPage={wishlistRowsPerPage}
+                          orderBy="count"
+                          order="desc"
+                        />
+                        <CustomPagination
+                          count={
+                            wishlists.filter((item) => {
+                              const matchesSearch = item.courseName
+                                .toLowerCase()
+                                .includes(wishlistSearch.toLowerCase());
+
+                              const matchesFilter =
+                                wishlistFilter === "all"
+                                  ? true
+                                  : wishlistFilter === "high"
+                                    ? item.count > 5
+                                    : wishlistFilter === "medium"
+                                      ? item.count >= 3 && item.count <= 5
+                                      : item.count <= 2;
+
+                              return matchesSearch && matchesFilter;
+                            }).length
+                          }
+                          rowsPerPage={wishlistRowsPerPage}
+                          page={wishlistPage}
+                          onPageChange={(_, newPage) =>
+                            setWishlistPage(newPage)
+                          }
+                          onRowsPerPageChange={(e) => {
+                            setWishlistRowsPerPage(parseInt(e.target.value));
+                            setWishlistPage(0);
                           }}
                         />
                       </div>
