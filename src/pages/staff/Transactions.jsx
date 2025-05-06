@@ -57,24 +57,37 @@ const StaffTransactions = () => {
     setPage(0);
   };
 
-  const filteredData = transactions
-    .filter((transaction) =>
+  const filteredData = React.useMemo(() => {
+    const filtered = transactions.filter((transaction) =>
       Object.values(transaction).some((value) =>
         value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
       )
-    )
-    .sort((a, b) => {
+    );
+
+    return filtered.sort((a, b) => {
+      const aValue = a[orderBy];
+      const bValue = b[orderBy];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
       if (orderBy === "paymentTime") {
         return order === "asc"
-          ? new Date(a[orderBy]) - new Date(b[orderBy])
-          : new Date(b[orderBy]) - new Date(a[orderBy]);
+          ? new Date(aValue) - new Date(bValue)
+          : new Date(bValue) - new Date(aValue);
       }
-      if (order === "asc") {
-        return a[orderBy] < b[orderBy] ? -1 : 1;
-      } else {
-        return b[orderBy] < a[orderBy] ? -1 : 1;
+
+      if (orderBy === "totalAmount") {
+        return order === "asc"
+          ? Number(aValue) - Number(bValue)
+          : Number(bValue) - Number(aValue);
       }
+
+      return order === "asc"
+        ? aValue.toString().localeCompare(bValue.toString())
+        : bValue.toString().localeCompare(aValue.toString());
     });
+  }, [transactions, searchTerm, orderBy, order]);
 
   return (
     <>
