@@ -6,6 +6,7 @@ import { LoadingProvider } from "./contexts/LoadingContext";
 import Loader from "./assets/components/common/Loader";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import { toastConfig } from "./utils/toastConfig";
 
 function App() {
