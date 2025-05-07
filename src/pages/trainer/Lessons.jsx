@@ -75,14 +75,6 @@ const TrainerLessons = () => {
     setOrderBy(property);
   };
 
-  const getStatusClass = (status) => {
-    return status === 1 ? "text-success" : "text-warning";
-  };
-
-  const getStatusText = (status) => {
-    return status === 1 ? "Active" : "Inactive";
-  };
-
   const sortedLessons = React.useMemo(() => {
     const comparator = (a, b) => {
       if (orderBy === "createdTime") {
@@ -126,55 +118,6 @@ const TrainerLessons = () => {
 
     fetchLessons();
   }, []);
-
-  const handleStatusChange = async (lesson) => {
-    setSelectedLesson(lesson);
-    setOpenModal(true);
-  };
-
-  const handleConfirmStatusChange = async () => {
-    try {
-      const lessonResponse = await axios.get(
-        `/api/lessons/${selectedLesson.id}`
-      );
-      if (!lessonResponse.data.success) return;
-
-      const lessonData = lessonResponse.data.object;
-      const newStatus = selectedLesson.status === 0 ? 1 : 0;
-
-      const updatePayload = {
-        id: lessonData.id,
-        lessonTitle: lessonData.lessonTitle,
-        description: lessonData.description,
-        note: lessonData.notes,
-        environment: lessonData.environment,
-        duration: lessonData.duration,
-        objective: lessonData.objective,
-        skillId: lessonData.skillId,
-        status: newStatus,
-        lessonEquipmentDTOs: lessonData.lessonEquipments.map((eq) => ({
-          equipmentId: eq.equipmentId,
-          quantity: eq.quantity,
-        })),
-      };
-
-      const response = await axios.put("/api/lessons", updatePayload);
-      if (response.data.success) {
-        setLessons(
-          lessons.map((lesson) =>
-            lesson.id === selectedLesson.id
-              ? { ...lesson, status: newStatus }
-              : lesson
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error updating lesson status:", error);
-    } finally {
-      setOpenModal(false);
-      setSelectedLesson(null);
-    }
-  };
 
   return (
     <>
@@ -250,15 +193,6 @@ const TrainerLessons = () => {
                               },
                               { key: "duration", label: "Duration (slots)" },
                               {
-                                key: "status",
-                                label: "Status",
-                                render: (value, row) => (
-                                  <span className={getStatusClass(row.status)}>
-                                    {getStatusText(row.status)}
-                                  </span>
-                                ),
-                              },
-                              {
                                 key: "createdTime",
                                 label: "Created Date",
                                 render: (value) => formatDate(value),
@@ -272,21 +206,6 @@ const TrainerLessons = () => {
                             onSort={handleSort}
                             renderActions={(row) => (
                               <>
-                                <button
-                                  type="button"
-                                  rel="tooltip"
-                                  className={`btn ${row.status === 0 ? "btn-warning" : "btn-success"} btn-sm`}
-                                  onClick={() => handleStatusChange(row)}
-                                  title={
-                                    row.status === 1 ? "Deactivate" : "Activate"
-                                  }
-                                >
-                                  <i className="material-icons">
-                                    {row.status === 0
-                                      ? "toggle_off"
-                                      : "toggle_on"}
-                                  </i>
-                                </button>
                                 <button
                                   type="button"
                                   rel="tooltip"
@@ -321,28 +240,6 @@ const TrainerLessons = () => {
           </div>
         </div>
       </body>
-      <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-        <DialogTitle>Confirm Change</DialogTitle>
-        <DialogContent>
-          Are you sure you want to{" "}
-          {selectedLesson?.status === 1 ? "deactivate" : "activate"} the lesson
-          "{selectedLesson?.lessonTitle}"?
-        </DialogContent>
-        <DialogActions>
-          <button
-            className="btn btn-default"
-            onClick={() => setOpenModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-            className={`btn ${selectedLesson?.status === 1 ? "btn-warning" : "btn-success"}`}
-            onClick={handleConfirmStatusChange}
-          >
-            Confirm
-          </button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

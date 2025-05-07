@@ -177,7 +177,13 @@ const StaffDogsDetails = () => {
                             <div className="form-group">
                               <label>Registration Time</label>
                               <p className="form-control-static">
-                                {dog.registrationTime.split(" ")[0]}
+                                {new Date(
+                                  dog.registrationTime
+                                ).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })}{" "}
                               </p>
                             </div>
                           </div>
