@@ -10,10 +10,12 @@ import CustomPagination from "../../assets/components/common/CustomPagination";
 import CustomTable from "../../assets/components/common/CustomTable";
 import CustomSearch from "../../assets/components/common/CustomSearch";
 import CustomFilter from "../../assets/components/common/CustomFilter";
+import { Modal, TextField, Select, MenuItem, Dialog } from "@mui/material";
 
 import { useNavigate } from "react-router-dom";
 import { useLoading } from "../../contexts/LoadingContext";
 import { softDelay } from "../../utils/softDelay";
+import { showToast } from "../../utils/toastConfig";
 
 const Accounts = () => {
   const navigate = useNavigate();
@@ -40,6 +42,86 @@ const Accounts = () => {
   const [documentOrder, setDocumentOrder] = useState("desc");
   const [documentSearchTerm, setDocumentSearchTerm] = useState("");
   const [customerDetails, setCustomerDetails] = useState({});
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    fullName: "",
+    phoneNumber: "",
+    address: "",
+    dateOfBirth: "",
+    gender: "",
+    roleName: "",
+    imageUrl:
+      "https://res.cloudinary.com/djy6ydaxz/image/upload/v1744168717/waccatxqnji44dxgwxhf.png",
+  });
+  const [formErrors, setFormErrors] = useState({
+    username: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+  });
+
+  const handleCreate = async () => {
+    try {
+      const response = await axios.post("/api/accounts", createFormData);
+      if (response.data.success) {
+        // Close modal first
+        setOpenCreateModal(false);
+
+        // Reset form
+        setCreateFormData({
+          username: "",
+          email: "",
+          password: "",
+          fullName: "",
+          phoneNumber: "",
+          address: "",
+          dateOfBirth: "",
+          gender: "",
+          roleName: "",
+          imageUrl:
+            "https://res.cloudinary.com/djy6ydaxz/image/upload/v1744168717/waccatxqnji44dxgwxhf.png",
+        });
+
+        // Show success message
+        showToast.success("Account created successfully!");
+
+        // Reload the accounts list
+        await fetchAccounts();
+      }
+    } catch (error) {
+      console.error("Error creating account:", error);
+      showToast.error("Failed to create account");
+    }
+  };
+
+  const validateForm = (formData = createFormData) => {
+    const errors = {};
+
+    if (accounts.some((acc) => acc.username === formData.username)) {
+      errors.username = "Username already exists";
+    }
+
+    if (accounts.some((acc) => acc.email === formData.email)) {
+      errors.email = "Email already exists";
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9]).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      errors.password =
+        "Password must be at least 8 characters with 1 uppercase, 1 special character, and 1 number";
+    }
+
+    const phoneRegex = /^\d{9,11}$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      errors.phoneNumber = "Phone number must be between 9-11 digits";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const [currentDate] = useState(
     new Date().toLocaleDateString("en-US", {
@@ -167,7 +249,9 @@ const Accounts = () => {
 
       try {
         const response = await axios.get("/api/accounts");
-        const accountsData = response.data;
+        const accountsData = response.data.filter(
+          (acc) => acc.roleId !== "d1e2f3a4b5c67890d1e2f3a4b5c67890"
+        );
         setAccounts(accountsData);
 
         const total = accountsData.length;
@@ -425,7 +509,6 @@ const Accounts = () => {
                                   label="Role"
                                   options={[
                                     { value: "all", label: "All Roles" },
-                                    { value: "admin", label: "Admin" },
                                     { value: "staff", label: "Staff" },
                                     { value: "trainer", label: "Trainer" },
                                     { value: "customer", label: "Customer" },
@@ -440,11 +523,14 @@ const Accounts = () => {
                                     { value: "all", label: "All Status" },
                                     { value: "1", label: "Active" },
                                     { value: "0", label: "Inactive" },
-                                    { value: "-1", label: "Disabled" },
+                                    { value: "2", label: "Deactivated" },
                                   ]}
                                 />
                               </div>
-                              <button className="btn btn-info">
+                              <button
+                                className="btn btn-info"
+                                onClick={() => setOpenCreateModal(true)}
+                              >
                                 <i className="material-icons">add</i> Create
                                 Account
                               </button>
@@ -487,18 +573,29 @@ const Accounts = () => {
                               orderBy={orderBy}
                               order={order}
                               onSort={handleSort}
-                              renderActions={(row) => (
-                                <button
-                                  type="button"
-                                  rel="tooltip"
-                                  className="btn btn-info btn-sm"
-                                  data-original-title="View Details"
-                                  title="View Details"
-                                  onClick={() => handleViewDetails(row)}
-                                >
-                                  <i className="material-icons">more_vert</i>
-                                </button>
-                              )}
+                              renderActions={(row) => {
+                                // Don't show action button for Staff Manager and Staff Employee
+                                if (
+                                  row.roleId ===
+                                    "67890d1e2f3a4b5c67890d1e2f3a4b5c" ||
+                                  row.roleId ===
+                                    "c67890d1e2f3a4b5c67890d1e2f3a4b5"
+                                ) {
+                                  return null;
+                                }
+                                return (
+                                  <button
+                                    type="button"
+                                    rel="tooltip"
+                                    className="btn btn-info btn-sm"
+                                    data-original-title="View Details"
+                                    title="View Details"
+                                    onClick={() => handleViewDetails(row)}
+                                  >
+                                    <i className="material-icons">more_vert</i>
+                                  </button>
+                                );
+                              }}
                             />
                             <CustomPagination
                               count={sortedAccounts.length}
@@ -654,6 +751,198 @@ const Accounts = () => {
           </div>
         </div>
       </body>
+      <Dialog
+        open={openCreateModal}
+        onClose={() => setOpenCreateModal(false)}
+        aria-labelledby="create-account-modal"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            width: "500px",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }}
+        >
+          <h3>Create New Account</h3>
+          <TextField
+            fullWidth
+            label="Username"
+            value={createFormData.username}
+            onChange={(e) => {
+              const newFormData = {
+                ...createFormData,
+                username: e.target.value,
+              };
+              setCreateFormData(newFormData);
+              validateForm(newFormData);
+            }}
+            margin="normal"
+            required
+            error={!!formErrors.username}
+            helperText={formErrors.username}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            type="email"
+            value={createFormData.email}
+            onChange={(e) => {
+              const newFormData = { ...createFormData, email: e.target.value };
+              setCreateFormData(newFormData);
+              validateForm(newFormData);
+            }}
+            margin="normal"
+            required
+            error={!!formErrors.email}
+            helperText={formErrors.email}
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            value={createFormData.password}
+            onChange={(e) => {
+              const newFormData = {
+                ...createFormData,
+                password: e.target.value,
+              };
+              setCreateFormData(newFormData);
+              validateForm(newFormData);
+            }}
+            margin="normal"
+            required
+            error={!!formErrors.password}
+            helperText={formErrors.password}
+          />
+          <TextField
+            fullWidth
+            label="Full Name"
+            value={createFormData.fullName}
+            onChange={(e) =>
+              setCreateFormData({ ...createFormData, fullName: e.target.value })
+            }
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Phone Number"
+            value={createFormData.phoneNumber}
+            onChange={(e) => {
+              const newFormData = {
+                ...createFormData,
+                phoneNumber: e.target.value,
+              };
+              setCreateFormData(newFormData);
+              validateForm(newFormData);
+            }}
+            margin="normal"
+            required
+            error={!!formErrors.phoneNumber}
+            helperText={formErrors.phoneNumber}
+          />
+          <TextField
+            fullWidth
+            label="Address"
+            value={createFormData.address}
+            onChange={(e) =>
+              setCreateFormData({ ...createFormData, address: e.target.value })
+            }
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            type="date"
+            label="Date of Birth"
+            value={createFormData.dateOfBirth}
+            onChange={(e) =>
+              setCreateFormData({
+                ...createFormData,
+                dateOfBirth: e.target.value,
+              })
+            }
+            margin="normal"
+            required
+            InputLabelProps={{ shrink: true }}
+            inputProps={{
+              max: new Date().toISOString().split("T")[0], // Sets max date to today
+            }}
+          />
+          <Select
+            fullWidth
+            value={createFormData.gender}
+            onChange={(e) =>
+              setCreateFormData({ ...createFormData, gender: e.target.value })
+            }
+            margin="normal"
+            style={{ marginTop: "16px" }}
+            displayEmpty
+          >
+            <MenuItem value="" disabled>
+              Select Gender
+            </MenuItem>
+            <MenuItem value={0}>Male</MenuItem>
+            <MenuItem value={1}>Female</MenuItem>
+          </Select>
+          <Select
+            fullWidth
+            value={createFormData.roleName}
+            onChange={(e) =>
+              setCreateFormData({ ...createFormData, roleName: e.target.value })
+            }
+            margin="normal"
+            style={{ marginTop: "16px" }}
+            displayEmpty
+          >
+            <MenuItem value="" disabled>
+              Select Role
+            </MenuItem>
+            <MenuItem value="Staff_Manager">Staff_Manager</MenuItem>
+            <MenuItem value="Staff_Employee">Staff_Employee</MenuItem>
+            <MenuItem value="Trainer_Lead">Trainer_Lead</MenuItem>
+            <MenuItem value="Trainer_Member">Trainer_Member</MenuItem>
+            <MenuItem value="Customer_Individual">Customer_Individual</MenuItem>
+            <MenuItem value="Customer_Organizational">
+              Customer_Organization
+            </MenuItem>
+          </Select>
+          <div style={{ marginTop: "20px" }}>
+            <button
+              className="btn btn-info"
+              onClick={handleCreate}
+              disabled={
+                !createFormData.username ||
+                !createFormData.email ||
+                !createFormData.password ||
+                !createFormData.fullName ||
+                !createFormData.phoneNumber ||
+                !createFormData.address ||
+                !createFormData.dateOfBirth ||
+                createFormData.gender === "" || // Changed this line
+                !createFormData.roleName ||
+                Object.keys(formErrors).length > 0
+              }
+            >
+              Create
+            </button>
+            <button
+              className="btn btn-secondary ml-2"
+              onClick={() => setOpenCreateModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </>
   );
 };

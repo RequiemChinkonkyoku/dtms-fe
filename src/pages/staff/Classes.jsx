@@ -30,7 +30,7 @@ const CLASS_STATUS = {
 const StaffClasses = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("createdTime");
   const [order, setOrder] = useState("asc");
   const [filterText, setFilterText] = useState("");
   const [classes, setClasses] = useState([]);
@@ -100,7 +100,6 @@ const StaffClasses = () => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-    data;
   };
 
   const handleChangePage = (event, newPage) => {
@@ -122,11 +121,14 @@ const StaffClasses = () => {
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      if (order === "asc") {
-        return a[orderBy] > b[orderBy] ? 1 : -1;
-      } else {
-        return b[orderBy] > a[orderBy] ? 1 : -1;
-      }
+      const aValue = a[orderBy];
+      const bValue = b[orderBy];
+
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      const multiplier = order === "asc" ? 1 : -1;
+      return multiplier * (aValue > bValue ? 1 : -1);
     });
 
   return (
@@ -373,6 +375,12 @@ const StaffClasses = () => {
                                       {CLASS_STATUS[value]?.label || "Unknown"}
                                     </span>
                                   ),
+                                },
+                                {
+                                  key: "createdTime",
+                                  label: "Created Date",
+                                  render: (value) =>
+                                    new Date(value).toLocaleDateString(),
                                 },
                               ]}
                               data={filteredData}
