@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "../../utils/axiosConfig";
 import "../../assets/css/material-dashboard.min.css";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import Loader from "../../assets/components/common/Loader";
 import Sidebar from "../../assets/components/staff/Sidebar";
@@ -48,6 +49,7 @@ function CustomDay(props) {
 }
 
 const StaffDashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [accountDetails, setAccountDetails] = useState(null);
   const [counts, setCounts] = useState({
@@ -308,7 +310,7 @@ const StaffDashboard = () => {
                       </div>
                     </div>
                     <div class="row">
-                      <div class="col-md-8">
+                      <div class="col-md-12">
                         <div class="card">
                           <div className="card-header card-header-warning">
                             <h4 className="card-title">Today's classes</h4>
@@ -356,58 +358,16 @@ const StaffDashboard = () => {
                                         )}
                                       </td>
                                       <td>
-                                        <button className="btn btn-info btn-sm">
+                                        <button
+                                          className="btn btn-info btn-sm"
+                                          onClick={() =>
+                                            navigate(
+                                              `/staff/classes/details/${classItem.id}`
+                                            )
+                                          }
+                                        >
                                           View Details
                                         </button>
-                                      </td>
-                                    </tr>
-                                  ))
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-4">
-                        <div class="card">
-                          <div className="card-header card-header-warning">
-                            <h4 className="card-title">Upcoming classes</h4>
-                            <p className="card-category">
-                              Starting date in 1 month
-                            </p>
-                          </div>
-                          <div className="card-body table-responsive">
-                            <table className="table table-hover">
-                              {/* <thead className="text-warning">
-                                <tr>
-                                  <th>Class Name</th>
-                                  <th>Action</th>
-                                </tr>
-                              </thead> */}
-                              <tbody>
-                                {upcomingClasses.length === 0 ? (
-                                  <tr>
-                                    <td className="text-center">
-                                      No upcoming classes
-                                    </td>
-                                  </tr>
-                                ) : (
-                                  upcomingClasses.map((classItem) => (
-                                    <tr key={classItem.id}>
-                                      <td>
-                                        <p className="mb-0">
-                                          <strong>{classItem.name}</strong>
-                                        </p>
-                                        <small className="text-muted">
-                                          {classItem.courseName}
-                                        </small>
-                                        <br />
-                                        <small className="text-info">
-                                          Starts:{" "}
-                                          {new Date(
-                                            classItem.startingDate
-                                          ).toLocaleDateString()}
-                                        </small>
                                       </td>
                                     </tr>
                                   ))
